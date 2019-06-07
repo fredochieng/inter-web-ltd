@@ -240,6 +240,25 @@
         // $("#bank_payment_acc").addClass("hide");
         }
         });
+
+        // SELECTION OF MONTHLY + COMPOUNDED INVESTMENT TYPE
+        $("#inv_type_id").change(function() {
+        var val = $(this).val();
+            if (val == 3 ) {
+            $("#monthly_inv_amount_div").removeClass("hide");
+            $("#monthly_inv_duration_div").removeClass("hide");
+            $("#compounded_inv_amount_div").removeClass("hide");
+            $("#compounded_inv_duration_div").removeClass("hide");
+            // $("#inv_bank_trans_id").addClass("hide");
+            // $("#cheq_no_inv_div").addClass("hide");
+            }else{
+            $("#monthly_inv_amount_div").addClass("hide");
+            $("#monthly_inv_duration_div").addClass("hide");
+            $("#compounded_inv_amount_div").addClass("hide");
+            $("#compounded_inv_duration_div").addClass("hide");
+
+            }
+        });
  })
 </script>
 <script type="text/javascript">
@@ -264,8 +283,6 @@
                     $('.error').addClass('amtwarning');
                 }
 			});
-
-
 
       $(".prev-step").click(function (e) {
         var $active = $('.nav-tabs li.active');

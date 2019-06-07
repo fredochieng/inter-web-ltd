@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'Dashboard - BManager')
+@section('title', 'Dashboard - Inter Web Ltd')
 
 @section('content_header')
     <h1>Dashboard</h1>
@@ -34,7 +34,7 @@
                 <span class="info-box-icon"><i class="ion ion-cash"></i></i></span>
                 <div class="info-box-content">
                     <span class="info-box-text"><b>Payments Made</b></span>
-                    <span class="info-box-number">Kshs {{ $total_payments }}</span>
+                    <span class="info-box-number">Kshs {{ $sum_tot_payments }}</span>
                     <div class="progress">
                         <div class="progress-bar" style="width: 17.391304347826%"></div>
                     </div>
@@ -52,7 +52,7 @@
                 <span class="info-box-icon"><i class="fa fa-dollar"></i><i class="fa fa-exclamation"></i></i></span>
                 <div class="info-box-content">
                     <span class="info-box-text"><b>Due Payments</b></span>
-                    <span class="info-box-number">Kshs {{ $sum_total_payout }}</span>
+                    <span class="info-box-number">Kshs {{ $sum_tot_due_payments }}</span>
                     <div class="progress">
                         <div class="progress-bar" style="width: 0%"></div>
                     </div>

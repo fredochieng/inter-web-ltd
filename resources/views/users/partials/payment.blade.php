@@ -1,7 +1,7 @@
 <div class="col-md-12">
     <div class="row">
         <div class="row">
-           {{--  <div class="col-md-4">
+            <!-- <div class="col-md-4">
             {{Form::label('Payment Mode ')}}
             <div class="form-group">
                 <select class="form-control select2" id="pay_mode_id" name="pay_mode_id" required style="width: 100%;" tabindex="-1"
@@ -12,7 +12,7 @@
                     @endforeach
                 </select>
             </div>
-        </div>  --}}
+        </div> -->
         <div class="col-md-4" id="">
             <div class="form-group">
                 <div class="form-group col-md-12">

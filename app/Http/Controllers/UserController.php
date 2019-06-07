@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\User;
 use App\Model\Report;
-use App\Model\UserDetail;
+use App\Model\UserDetails;
 use App\Model\Account;
 use App\Model\Investment;
 use App\Model\InvestmentType;
@@ -31,31 +31,54 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data['active_clients'] = User::getActiveCustomers();
-        $data['inactive_clients'] = User::getInactiveCustomers();
-        $data['payment_mode'] = PaymentMethod::getPaymentMethods();
-        $data['banks'] = Bank::getBanks();
-        $data['payment_modes'] = DB::table('payment_methods')->pluck('method_name', 'method_id')->all();
-        // $data['inactive_clients']->map(function ($item) {
-        //     $created_name = DB::table('users_details')
-        //         ->select(
-        //             DB::raw('users.name as created_by_name')
-        //         )
-        //         ->leftJoin('users', 'users_details.created_by', '=', 'users.id')
-        //         ->get();
-        //     return $item;
-        //     foreach ($created_name as $key => $value) {
-        //         echo "<pre>";
-        //         print_r($value);
-        //         exit;
-        //     }
-        // });
-        //  echo "<pre>";
-        //        print_r($data['active_clients']);
-        //    exit;
+        // $data['clients'] = User::getClients();
+        // $data['payment_mode'] = PaymentMethod::getPaymentMethods();
+        // $data['banks'] = Bank::getBanks();
+        // $data['payment_modes'] = DB::table('payment_methods')->pluck('method_name', 'method_id')->all();
 
+        // SEARCH CLIENTS
+        $data['clients']=array();
+		$found_data='yes';
+
+
+		if(isset($_GET['find_client'])){
+
+			$validate_array=array('find_client_by'=>'required',	'find_value'=>'required',);
+			$find_by=$request->get('find_client_by');
+			$find_by_value=$request->get('find_value');
+
+
+			if($find_by=='id_no'){
+				$validate_array['find_value']='required|integer';
+			}
+
+			if($find_by=='name' || $find_by=='account_no' || $find_by=='phone_no'){
+				$validate_array['find_value']='required';
+			}
+
+            $this->validate($request,$validate_array);
+
+            // QUERIED CLIENT(S) FROM USER MODEL
+			$data=User::find_clients($request);
+
+
+			if(count($data) == 0 ){
+                    $find_by_value=$request->get('find_value');
+                    // Alert::error('Search Client', 'Oops!!! No client found matching your entry');
+                    toast('No client found matching your entry','warning','top-right');
+				return redirect("customers?find_client_by={$find_by}&find_value={$find_by_value}");
+			}else{
+			$data['clients']=$data;
+            if(count($data['clients'] )== 1){
+                // Alert::success('Search Client', 'Client found matching your entry');
+                toast('Client found matching your entry','success','top-right');
+                return redirect('client/'.$data['clients'][0]->id.'/edit');}
+            }
+        }
+
+    //   $data['client_details'] = User::get_telephone();
         return view('users.index')->with($data);
     }
 
@@ -69,19 +92,10 @@ class UserController extends Controller
                 DB::raw('telephone as text'),
                 DB::raw('users_details.user_id as id'),
                 DB::raw('users.name as referer_name')
-                // DB::raw('users_details.id_ as user_telephone')
-                // DB::raw('sum(investment_amount) as user_sum,
-                //         sum(payout) as user_payout,
-                //         sum(total_payout) as user_total_payout, account_no_id ')
             )
             ->join('users', 'users_details.user_id', '=', 'users.id')
-            // ->join('users_details', 'users.id', '=', 'users_details.user_id')
-            // ->Join('investments', 'accounts.id', '=', 'investments.account_no_id')
             ->where('telephone', 'like', $search_term)
-            // ->groupBy('investments.account_no_id')
             ->get();
-
-        // $user_investments = Report::customerReport();
 
         echo json_encode($data);
         exit;
@@ -165,7 +179,6 @@ class UserController extends Controller
             $user = new User();
             $user->name = strtoupper($request->input('name'));
             $user->email = $request->input('email');
-            $user->status = 0;
             $user->refered_by = $request->input('referer_id');
             $password = "12345678";
             $user->password = Hash::make($password);
@@ -225,42 +238,22 @@ class UserController extends Controller
             );
             $save_user_details_data = DB::table('users_details')->insertGetId($users_details_data);
 
-            // SAVE USER UNIQUE ACCOUNT (GENERATED ACCOUNT DATA)
-            $users_accounts_data = array(
-                'user_id' => $saved_user_id,
-                'account_no' => $user->account_no,
-            );
-            $save_user_account_data = DB::table('accounts')->insertGetId($users_accounts_data);
+            if ($user->inv_type_id == 1) {
 
-            if($user->inv_type_id==1){
-                // CALCULATE LAST PAYMENT DATE
                 $inv_duration =  $request->input('inv_duration');
-                $inv_date =  $request->input('inv_date');
-                $last_pay_date = Carbon::parse($inv_date)->addMonths($inv_duration);
-
                 // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT TYPE
                 $inv_amount =  $request->input('inv_amount');
                 $monthly_pay = 0.2 * $inv_amount;
                 $total_pay = $monthly_pay * $inv_duration;
 
-                // GET ALL THE PAYMENT DATES FOR A USER (MONTHLY INVESTMENT TYPE)
-                $inv_date = Carbon::parse($inv_date);
 
-                for ($i = 0; $i < $inv_duration; $i++) {
-                    $pay_dates[] = $inv_date->addMonths()->format('Y-m-d');
-                }
-                $pay_dates = json_encode($pay_dates);
-
-                // SAVE USER PREFERED MODE OF PAYMENT
-                $user_payment_mode = array(
-                    'user_id' => $saved_user_id,
-                    'pay_mode_id' => $user->pay_mode_id,
-                    'pay_mpesa_no' => $user->pay_mpesa_no,
-                    'pay_bank_id' => $user->pay_bank_id,
-                    'pay_bank_acc' => $user->pay_bank_acc,
-                    'pay_dates' => $pay_dates
-                );
-                $save_user_payment_data = DB::table('user_pay_modes')->insertGetId($user_payment_mode);
+                 // SAVE USER UNIQUE ACCOUNT (GENERATED ACCOUNT DATA)
+            $users_accounts_data = array(
+                'user_id' => $saved_user_id,
+                'account_no' => $user->account_no,
+                'total_due_payments' =>$total_pay
+            );
+            $save_user_account_data = DB::table('accounts')->insertGetId($users_accounts_data);
 
                 // SAVE USER PAYMENT SCHEDULE
                 $user_payment_schedule = array(
@@ -270,24 +263,106 @@ class UserController extends Controller
                 );
 
                 $save_user_payment_schedule = DB::table('payment_schedule')->insertGetId($user_payment_schedule);
-            }elseif($user->inv_type_id == 1){
-                //  // CALCULATION OF COMPOND INTEREST
-                //  $investment = 60000;
-                //  $year = 1;
-                //  $rate = 15;
-                //  $n = 12;
-                //  function interest($investment, $year, $rate, $n){
-                //      $accummulated = 0;
-                //      if($year > 1){
-                //          $accummulated = interest($investment, $year-1, $rate, $n);
-                //      }
-                //      $accummulated += $investment;
-                //      $accummulated = $accummulated * pow(1 + $rate/(100 * $n),$n);
-                //     //  return $accummulated;
-                //     echo $accummulated;
-                //  }
-                //  exit;
+
+            } elseif ($user->inv_type_id == 2) {
+                // CALCULATION OF COMPOUND INTEREST MONTHLY
+                $principal = $user->investment_amount;
+                $interestRate = 0.2;
+                $term = $user->investment_duration;
+
+                $accu_interest_array = array();
+                for ($i = 0; $i < $term; $i++) {
+                    $total = $principal * $interestRate;
+                    $principal += $total;
+                    $accu_interest_array[] = (int)$total;
+                }
+                $monthly_payment = json_encode($accu_interest_array);
+                $total_comp_int = json_encode(array_sum($accu_interest_array));
+
+                     // SAVE USER UNIQUE ACCOUNT (GENERATED ACCOUNT DATA)
+            $users_accounts_data = array(
+                'user_id' => $saved_user_id,
+                'account_no' => $user->account_no,
+                'total_due_payments' =>$total_comp_int
+            );
+            $save_user_account_data = DB::table('accounts')->insertGetId($users_accounts_data);
+
+                // SAVE USER PAYMENT SCHEDULE
+                $user_payment_schedule = array(
+                    'account_no_id' => $save_user_account_data,
+                    'tot_payable_amnt' => $total_comp_int,
+                    'comp_monthly_pay' => $monthly_payment
+                );
+
+                $save_user_payment_schedule = DB::table('payment_schedule')->insertGetId($user_payment_schedule);
+            }elseif($user->inv_type_id == 3){
+            // GET INVESTMENT DATA FOR MONTHLY PLUS COMPOUNDEDE INV TYPE
+            $monthly_inv_amount = $request->input('monthly_inv_amount');
+            $monthly_inv_duration = $request->input('monthly_inv_duration');
+            $compounded_inv_amount =  $user->investment_amount -  $monthly_inv_amount;
+            $compounded_inv_duration = $request->input('compounded_inv_duration');
+
+            // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT
+            $monthly_inv_pay = 0.2 * $monthly_inv_amount;
+            $total_monthly_pay = $monthly_inv_pay * $monthly_inv_duration;
+
+            $principal = $compounded_inv_amount;
+            $interestRate = 0.2;
+            $term =$compounded_inv_duration;
+
+            $accu_interest_array = array();
+            for ($i = 0; $i < $term; $i++) {
+                $total = $principal * $interestRate;
+                $principal += $total;
+                $accu_interest_array[] = (int)$total;
             }
+            $monthly_payment = json_encode($accu_interest_array);
+            $total_comp_int = json_encode(array_sum($accu_interest_array));
+
+            $total_due_pay = $total_comp_int + $total_monthly_pay;
+
+                      // SAVE USER UNIQUE ACCOUNT (GENERATED ACCOUNT DATA)
+                      $users_accounts_data = array(
+                        'user_id' => $saved_user_id,
+                        'account_no' => $user->account_no,
+                        'total_due_payments' =>$total_due_pay
+                    );
+                    $save_user_account_data = DB::table('accounts')->insertGetId($users_accounts_data);
+
+                        // SAVE USER PAYMENT SCHEDULE
+                        $user_payment_schedule = array(
+                            'account_no_id' => $save_user_account_data,
+                            'tot_payable_amnt' => $total_due_pay,
+                            'monthly_amount' => $monthly_inv_pay,
+                            'comp_monthly_pay' => $monthly_payment
+                        );
+
+                        $save_user_payment_schedule = DB::table('payment_schedule')->insertGetId($user_payment_schedule);
+            }
+
+            // CALCULATE LAST PAYMENT DATE
+            $inv_duration =  $request->input('inv_duration');
+            $inv_date =  $request->input('inv_date');
+            $last_pay_date = Carbon::parse($inv_date)->addMonths($inv_duration);
+
+            // GET ALL THE PAYMENT DATES FOR A USER (MONTHLY INVESTMENT TYPE)
+            $inv_date = Carbon::parse($inv_date);
+
+            for ($i = 0; $i < $inv_duration; $i++) {
+                $pay_dates[] = $inv_date->addMonths()->format('Y-m-d');
+            }
+            $pay_dates = json_encode($pay_dates);
+
+            // SAVE USER PREFERED MODE OF PAYMENT
+            $user_payment_mode = array(
+                'user_id' => $saved_user_id,
+                'pay_mode_id' => $user->pay_mode_id,
+                'pay_mpesa_no' => $user->pay_mpesa_no,
+                'pay_bank_id' => $user->pay_bank_id,
+                'pay_bank_acc' => $user->pay_bank_acc,
+                'pay_dates' => $pay_dates
+            );
+            $save_user_payment_data = DB::table('user_pay_modes')->insertGetId($user_payment_mode);
 
             // SAVE USER INVESTMENTS
             $investments_data = array(
@@ -303,6 +378,7 @@ class UserController extends Controller
                 'bank_trans_code' => $user->bank_trans_code,
                 'inv_bank_cheq_id' => $user->inv_bank_cheq_id,
                 'cheque_no' => $user->cheque_no,
+                'initiated_by' => Auth::user()->id,
                 'last_pay_date' => date('Y-m-d', strtotime($last_pay_date))
             );
             $save_investment_data = DB::table('investments')->insertGetId($investments_data);
@@ -351,7 +427,7 @@ class UserController extends Controller
             ->leftJoin('banks', 'user_pay_modes.pay_bank_id', '=', 'banks.bank_id')
             ->where('users.id', '=', $id)->first();
 
-            //  $data['pay_dates'] = UserPayMode::where('user_id', $id)->first();
+        //  $data['pay_dates'] = UserPayMode::where('user_id', $id)->first();
 
         $pay_dates = DB::table('user_pay_modes')
             ->select(
@@ -396,17 +472,17 @@ class UserController extends Controller
             ->where('users.id', '=', $id)
             ->first();
 
-        $data['customer_payments'] = DB::table('payments')
-            ->select(
-                DB::raw('sum(payment_amount) as total_payments_made, account_no_id '),
-                DB::raw('accounts.*'),
-                DB::raw('users.*')
-            )
+        // $data['customer_payments'] = DB::table('payments')
+        //     ->select(
+        //         DB::raw('sum(payment_amount) as total_payments_made, account_no_id '),
+        //         DB::raw('accounts.*'),
+        //         DB::raw('users.*')
+        //     )
 
-            ->leftJoin('accounts', 'payments.account_no_id', 'accounts.id')
-            ->leftJoin('users', 'accounts.user_id', 'users.id')
-            ->where('users.id', '=', $id)
-            ->first();
+        //     ->leftJoin('accounts', 'payments.account_no_id', 'accounts.id')
+        //     ->leftJoin('users', 'accounts.user_id', 'users.id')
+        //     ->where('users.id', '=', $id)
+        //     ->first();
 
         $data['customer_trans'] = DB::table('investments')
             ->select(
@@ -429,9 +505,261 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit($id = null)
     {
-        //
+        // GET PAYMENT METHODS AND BANKS
+        $data['payment_mode'] = PaymentMethod::getPaymentMethods();
+        $data['banks'] = Bank::getBanks();
+
+        // FETCH CLIENTS DETAILS
+        $data['customer_data'] = DB::table('users')
+            ->select(
+                DB::raw('users.*'),
+                DB::raw('users_details.*'),
+                DB::raw('accounts.*'),
+                DB::raw('investments.*'),
+                DB::raw('user_pay_modes.*'),
+                DB::raw('inv_types.*'),
+                DB::raw('payment_schedule.monthly_amount'),
+                DB::raw('payment_methods.*'),
+                DB::raw('banks.*')
+            )
+            ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
+            ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')
+            ->leftJoin('investments', 'accounts.id', '=', 'investments.account_no_id')
+            ->leftJoin('inv_types', 'investments.inv_type_id', '=', 'inv_types.inv_id')
+            ->leftJoin('user_pay_modes', 'users.id', '=', 'user_pay_modes.user_id')
+            ->leftJoin('payment_schedule', 'accounts.id', '=', 'payment_schedule.account_no_id')
+            ->leftJoin('payment_methods', 'user_pay_modes.pay_mode_id', '=', 'payment_methods.method_id')
+            ->leftJoin('banks', 'user_pay_modes.pay_bank_id', '=', 'banks.bank_id')
+            ->where('users.id', '=', $id)->first();
+
+
+        // GET CLIENT PAYMENT DATES AND TOTAL AMOUNTS PAID FOR CLIENT (DATE THE CLIENT WAS PAID)
+        $user_pay_dates = DB::table('payments')
+            ->select(
+                DB::raw('payments.*'),
+                DB::raw('accounts.id as acc_id'),
+                DB::raw('users.id as user_idd')
+            )
+
+            ->leftJoin('accounts', 'payments.account_no_id', 'accounts.id')
+            ->leftJoin('users', 'accounts.user_id', 'users.id')
+            ->where('users.id', '=', $id)
+            ->get();
+
+            // FETCHES ALL THE DATES THE CLIENT WAS PAID
+        $user_pay_dates = json_decode(json_encode($user_pay_dates), true);
+        $user_pay_dates = array_column($user_pay_dates, 'user_pay_date');
+
+        $pay_dates = DB::table('user_pay_modes')
+            ->select(
+                DB::raw('user_pay_modes.pay_dates')
+            )
+            ->where('user_pay_modes.user_id', '=', $id)
+            ->first();
+
+        $pay_dates = explode(';',  $pay_dates->pay_dates);
+        $pay_dates = array_filter(array_map('trim', $pay_dates));
+        $pay_dates = str_replace('["', '', $pay_dates);
+        $pay_dates = str_replace('"]', '', $pay_dates);
+        $pay_dates = str_replace('","', ',', $pay_dates);
+
+        foreach ($pay_dates as $key => $value) {
+            $pay_dates = ($value);
+        }
+
+        $pay_dates = explode(',', $pay_dates);
+
+
+        // GET THE NEXT PAYMENT DATE FOR THE CLIENT
+        // CHECK IF THE PAYMENT DATE EXISTS, IF YES SKIP AND PICK THE LEAST DATE
+        $data['next_pay_date'] = min(array_diff($pay_dates, $user_pay_dates));
+
+        // GET CLIENT TOTAL INVESMENTS
+        $data['customer_investments'] = DB::table('investments')
+            ->select(
+                DB::raw('sum(investment_amount) as user_sum, account_no_id '),
+                DB::raw('accounts.*'),
+                DB::raw('users.*')
+            )
+
+            ->leftJoin('accounts', 'investments.account_no_id', 'accounts.id')
+            ->leftJoin('users', 'accounts.user_id', 'users.id')
+            ->groupBy('investments.account_no_id')
+            ->where('users.id', '=', $id)
+            ->first();
+
+        // GET CLIENT MONTHLY PAYMENTS FOR MONTHLY INVESTMENT TYPE
+        $data['tot_payable'] = DB::table('payment_schedule')
+            ->select(
+                DB::raw('sum(tot_payable_amnt) as user_tot_payable, account_no_id '),
+                DB::raw('payment_schedule.*'),
+                DB::raw('accounts.*'),
+                DB::raw('user_pay_modes.*'),
+                DB::raw('users.*')
+            )
+
+            ->leftJoin('accounts', 'payment_schedule.account_no_id', 'accounts.id')
+            ->leftJoin('user_pay_modes', 'accounts.user_id', 'user_pay_modes.user_id')
+            ->leftJoin('users', 'accounts.user_id', 'users.id')
+            ->groupBy('payment_schedule.account_no_id')
+            ->where('users.id', '=', $id)
+            ->first();
+
+             // GET CLIENT PAYMENT HISTORY FOR BOTH MONTHLY AND COMPOUNDED
+
+        $data['client_payments'] = DB::table('payments')
+        ->select(
+            DB::raw('payments.*'),
+            DB::raw('payments.created_at AS payment_date'),
+            DB::raw('accounts.*'),
+            DB::raw('users.*')
+        )
+        ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+        ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+        ->where('users.id', '=', $id)
+        ->orderBy('payments.payment_id', 'desc')->get();
+
+         // GET CLIENT PAYMENTS COMPOUNDED
+
+        $client_payments_comp = DB::table('payments')
+        ->select(
+            DB::raw('payments.*'),
+            DB::raw('payments.created_at AS payment_date'),
+            DB::raw('accounts.*'),
+            DB::raw('users.*')
+        )
+        ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+        ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+        ->where('users.id', '=', $id)
+        ->orderBy('payments.payment_id', 'desc')->get();
+
+             // FETCHES ALL THE AMOUNTS THE CLIENT WAS PAID
+             $client_payments_comp = json_decode(json_encode($client_payments_comp), true);
+             $client_payments_comp = array_column($client_payments_comp, 'payment_amount');
+
+
+        // GET CLIENT MONTHLY PAYMENTS FOR COMPOUNDED
+        $client_monthly_com = DB::table('payment_schedule')
+            ->select(
+                DB::raw('payment_schedule.*'),
+                DB::raw('accounts.id as acc_id'),
+                DB::raw('users.id as user_idd')
+            )
+
+            ->leftJoin('accounts', 'payment_schedule.account_no_id', 'accounts.id')
+            ->leftJoin('users', 'accounts.user_id', 'users.id')
+            ->where('users.id', '=', $id)
+            ->get();
+
+            // GET PAYMENT PLAN FOR THE CLIENT
+            $client_monthly_com = json_decode(json_encode($client_monthly_com), true);
+            $client_monthly_com = array_column($client_monthly_com, 'comp_monthly_pay');
+
+            $client_monthly_com = str_replace('[', '', $client_monthly_com);
+            $client_monthly_com = str_replace(']', '', $client_monthly_com);
+
+        foreach ($client_monthly_com as $key => $value) {
+            $client_monthly_com = ($value);
+        }
+
+        $client_monthly_com = explode(',', $client_monthly_com);
+
+        // GET CLIENT NEXT PAYMENT FOR COMPOUND
+        $data['next_pay_amount'] = min(array_diff($client_monthly_com, $client_payments_comp));
+
+        // GET TOTAL AMOUNT OF PAYMENT FOR MONTHLY + COMP
+        // TAKE MONTHLY PAYMENT + $DATA['NEXT_PAY_AMOUNT'] (COMPOUND AMOUNT FOR A MONTH)
+        $monthly_amnt = $data['tot_payable']->monthly_amount;
+        $monthly_comp_amnt = $data['next_pay_amount'];
+        $data['tot_monthly_payable'] = $monthly_amnt + $monthly_comp_amnt;
+
+        // GET CLIENT TOTAL PAYAMENTS
+
+        $data['customer_payments'] = DB::table('payments')
+            ->select(
+                DB::raw('sum(payment_amount) as total_payments_made, account_no_id '),
+                DB::raw('payments.*'),
+                DB::raw('accounts.*'),
+                DB::raw('users.*')
+            )
+
+            ->leftJoin('accounts', 'payments.account_no_id', 'accounts.id')
+            ->leftJoin('users', 'accounts.user_id', 'users.id')
+            ->where('users.id', '=', $id)
+            ->first();
+
+        // GET CLIENT TOTAL DUE PAYAMENTS FOR A CLIENT
+
+        $data['tot_due_payments'] = DB::table('accounts')
+            ->select(
+                DB::raw('accounts.*'),
+                DB::raw('users.*')
+            )
+            ->leftJoin('users', 'accounts.user_id', 'users.id')
+            ->where('users.id', '=', $id)
+            ->first();
+
+            // echo "<pre>";
+            // print_r($data['tot_due_payments']);
+            // exit;
+
+            // FETCH CLIENT PERSONAL INVESTMENTS
+        $data['customer_trans'] = DB::table('investments')
+            ->select(
+                DB::raw('investments.*'),
+                DB::raw('accounts.*'),
+                DB::raw('payment_schedule.*'),
+                DB::raw('inv_types.*'),
+                DB::raw('inv_modes.*'),
+                DB::raw('banks.*'),
+                DB::raw('users.*'),
+                DB::raw('users_details.*')
+            )
+            ->leftJoin('accounts', 'investments.account_no_id', '=', 'accounts.id')
+            ->leftJoin('payment_schedule', 'accounts.id', '=', 'payment_schedule.account_no_id')
+            ->leftJoin('inv_types', 'investments.inv_type_id', '=', 'inv_types.inv_id')
+            ->leftJoin('inv_modes', 'investments.inv_mode_id', '=', 'inv_modes.id')
+            // FIND A WAY OF JOINING WITH INV_BANK_CHEQ_ID TOO TO GET THE BANK CHEQUE NAME
+            ->leftJoin('banks', 'investments.inv_bank_id', '=', 'banks.bank_id')
+            ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+            ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
+            ->orderBy('investments.investment_id', 'asc')
+            ->where('users.id', '=', $id)
+            ->get();
+
+            $data['customer_trans']-> map(function($item){
+
+                $name = DB::table('users')
+                        ->select(
+                            DB::raw('users.name AS initiated_by_name')
+                        )
+                ->where('users.id', '=', $item->initiated_by)->get();
+
+                $item->created_by_name = json_encode($name);
+                $item->created_by_name = str_replace('[{"initiated_by_name":"', '', $item->created_by_name);
+                $item->created_by_name = str_replace('"}]', '', $item->created_by_name);
+                return $item;
+            });
+
+            // FETCH CLIENT PERSONAL PAYMENTS
+        $data['client_payments'] = DB::table('payments')
+            ->select(
+                DB::raw('payments.*'),
+                DB::raw('payments.created_at AS payment_created_at'),
+                DB::raw('accounts.*'),
+                DB::raw('payment_schedule.*'),
+                DB::raw('users.*')
+            )
+            ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+            ->leftJoin('payment_schedule', 'accounts.id', '=', 'payment_schedule.account_no_id')
+            ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+            ->orderBy('payments.payment_id', 'asc')
+            ->where('users.id', '=', $id)
+            ->get();
+
+        return view('users.edit')->with($data);
     }
 
 
@@ -454,60 +782,60 @@ class UserController extends Controller
         //     return back();
         // } else {
 
-            try {
-                $user = User::find($id);
-                $user->name = strtoupper($request->input('name'));
-                // $user->email = $request->input('email');
-                $user->save();
-                DB::beginTransaction();
+        try {
+            $user = User::find($id);
+            $user->name = strtoupper($request->input('name'));
+            // $user->email = $request->input('email');
+            $user->save();
+            DB::beginTransaction();
 
-                $updated_user_id = $user->id;
+            $updated_user_id = $user->id;
 
-                $user->telephone = $request->input('telephone');
-                $user->id_no = $request->input('id_no');
-                $user->dob = $request->input('dob');
-                $user->account_no = $request->input('account_no');
-                $user->home_address = strtoupper($request->input('home_address'));
-                $user->home_town = strtoupper($request->input('home_town'));
-                $user->kin_name = strtoupper($request->input('kin_name'));
-                $user->kin_telephone = $request->input('kin_telephone');
+            $user->telephone = $request->input('telephone');
+            $user->id_no = $request->input('id_no');
+            $user->dob = $request->input('dob');
+            $user->account_no = $request->input('account_no');
+            $user->home_address = strtoupper($request->input('home_address'));
+            $user->home_town = strtoupper($request->input('home_town'));
+            $user->kin_name = strtoupper($request->input('kin_name'));
+            $user->kin_telephone = $request->input('kin_telephone');
 
-                $user->pay_mode_id = $request->input('pay_mode_id');
-                $user->pay_mpesa_no = $request->input('pay_mpesa_no');
-                $user->pay_bank_id = $request->input('pay_bank_id');
-                $user->pay_bank_acc = $request->input('pay_bank_acc');
+            $user->pay_mode_id = $request->input('pay_mode_id');
+            $user->pay_mpesa_no = $request->input('pay_mpesa_no');
+            $user->pay_bank_id = $request->input('pay_bank_id');
+            $user->pay_bank_acc = $request->input('pay_bank_acc');
 
-                $users_details_data = array(
-                    'user_id' => $updated_user_id,
-                    'telephone' =>  $user->telephone,
-                    'id_no' =>  $user->id_no,
-                    'dob' => $user->dob,
-                    'home_address' =>  strtoupper($user->home_address),
-                    'home_town' => strtoupper($user->home_town),
-                    'kin_name' =>  strtoupper($user->kin_name),
-                    'kin_telephone' => $user->kin_telephone
-                );
+            $users_details_data = array(
+                'user_id' => $updated_user_id,
+                'telephone' =>  $user->telephone,
+                'id_no' =>  $user->id_no,
+                'dob' => $user->dob,
+                'home_address' =>  strtoupper($user->home_address),
+                'home_town' => strtoupper($user->home_town),
+                'kin_name' =>  strtoupper($user->kin_name),
+                'kin_telephone' => $user->kin_telephone
+            );
 
-                $save_user_details = DB::table('users_details')->where('user_id', $updated_user_id)->update($users_details_data);
+            $save_user_details = DB::table('users_details')->where('user_id', $updated_user_id)->update($users_details_data);
 
-                $user_payment_mode = array(
-                    'user_id' => $updated_user_id,
-                    'pay_mode_id' => $user->pay_mode_id,
-                    'pay_mpesa_no' => $user->pay_mpesa_no,
-                    'pay_bank_id' => $user->pay_bank_id,
-                    'pay_bank_acc' => $user->pay_bank_acc
-                );
-                $save_user_payment_data = DB::table('user_pay_modes')->insertGetId($user_payment_mode);
+            $user_payment_mode = array(
+                'user_id' => $updated_user_id,
+                'pay_mode_id' => $user->pay_mode_id,
+                'pay_mpesa_no' => $user->pay_mpesa_no,
+                'pay_bank_id' => $user->pay_bank_id,
+                'pay_bank_acc' => $user->pay_bank_acc
+            );
+            $save_user_payment_data = DB::table('user_pay_modes')->insertGetId($user_payment_mode);
 
-                DB::commit();
-                Alert::success('Update lient', 'Client updated successfully');
-                return back();
-            } catch (\Exception $e) {
-                DB::rollBack();
-                \Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
-                Alert::error('Update User', 'Oops!!! An error ocurred while updating client details');
-                return back();
-            }
+            DB::commit();
+            Alert::success('Update lient', 'Client updated successfully');
+            return back();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+            Alert::error('Update User', 'Oops!!! An error ocurred while updating client details');
+            return back();
+        }
         // }
     }
 

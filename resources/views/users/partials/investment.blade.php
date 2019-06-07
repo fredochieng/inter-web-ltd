@@ -5,21 +5,21 @@
                 <div class="form-group">
                     {{Form::label('Investment Amount *')}}
                     <div class="form-group">
-                        {{Form::text('inv_amount', '',['class'=>'form-control', 'required'])}}
+                        {{Form::number('inv_amount', '',['class'=>'form-control', 'placeholder'=>'Minimum investments amount(Kshs 100,000.00)', 'min'=>'100000', 'required'])}}
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="input-group">
+                <div class="form-group">
                     {!! Form::label('Investment Date *') !!}
                     {{Form::text('inv_date', null, ['class' => 'form-control inv_date', 'id' => 'inv_date', 'required' ])}}
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    {{Form::label('Investment Duration *')}}
+                    {{Form::label('Investment Duration(Months) *')}}
                     <div class="form-group">
-                        {{Form::number('inv_duration', '',['class'=>'form-control', 'min' => '1', 'required'])}}
+                        {{Form::number('inv_duration', '',['class'=>'form-control', 'min' => '12', 'required'])}}
                         {{--  <span class="input-group-addon">Months</span>  --}}
                     </div>
                 </div>
@@ -30,13 +30,49 @@
             <div class="col-md-4">
                 {{Form::label('Investment Type ')}}
                 <div class="form-group">
-                    <select class="form-control select2" name="inv_type_id" required style="width: 100%;" tabindex="-1"
+                    <select class="form-control select2" name="inv_type_id" id="inv_type_id" required style="width: 100%;" tabindex="-1"
                         aria-hidden="true">
                         <option value="">Select investment type</option>
                         @foreach($inv_types as $item)
                         <option value='{{ $item->inv_id }}'>{{ $item->inv_type }}</option>
                         @endforeach
                     </select>
+                </div>
+            </div>
+            <div class="col-md-2 hide" id="monthly_inv_amount_div">
+                <div class="form-group">
+                    {{Form::label('Monthly Amount *')}}
+                    <div class="form-group">
+                        {{Form::number('monthly_inv_amount', '',['class'=>'form-control', 'min'=>'100000', 'required'])}}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2 hide" id="monthly_inv_duration_div">
+                <div class="form-group">
+                    {{Form::label('Duration *')}}
+                    <div class="form-group">
+                        {{Form::number('monthly_inv_duration', '',['class'=>'form-control', 'min' => '1', 'required'])}}
+                        {{--  <span class="input-group-addon">Months</span>  --}}
+                    </div>
+                </div>
+            </div>
+            {{-- <div class="col-md-2 hide" id="compounded_inv_amount_div">
+                <div class="form-group">
+                    {{Form::label('Compounded Amount *')}}
+                    <div class="form-group">
+                        {{Form::number('compounded_inv_amount', '',['class'=>'form-control', 'required'])}}
+                    </div>
+                </div>
+            </div> --}}
+
+            <div class="col-md-4 hide" id="compounded_inv_duration_div">
+                <div class="form-group">
+                    {{Form::label('Compounded Duration(Months) *')}}
+                    <div class="form-group">
+                        {{Form::number('compounded_inv_duration', '',['class'=>'form-control', 'min' => '1', 'required'])}}
+                        {{--  <span class="input-group-addon">Months</span>  --}}
+                    </div>
                 </div>
             </div>
         </div>
@@ -116,10 +152,4 @@
 </div>
 
 <script>
-
-
-
-
-
-
 </script>

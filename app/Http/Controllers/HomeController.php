@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 use App\Model\Investment;
+use App\Model\Payment;
+use App\Model\Account;
 use App\User;
 use Illuminate\Http\Request;
 
@@ -25,9 +27,9 @@ class HomeController extends Controller
     public function index()
     {
         $data['sum_investments'] = Investment::totalInvestments();
-        $data['sum_payout'] = Investment::sumPayout();
-        $data['sum_total_payout'] = Investment::totalPayout();
-        $data['total_payments'] = Investment::totalPayments();
+        $data['sum_tot_payable'] = Investment::sumTotalPayable();
+        $data['sum_tot_payments'] = Payment::sumTotalPayments();
+        $data['sum_tot_due_payments'] = Account::sumTotalDuePayments();
         $data['total_customers'] = User::getTotalCustomers();
         return view('home')->with($data);
     }

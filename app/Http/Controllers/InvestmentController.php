@@ -24,8 +24,25 @@ class InvestmentController extends Controller
     {
         $data['investments'] = Investment::getInvestments();
         $data['sum_investments'] = Investment::totalInvestments();
-        $data['sum_payout'] = Investment::sumPayout();
-        $data['sum_total_payout'] = Investment::totalPayout();
+        // $data['sum_payout'] = Investment::sumPayout();
+        // $data['sum_total_payout'] = Investment::totalPayout();
+
+        $data['investments']-> map(function($item){
+
+            $name = DB::table('users')
+                    ->select(
+                        DB::raw('users.name AS initiated_by_name')
+                    )
+            ->where('users.id', '=', $item->initiated_by)->get();
+
+            $item->created_by_name = json_encode($name);
+            $item->created_by_name = str_replace('[{"initiated_by_name":"', '', $item->created_by_name);
+            $item->created_by_name = str_replace('"}]', '', $item->created_by_name);
+            return $item;
+        });
+        // echo "<pre>";
+        // print_r($data['investments']);
+        // exit;
         return view('investments.index')->with($data);
     }
 

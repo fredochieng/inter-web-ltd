@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'title' => 'BManager',
+    'title' => 'Inter Web Ltd',
 
     'title_prefix' => '',
 
@@ -114,18 +114,19 @@ return [
             'url'  => 'home',
             'icon' => 'dashboard'
         ], [
-            'text'    => 'User Management',
+            'text'    => 'Clients',
             'icon'    => 'users',
             'submenu' => [
 
-                [
-                    'text'    => 'List Clients',
-                    'url'     => '/customers',
-                    'icon' => 'user'
-                ],[
-                    'text'    => 'Add Client',
+               [
+                    'text'    => 'New Client',
                     'url'     => '/users/create',
                     'icon' => 'plus-circle'
+                ],
+                [
+                    'text'    => 'Search Client',
+                    'url'     => '/customers',
+                    'icon' => 'search'
                 ],
                 [
                     'text' => 'Roles',
@@ -137,11 +138,11 @@ return [
             'text'    => 'Investments',
             'icon'    => 'dollar',
             'submenu' => [
-                [
-                    'text'    => 'New Investment',
-                    'url'     => '/investments/create',
-                    'icon' => 'plus-circle'
-                ],
+                // [
+                //     'text'    => 'New Investment',
+                //     'url'     => '/investments/create',
+                //     'icon' => 'plus-circle'
+                // ],
                 [
                     'text' => 'All Investments',
                     'url'  => '/investments',
@@ -152,11 +153,11 @@ return [
             'text'    => 'Payments',
             'icon'    => 'money',
             'submenu' => [
-                [
-                    'text'    => 'New Payment',
-                    'url'     => '/payments/create',
-                    'icon' => 'plus-circle'
-                ],
+                // [
+                //     'text'    => 'New Payment',
+                //     'url'     => '/payments/create',
+                //     'icon' => 'plus-circle'
+                // ],
                 [
                     'text' => 'All Payments',
                     'url'  => '/payments',

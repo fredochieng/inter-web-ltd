@@ -6,189 +6,130 @@
 <h1>Clients<small>Client Management</small></h1>
 @stop
 @section('content')
-<div class="row">
-    <div class="col-md-12">
-        <!-- Custom Tabs (Pulled to the right) -->
-        <div class="nav-tabs-custom">
-            <ul class="nav nav-tabs">
-                <li class="active"><a href="#tab-active-clients" data-toggle="tab">Approved Clients</a></li>
-                <li><a href="#tab-inactive-clients" data-toggle="tab">Inactive Clients</a></li>
-            </ul>
-            <div class="tab-content">
-                <div class="tab-pane active" id="tab-active-clients">
-                    <div class="row">
-                        <div class="col-xs-12">
-                            <div class="box box-success">
-                                <div class="box-body">
-                                    <div class="table-responsive">
-                                       <table id="example1" class="table no-margin">
-                                            <thead>
-                                                <tr>
-                                                    <th>S/N</th>
-                                                    <th>Name</th>
-                                                    <th>Email</th>
-                                                    <th>Telephone</th>
-                                                    <th>ID Number</th>
-                                                    <th>Account No</th>
-                                                    <th>Registered At</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($active_clients as $count=> $row)
-                                                <tr>
-                                                    <td>{{$count + 1}}</td>
-                                                    <td>{{$row->name}}</td>
-                                                    <td><a href="">{{$row->email}}</a></td>
-                                                    <td>{{$row->telephone}}</td>
-                                                    <td>{{$row->id_no}}</td>
-                                                    <td>{{ $row->account_no }}</td>
-                                                    <td>{{ $row->created_at}}</td>
-                                                    <td>
-                                                        <a href="" data-toggle="modal" data-target="#modal-approve-client_{{$row->id}}"
-                                                            class="btn btn-xs btn-info"><i class="glyphicon glyphicon-check"></i> Activate</a>
-                                                        <a href="" data-toggle="modal" data-target="#modal-edit-customer_{{$row->id}}"
-                                                            class="btn btn-xs btn-success"><i class="glyphicon glyphicon-edit"></i> Edit</a>
-                                                        {{Form::hidden('_method','DELETE')}}
-                                                        <a href="" data-backdrop="static" data-keyboard="false" data-toggle="modal"
-                                                            data-target="#modal-delete-user_{{$row->id}}" class="btn btn-xs btn-danger delete_user_button">
-                                                            <i class="glyphicon glyphicon-trash"></i> Delete</a>
-                                                    </td>
-                                                </tr>
-                                                @include('modals.users.modal-edit-customer')
-                                                @include('modals.users.modal-delete-user')
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-                <div class="tab-pane" id="tab-inactive-clients">
-                    <div class="row">
-                        <div class="col-xs-12">
-                            <div class="box box-success">
-                                <div class="box-body">
-                                    <div class="table-responsive">
-                                       <table id="example1" class="table no-margin">
-                                            <thead>
-                                                <tr>
-                                                    <th>S/N</th>
-                                                    <th>Name</th>
-                                                    <th>Email</th>
-                                                    <th>Telephone</th>
-                                                    <th>ID Number</th>
-                                                    <th>Account No</th>
-                                                    <th>Registered At</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($inactive_clients as $count=> $row)
-                                                <tr>
-                                                    <td>{{$count + 1}}</td>
-                                                    <td>{{$row->name}}</td>
-                                                    <td><a href="">{{$row->email}}</a></td>
-                                                    <td>{{$row->telephone}}</td>
-                                                    <td>{{$row->id_no}}</td>
-                                                    <td>{{ $row->account_no }}</td>
-                                                    <td>{{ $row->created_at}}</td>
-                                                    <td>
-                                                        <a href="" data-toggle="modal" data-target="#modal-approve-client_{{$row->id}}" class="btn btn-xs btn-info"><i
-                                                                class="glyphicon glyphicon-check"></i> Activate</a>
-                                                        <a href="" data-toggle="modal" data-target="#modal-edit-customer_{{$row->id}}"
-                                                            class="btn btn-xs btn-success"><i class="glyphicon glyphicon-edit"></i> Edit</a>
-                                                        {{Form::hidden('_method','DELETE')}}
-                                                        <a href="" data-backdrop="static" data-keyboard="false" data-toggle="modal"
-                                                            data-target="#modal-delete-user_{{$row->id}}" class="btn btn-xs btn-danger delete_user_button">
-                                                            <i class="glyphicon glyphicon-trash"></i> Delete</a>
-                                                    </td>
-                                                </tr>
-                                                @include('modals.users.modal-edit-customer')
-                                                @include('modals.users.modal-delete-user')
-                                                @include('modals.users.modal-approve-client')
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-            <!-- /.tab-content -->
+<div class="box box-info color-palette-box">
+        <div class="box-header with-border">
+          <h3 class="box-title"> Search Client</h3>
+          <div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
         </div>
-        <!-- nav-tabs-custom -->
+        </div>
+        <div class="box-body">
+
+
+             {!! Form::open(['action'=>'UserController@index','method'=>'get','class'=>'form form-horizontal subscriber_form','enctype'=>'multipart/form-data']) !!}
+              <div class="col-md-5">
+          <?php
+		  	$array_clients_by=array(
+				'id_no'=>'ID Number',
+				'account_no'=>'Account Number',
+                'telephone'=>'Phone Number',
+				'name'=>'Name',
+			);
+
+		  ?>
+
+           <?php
+				$find_client_by='';	$find_value='';
+				if(isset($_GET['find_client_by'])){ $find_client_by=$_GET['find_client_by']; }
+				if(isset($_GET['find_value'])){ $find_value=$_GET['find_value']; }
+			 ?>
+
+          <div class="form-group"> {{Form::label('find_client_by', 'Search Clients By',['class'=>'col-sm-4 control-label'])}}
+            <div class="col-sm-8">
+            {{ Form::select('find_client_by', $array_clients_by,$find_client_by, ['class' => 'form-control','style'=>'width:100%']) }} </div>
+        </div>
     </div>
-    <!-- /.col -->
+
+     <div class="col-md-5">
+      <div class="form-group"> {{Form::label('find_value', 'ID Number',['class'=>'col-sm-4 control-label find_value_label'])}}
+        <div class="col-sm-8"> {{Form::text('find_value', $find_value,['class'=>'form-control','placeholder'=>'Enter ID Number of the client'])}}</div>
+      </div>
+    </div>
+
+     <div class="col-md-2">
+     <button type="submit" class="btn btn-block btn-info" name="find_client"><strong><i class="fa fa-fw fa-search"></i> SEARCH</strong></button>
+
+     </div>
+
+          {!! Form::close() !!}
+
+        </div>
 </div>
+
+@if(count($clients) > 0)
+
+<div class="box box-info color-palette-box">
+     <div class="box-header with-border">
+       <h3 class="box-title"> Clients List</h3>
+       <div class="box-tools pull-right">
+        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+    </div>
+     </div>
+     <div class="box-body">
+     <p>{{count($clients)}} Records found matching your search query</p>
+       <table class="table table-no-margin" id="records">
+           <thead>
+             <tr>
+                <th>S/N</th>
+                <th>Name</th>
+                <th>Email</th>
+                {{-- <th>Telephone</th>
+                <th>ID Number</th>
+                <th>Account No</th> --}}
+                <th>Registered At</th>
+                <th>Action</th>
+
+             </tr>
+
+         </thead>
+
+         <tbody>
+
+             @foreach($clients as $key=>$row)
+                 <tr>
+                    <td>{{$key + 1}}</td>
+                    <td><a href="/client/{{$row->id}}/edit">{{$row->name}}</a></td>
+                    <td><a href="">{{$row->email}}</a></td>
+                    {{-- <td>{{$row->telephone}}</td>
+                    <td>{{$row->id_no}}</td> --}}
+                    {{-- <td>{{$row->account_no }}</td> --}}
+                    <td>{{$row->created_at}}</td>
+                    <td>
+                        <a href="/client/{{$row->id}}/edit" class="btn btn-sm btn-info"><i class="glyphicon glyphicon-eye"></i> View Client</a>
+                    </td>
+                </tr>
+             @endforeach
+         </tbody>
+
+       </table>
+
+
+      </div>
+</div>
+@endif
 @stop
 @section('css')
 <link rel="stylesheet" href="/css/admin_custom.css">
 <link rel="stylesheet" href="/css/bootstrap-datepicker.min.css">
 @stop
 @section('js')
-
-<script src="/js/bootstrap-datepicker.min.js"></script>
-<script src="/js/bootbox.min.js"></script>
 <script>
-    $(document).ready(function(){
+        $(document).ready(function() {
+             $("#records").DataTable();
+            $('#find_client_by').change(function() {
+                //Use $option (with the "$") to see that the variable is a jQuery object
+                var $option = $(this).find('option:selected');
+                //Added with the EDIT
+                var value = $option.val();//to get content of "value" attrib
+                var text = $option.text();//to get <option>Text</option> content
 
-    $("#pay_bank_id").change(function() {
-            var value = $(this).val();
-            if (value != 0 ) {
-            $("#bank_payment_acc").removeClass("hide");
-            }
-            else{
-            $("#bank_payment_acc").addClass("hide");
-            }
-    });
+                //alert(value);
+                //alert(text);
 
-        $("#pay_mode_id").change(function() {
-                    var val = $(this).val();
-                    if (val == 1 ) {
-                    $("#mpesa_number_div").removeClass("hide");
-                    }
-                    else{
-                    $("#mpesa_number_div").addClass("hide");
-                    }
-
-                    if (val == 2 ) {
-                    $("#bank_payment_div").removeClass("hide");
-                   // $("#bank_payment_acc").removeClass("hide");
-                    }
-                    else{
-                    $("#bank_payment_div").addClass("hide");
-                //    $("#bank_payment_acc").addClass("hide");
-                    }
+                $(".find_value_label").html(text);
+                $("#find_value").attr("placeholder", "Enter "+text+" of the client");
+            });
         });
-});
+        </script>
+        @stop
 
-</script>
-<script>
-    $(function ()
-    {
-    $(".select2").select2()
-    $('#example1').DataTable()
-    $('#example2').DataTable()
-    $('#example3').DataTable()
-    $('#example4').DataTable()
-
-    $('.dob').datepicker( {
-    format: 'yyyy-mm-dd',
-    orientation: "bottom",
-    autoclose: true,
-    showDropdowns: true,
-    todayHighlight: true,
-    toggleActive: true,
-    clearBtn: true,
-    })
-});
-
-</script>
-@stop
