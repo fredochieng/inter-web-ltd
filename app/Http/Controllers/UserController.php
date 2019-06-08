@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use DB;
+use Session;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -258,6 +259,7 @@ class UserController extends Controller
                 // SAVE USER PAYMENT SCHEDULE
                 $user_payment_schedule = array(
                     'account_no_id' => $save_user_account_data,
+                    'inv_type' => $inv_type_id,
                     'tot_payable_amnt' => $total_pay,
                     'monthly_amount' => $monthly_pay
                 );
@@ -290,6 +292,7 @@ class UserController extends Controller
                 // SAVE USER PAYMENT SCHEDULE
                 $user_payment_schedule = array(
                     'account_no_id' => $save_user_account_data,
+                    'inv_type' => $inv_type_id,
                     'tot_payable_amnt' => $total_comp_int,
                     'comp_monthly_pay' => $monthly_payment
                 );
@@ -332,6 +335,7 @@ class UserController extends Controller
                         // SAVE USER PAYMENT SCHEDULE
                         $user_payment_schedule = array(
                             'account_no_id' => $save_user_account_data,
+                            'inv_type' => $inv_type_id,
                             'tot_payable_amnt' => $total_due_pay,
                             'monthly_amount' => $monthly_inv_pay,
                             'comp_monthly_pay' => $monthly_payment
@@ -534,7 +538,6 @@ class UserController extends Controller
             ->leftJoin('banks', 'user_pay_modes.pay_bank_id', '=', 'banks.bank_id')
             ->where('users.id', '=', $id)->first();
 
-
         // GET CLIENT PAYMENT DATES AND TOTAL AMOUNTS PAID FOR CLIENT (DATE THE CLIENT WAS PAID)
         $user_pay_dates = DB::table('payments')
             ->select(
@@ -574,6 +577,8 @@ class UserController extends Controller
         // GET THE NEXT PAYMENT DATE FOR THE CLIENT
         // CHECK IF THE PAYMENT DATE EXISTS, IF YES SKIP AND PICK THE LEAST DATE
         $data['next_pay_date'] = min(array_diff($pay_dates, $user_pay_dates));
+
+        Session::put('next_pay_day', $data['next_pay_date'] );
 
         // GET CLIENT TOTAL INVESMENTS
         $data['customer_investments'] = DB::table('investments')

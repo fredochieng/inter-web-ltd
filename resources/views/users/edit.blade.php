@@ -11,7 +11,7 @@
     <div class="box-header with-border">
         <h3 class="box-title">MANAGE CLIENT</h3>
         <p class="pull-right">
-                <a href="" class="btn btn-info btn-sm ad-click-event">NEW TOP UP</a>
+                <a href="" data-toggle="modal" data-target="#modal_new_topup" data-backdrop="static" data-keyboard="false" class="btn btn-info btn-sm ad-click-event">NEW TOP UP</a>
                 <a href="" class="btn btn-warning btn-sm ad-click-event">NEW PAYMENT</a>
             </p>
         {{-- <div class="box-tools pull-right">
@@ -323,6 +323,7 @@
         </div>
     </div>
     <!-- /.tab-content -->
+@include('modals.topups.modal_new_topup')
 </div>
 
 @stop

@@ -1,8 +1,7 @@
 <div class="modal fade in" id="modal_new_payment">
     <div class="modal-dialog modal-lg" style="width:90%">
         <div class="modal-content">
-            {!! Form::open(['url' => action('PaymentController@store'), 'method' => 'post', 'id' => 'AddClientForm'
-            ]) !!}
+            {!! Form::open(['url' => action('PaymentController@store'), 'method' => 'post']) !!}
 
 <input type="hidden" id="account_id" name="account_id">
 <input type="hidden" id="inv_type" name="inv_type">

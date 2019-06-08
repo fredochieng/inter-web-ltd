@@ -37,6 +37,10 @@ Route::resource('/investments', 'InvestmentController');
 Route::resource('/payments', 'PaymentController');
 Route::any('/payments/client/search', 'PaymentController@SearchClient');
 
+Route::resource('/topups', 'TopupController');
+
+
+
 Route::any('/reports/customer', 'ReportController@customerReport');
 Route::any('/reports/investment', 'ReportController@investmentReport');
 Route::get('/test/{id}', 'PaymentController@test');
@@ -44,5 +48,3 @@ Route::get('/test/{id}', 'PaymentController@test');
 Route::resource('/system/settings', 'SystemController');
 Route::any('/system/logs', 'SystemController@showLogs');
 Route::post('/system/logs', 'SystemController@postRegister')->name('business.postRegister');
-
-
