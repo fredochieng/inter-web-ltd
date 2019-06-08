@@ -35,7 +35,7 @@
                     <td style=""><strong> PAYMENTS MADE :</strong>Kshs {{ number_format($customer_payments->total_payments_made,2,'.',',')}}</td>
                     <td style=""><strong> DUE PAYMENTS :</strong>Kshs {{ number_format($tot_due_payments->total_due_payments,2,'.',',')}}</td>
                      @if($customer_data->inv_type_id == 1)
-                    <td style=""><strong> NEXT PAYMENT :</strong>Kshs {{ number_format($tot_payable->monthly_amount,2,'.',',')}}</td>
+                    <td style=""><strong> NEXT PAYMENT :</strong>Kshs {{ number_format($monthly_amnt,2,'.',',')}}</td>
                     @elseif($customer_data->inv_type_id == 2)
                     <td style=""><strong> NEXT PAYMENT :</strong>Kshs {{ number_format($next_pay_amount,2,'.',',')}}</td>
                     @else
@@ -45,7 +45,7 @@
                 <tr>
                     @if($customer_data->inv_type_id == 3)
                     <td style=""><strong> NEXT MONTHLY PAYMENT :</strong>Kshs {{ number_format($tot_payable->monthly_amount,2,'.',',')}}</td>
-                    <td style=""><strong> NEXT COMPOUND PAYMENT :</strong>Kshs {{ number_format($next_pay_amount,2,'.',',')}}</td>
+                    <td style=""><strong> NEXT COMPOUND PAYMENT :</strong>Kshs {{ number_format($next_pay_comp_amount,2,'.',',')}}</td>
                     @endif
                     <td style=""><strong> COMMISSION EARNED :</strong>Kshs 30,000.00</td>
                 </tr>
@@ -157,16 +157,7 @@
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-md-4 hide mpesa_number_div" id="mpesa_number_div">
-                                        <div class="form-group">
-                                            {{Form::label('MPESA Number')}}
-                                            <div class="form-group">
-                                                {{Form::text('pay_mpesa_no', '',['class'=>'form-control', 'id' => 'mpesa_number'])}}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-4 pay_mode_div" id="pay_mode_div">
+                                    <div class="col-md-3 pay_mode_div" id="pay_mode_div">
                                             {{Form::label('Payment Mode ')}}
                                             <div class="form-group">
                                                 <select class="form-control select2" name="pay_mode_id" id="pay_mode_id" style="width: 100%;" tabindex="-1"
@@ -174,9 +165,17 @@
                                                     <option value>{{$customer_data->method_name}}</option>
                                                     <option value="0">Select payment mode</option>
                                                     @foreach($payment_mode as $item)
-                                                    <option value="{{ $item->method_name }}">{{ $item->method_name }}</option>
+                                                    <option value="{{ $item->method_id }}">{{ $item->method_name }}</option>
                                                     @endforeach
                                                 </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 hide mpesa_number_div" id="mpesa_number_div">
+                                            <div class="form-group">
+                                                {{Form::label('MPESA Number')}}
+                                                <div class="form-group">
+                                                    {{Form::text('pay_mpesa_no', '',['class'=>'form-control', 'id' => 'mpesa_number'])}}
+                                                </div>
                                             </div>
                                         </div>
                                     <div class="col-md-4 hide bank_payment_acc" id="bank_payment_acc">
@@ -338,9 +337,27 @@
 
 <script>
     $(function() {
+
+        $("#pay_mode_id").change(function() {
+                    var val = $(this).val();
+                    if (val == 1 ) {
+                    $("#mpesa_number_div").removeClass("hide");
+                    }else{
+                    $("#mpesa_number_div").addClass("hide");
+                    }
+                    if (val == 2 ) {
+                    $("#bank_payment_div").removeClass("hide");
+                // $("#bank_payment_acc").removeClass("hide");
+                    }
+                    else{
+                    $("#bank_payment_div").addClass("hide");
+                //    $("#bank_payment_acc").addClass("hide");
+                    }
+        });
         $(".select2").select2()
         $('#example1').DataTable()
     })
 </script>
+
 
 @stop

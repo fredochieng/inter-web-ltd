@@ -8,7 +8,7 @@
 
 @section('content')
 
-<div class="box box-success">
+<div class="box box-info">
     <div class="box-header with-border">
         <h3 class="box-title">ADD NEW CLIENT</h3>
     </div>
@@ -179,6 +179,7 @@
                     var val = $(this).val();
                     if (val == 1 ) {
                     $("#mpesa_number_div").removeClass("hide");
+                    $("#bank_payment_acc").addClass("hide");
                     }else{
                     $("#mpesa_number_div").addClass("hide");
                     }

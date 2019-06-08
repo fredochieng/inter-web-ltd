@@ -571,7 +571,6 @@ class UserController extends Controller
 
         $pay_dates = explode(',', $pay_dates);
 
-
         // GET THE NEXT PAYMENT DATE FOR THE CLIENT
         // CHECK IF THE PAYMENT DATE EXISTS, IF YES SKIP AND PICK THE LEAST DATE
         $data['next_pay_date'] = min(array_diff($pay_dates, $user_pay_dates));
@@ -669,11 +668,69 @@ class UserController extends Controller
         // GET CLIENT NEXT PAYMENT FOR COMPOUND
         $data['next_pay_amount'] = min(array_diff($client_monthly_com, $client_payments_comp));
 
+            // GET CLIENT PAYMENTS COMPOUNDED
+
+            $next_pay_comp = DB::table('payments')
+            ->select(
+                DB::raw('payments.*'),
+                DB::raw('payments.created_at AS payment_date'),
+                DB::raw('payment_schedule.*'),
+                DB::raw('accounts.*'),
+                DB::raw('users.*')
+            )
+            ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+            ->leftJoin('payment_schedule', 'accounts.id', '=', 'payment_schedule.account_no_id')
+            ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+            ->where('users.id', '=', $id)
+             ->get();
+
+                 // FETCHES ALL THE AMOUNTS THE CLIENT WAS PAID
+                 $next_pay_comp = json_decode(json_encode($next_pay_comp), true);
+                 $next_pay_comp = array_column($next_pay_comp, 'comp_monthly_amount');
+
+            // GET CLIENT COMP PAYMENTS FOR COMPOUNDED + MONTHLY
+            $client_comp_payments = DB::table('payment_schedule')
+                ->select(
+                    DB::raw('payment_schedule.*'),
+                    DB::raw('accounts.id as acc_id'),
+                    DB::raw('users.id as user_idd')
+                )
+
+                ->leftJoin('accounts', 'payment_schedule.account_no_id', 'accounts.id')
+                ->leftJoin('users', 'accounts.user_id', 'users.id')
+                ->where('users.id', '=', $id)
+                ->get();
+
+                $client_comp_payments = json_decode(json_encode($client_comp_payments), true);
+                $client_comp_payments = array_column($client_comp_payments, 'comp_monthly_pay');
+
+            $client_comp_payments = str_replace('[', '', $client_comp_payments);
+            $client_comp_payments = str_replace(']', '', $client_comp_payments);
+
+            foreach ($client_comp_payments as $key => $value) {
+                $client_comp_payments = ($value);
+            }
+
+            $client_comp_payments = explode(',', $client_comp_payments);
+
+            // GET CLIENT NEXT PAYMENT FOR COMPOUND
+            $data['next_pay_comp_amount'] = min(array_diff($client_comp_payments, $next_pay_comp));
+
         // GET TOTAL AMOUNT OF PAYMENT FOR MONTHLY + COMP
         // TAKE MONTHLY PAYMENT + $DATA['NEXT_PAY_AMOUNT'] (COMPOUND AMOUNT FOR A MONTH)
-        $monthly_amnt = $data['tot_payable']->monthly_amount;
-        $monthly_comp_amnt = $data['next_pay_amount'];
-        $data['tot_monthly_payable'] = $monthly_amnt + $monthly_comp_amnt;
+        if($data['tot_payable']->comp_monthly_pay ==''){
+            $data['monthly_amnt'] = $data['tot_payable']->monthly_amount;
+            // echo $monthly_amnt;
+            // exit;
+        }elseif($data['tot_payable']->comp_monthly_pay !='' && $data['tot_payable']->monthly_amount ==''){
+            $monthly_amnt = $data['tot_payable']->monthly_amount;
+            $monthly_comp_amnt = $data['next_pay_amount'];
+            $data['tot_monthly_payable'] = $monthly_amnt + $monthly_comp_amnt;
+        }else{
+            $monthly_amnt = $data['tot_payable']->monthly_amount;
+            $monthly_comp_amnt = $data['next_pay_comp_amount'];
+            $data['tot_monthly_payable'] = $monthly_amnt + $monthly_comp_amnt;
+        }
 
         // GET CLIENT TOTAL PAYAMENTS
 

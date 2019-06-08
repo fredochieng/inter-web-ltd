@@ -5,6 +5,7 @@
             ]) !!}
 
 <input type="hidden" id="account_id" name="account_id">
+<input type="hidden" id="inv_type" name="inv_type">
 <input type="hidden" id="user_id" name="user_id">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">×</span></button>
@@ -46,8 +47,56 @@
                         </div>
                     </div>
                 </div>
-                <br />
 
+                <br />
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="franch" class="col-sm-12 control-label label-left">Total Due Payments</label>
+                        <div class="col-sm-12">
+                            <input id="tot_payable_amnt" class="form-control" readonly="readonly" name="tot_payable_amnt" type="text" value="">
+
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="franch" class="col-sm-12 control-label label-left">Payment Date</label>
+                        <div class="col-sm-12">
+                            <input id="user_date" class="form-control" placeholder="" readonly="readonly" name="user_date" type="text" value="">
+
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="franch" class="col-sm-12 control-label label-left">Mothly Payment Amount</label>
+                        <div class="col-sm-12">
+                            <input id="monthly_amount" class="form-control" placeholder=""   readonly="readonly" name="monthly_pay" type="text" value="">
+
+                        </div>
+                    </div>
+                    <div class="col-md-3" id="monthly_amount_div">
+                        <label for="franch" class="col-sm-12 control-label label-left">Compounded Monthly Amount</label>
+                        <div class="col-sm-12">
+                            <input id="comp_monthly_amount" class="form-control" placeholder=""   readonly="readonly" name="comp_monthly_amount" type="text" value="">
+
+                        </div>
+                    </div>
+                    <br/>
+
+                    <div class="col-md-3" id="tot_payment_div">
+                        <label for="franch" class="col-sm-12 control-label label-left">Total Payment Amount</label>
+                        <div class="col-sm-12">
+                            <input id="tot_pay_amount" class="form-control" placeholder=""   readonly="readonly" name="tot_pay_amount" type="text" value="">
+
+                        </div>
+                    </div>
+
+                    {{-- <div class="col-md-3">
+                        <label for="franch" class="col-sm-12 control-label label-left">Next Payment Date</label>
+                        <div class="col-sm-12">
+                            <input id="franch" class="form-control" placeholder="" name="franch" type="text" value="">
+
+                        </div>
+                    </div> --}}
+                </div>
+                <br />
                 <div class="row">
                     <div class="col-md-4">
                         <label for="date_today" class="col-sm-12 control-label label-left">Prefered Mode of Payment</label>
@@ -80,43 +129,11 @@
 
                 </div>
 
-                <br />
-                <div class="row">
-                    <div class="col-md-4">
-                        <label for="franch" class="col-sm-12 control-label label-left">Total Payable Amount</label>
-                        <div class="col-sm-12">
-                            <input id="tot_payable_amnt" class="form-control" readonly="readonly" name="tot_payable_amnt" type="text" value="">
-
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="franch" class="col-sm-12 control-label label-left">Payment Date</label>
-                        <div class="col-sm-12">
-                            <input id="user_date" class="form-control" placeholder="" readonly="readonly" name="user_date" type="text" value="">
-
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="franch" class="col-sm-12 control-label label-left">Mothly Payment Amount</label>
-                        <div class="col-sm-12">
-                            <input id="monthly_amount" class="form-control" placeholder=""   readonly="readonly" name="monthly_pay" type="monthly_amount" value="">
-
-                        </div>
-                    </div>
-
-                    {{-- <div class="col-md-3">
-                        <label for="franch" class="col-sm-12 control-label label-left">Next Payment Date</label>
-                        <div class="col-sm-12">
-                            <input id="franch" class="form-control" placeholder="" name="franch" type="text" value="">
-
-                        </div>
-                    </div> --}}
-                </div>
-
                 <hr>
                 <br />
             </div>
             <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
                 <button class="btn btn-primary" id="transactionPost" type="submit"><i class="fa fa-check"></i> MAKE PAYMENT</button>
             </div>
 
@@ -129,26 +146,5 @@
 </div>
 
 @push('js')
-{{-- <script type="text/javascript">
- $("#method_name")(function() {
-                    var val = $(this).val();
-                    if (val == 2 ) {
-                    $("#bank_name_div").removeClass("hide");
-                    $("#bank_account_div").removeClass("hide");
-                    }else{
-                    $("#bank_name_div").addClass("hide");
-                    $("#bank_account_div").addClass("hide");
-                    $("#pay_mpesa_no_div").addClass("hide");
-                    }
-                   // if (val == 2 ) {
-                   // $("#bank_payment_div").removeClass("hide");
-                // $("#bank_payment_acc").removeClass("hide");
-                  //  }
-                   // else{
-                    //$("#bank_payment_div").addClass("hide");
-                //    $("#bank_payment_acc").addClass("hide");
-                    //}
-        });
 
-</script> --}}
 @endpush

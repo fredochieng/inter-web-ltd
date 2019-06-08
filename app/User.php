@@ -192,7 +192,14 @@ class User extends Authenticatable
 
     public static function getTotalCustomers()
     {
-        $data['total_customers'] = DB::table('users')->select(DB::raw('users.*'))->count();
+        $data['total_customers'] = DB::table('users')
+                                  ->select(
+                                      DB::raw('users.*'),
+                                      DB::raw('model_has_roles.*')
+                                      )
+                                      ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+                                      ->where('model_has_roles.role_id', '=', '3')
+                                  ->count();
         return $data['total_customers'];
     }
 }

@@ -7,7 +7,7 @@
 @stop
 
 @section('content')
-<div class="box box-primary">
+<div class="box box-info">
     <div class="box-header with-border">
         <h3 class="box-title">All Payments</h3>
         <div class="box-tools">
@@ -71,6 +71,7 @@
         $("#clients-list").on('click', '.action-select-client', function(e) {
             var client = JSON.parse($(this).attr('data-row'));
             $("#acc").val(client.account_no);
+            $("#inv_type").val(client.inv_type);
             $("#account_id").val(client.account_no_id);
             $("#name").val(client.name);
             $("#user_id").val(client.user_id);
@@ -93,11 +94,18 @@
             $("#bank_name").val(client.bank_name);
             $("#pay_bank_acc").val(client.pay_bank_acc);
 
-            $("#tot_payable_amnt").val('Kshs ' + number_format(client.tot_payable_amnt, 2));
-            if(client.monthly_amount == 0.00){
+            $("#tot_payable_amnt").val('Kshs ' + number_format(client.total_due_payments, 2));
+            if(client.monthly_amount == 0){
                 $("#monthly_amount").val('Kshs ' + number_format(client.next_pay_comp, 2));
-             }else{
+             }
+            if(client.next_pay_comp == ''){
                 $("#monthly_amount").val('Kshs ' + number_format(client.monthly_amount, 2));
+             }
+             if(client.monthly_amount != 0 && client.next_pay_comp !=''){
+                $("#comp_monthly_amount").val('Kshs ' + number_format(client.next_pay_monthly_comp, 2));
+                $("#monthly_amount").val('Kshs ' + number_format(client.monthly_amount, 2));
+                var tot_pay_amount = parseInt(client.monthly_amount) + parseInt(client.next_pay_monthly_comp);
+                $("#tot_pay_amount").val('Kshs ' + number_format(tot_pay_amount , 2));
              }
             $('#modal_search_client').modal('hide')
         });

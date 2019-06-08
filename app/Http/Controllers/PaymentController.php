@@ -71,6 +71,19 @@ class PaymentController extends Controller
                 $payment->user_pay_date = $request->input('user_date');
                 $generated_transaction_code = strtoupper(str_random(8));
                 $payment->trans_id = $generated_transaction_code;
+                $inv_type = $request->input('inv_type');
+
+                // GET PAYMENT AMOUNTS FOR MONTHLY + COMPOUNDED
+
+                if($inv_type ==3 ){
+                    $payment->comp_monthly_amount = $request->input('comp_monthly_amount');
+                    $payment->comp_monthly_amount = str_replace('Kshs', '',  $payment->comp_monthly_amount);
+                    $payment->comp_monthly_amount = str_replace(',', '',  $payment->comp_monthly_amount);
+                    $payment->comp_monthly_amount = str_replace('.00', '',  $payment->comp_monthly_amount);
+
+                    $payment->total_paid = $payment->payment_amount + $payment->comp_monthly_amount;
+
+                }
 
                 $client_tot_payable = DB::table('accounts')
                       ->select(
@@ -83,6 +96,10 @@ class PaymentController extends Controller
 
                         $client_tot_payable = $client_tot_payable->total_due_payments;
                         $client_due_payaments = $client_tot_payable -  $payment->payment_amount;
+
+                        if($inv_type ==3){
+                            $client_due_payaments = $client_tot_payable - $payment->total_paid;
+                        }
 
                 $payment->save();
                 DB::beginTransaction();
@@ -207,13 +224,15 @@ class PaymentController extends Controller
           ->select(
               DB::raw('payments.*'),
               DB::raw('payments.created_at AS payment_date'),
+              DB::raw('payment_schedule.*'),
               DB::raw('accounts.*'),
               DB::raw('users.*')
           )
           ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+          ->leftJoin('payment_schedule', 'accounts.id', '=', 'payment_schedule.account_no_id')
           ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
           ->where('users.id', '=', $id)
-          ->orderBy('payments.payment_id', 'desc')->get();
+           ->get();
 
                // FETCHES ALL THE AMOUNTS THE CLIENT WAS PAID
                $client_payments_comp = json_decode(json_encode($client_payments_comp), true);
@@ -250,6 +269,57 @@ class PaymentController extends Controller
 
           return $data['next_pay_amount'];
     }
+    public function getNextPayComp($id){
+          // GET CLIENT PAYMENTS COMPOUNDED
+
+          $next_pay_comp = DB::table('payments')
+          ->select(
+              DB::raw('payments.*'),
+              DB::raw('payments.created_at AS payment_date'),
+              DB::raw('payment_schedule.*'),
+              DB::raw('accounts.*'),
+              DB::raw('users.*')
+          )
+          ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+          ->leftJoin('payment_schedule', 'accounts.id', '=', 'payment_schedule.account_no_id')
+          ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+          ->where('users.id', '=', $id)
+           ->get();
+
+               // FETCHES ALL THE AMOUNTS THE CLIENT WAS PAID
+               $next_pay_comp = json_decode(json_encode($next_pay_comp), true);
+               $next_pay_comp = array_column($next_pay_comp, 'comp_monthly_amount');
+
+          // GET CLIENT COMP PAYMENTS FOR COMPOUNDED + MONTHLY
+          $client_comp_payments = DB::table('payment_schedule')
+              ->select(
+                  DB::raw('payment_schedule.*'),
+                  DB::raw('accounts.id as acc_id'),
+                  DB::raw('users.id as user_idd')
+              )
+
+              ->leftJoin('accounts', 'payment_schedule.account_no_id', 'accounts.id')
+              ->leftJoin('users', 'accounts.user_id', 'users.id')
+              ->where('users.id', '=', $id)
+              ->get();
+
+              $client_comp_payments = json_decode(json_encode($client_comp_payments), true);
+              $client_comp_payments = array_column($client_comp_payments, 'comp_monthly_pay');
+
+          $client_comp_payments = str_replace('[', '', $client_comp_payments);
+          $client_comp_payments = str_replace(']', '', $client_comp_payments);
+
+          foreach ($client_comp_payments as $key => $value) {
+              $client_comp_payments = ($value);
+          }
+
+          $client_comp_payments = explode(',', $client_comp_payments);
+
+          // GET CLIENT NEXT PAYMENT FOR COMPOUND
+          $data['next_pay_comp_amount'] = min(array_diff($client_comp_payments, $next_pay_comp));
+
+          return $data['next_pay_comp_amount'];
+    }
 
     public function SearchClient(Request $request)
     {
@@ -264,7 +334,6 @@ class PaymentController extends Controller
         $query->join('payment_methods', 'payment_methods.method_id', 'user_pay_modes.pay_mode_id');
         $query->join('banks', 'banks.bank_id', 'user_pay_modes.pay_bank_id');
         $query->join('payment_schedule AS MIT', 'MIT.account_no_id', 'AC.id');
-        // $query->join('payments','sum(payment_amount) as user_sum', 'payments.account_no_id', 'AC.id');
 
         $search_by = $request->input('search_by', "");
         $search = $request->input('search', "");
@@ -286,7 +355,7 @@ class PaymentController extends Controller
         // print_r($query , true);
         // echo "<pre>";
 
-        $clients = $query->paginate($per_page, ['name', 'UD.user_id', 'id_no', 'telephone', 'account_no_id','account_no', 'pay_dates', 'pay_mode_id', 'method_name', 'pay_mpesa_no', 'bank_name', 'pay_bank_acc', 'monthly_amount', 'comp_monthly_pay', 'tot_payable_amnt', 'monthly_amount'], 'page', $page);
+        $clients = $query->paginate($per_page, ['name', 'UD.user_id', 'id_no', 'telephone','account_no', 'account_no_id', 'inv_type', 'pay_dates', 'pay_mode_id', 'method_name', 'pay_mpesa_no', 'bank_name', 'pay_bank_acc', 'monthly_amount', 'comp_monthly_pay', 'tot_payable_amnt', 'monthly_amount', 'total_due_payments'], 'page', $page);
 
         foreach ($clients as $key => $value) {
             $value->user_date = $this->getNextPayDate($value->user_id);
@@ -295,6 +364,10 @@ class PaymentController extends Controller
 
         foreach ($clients as $key => $value) {
             $value->next_pay_comp = $this->getNextPaymentCompound($value->user_id);
+        }
+
+        foreach ($clients as $key => $value) {
+            $value->next_pay_monthly_comp = $this->getNextPayComp($value->user_id);
         }
         // echo "<pre>";
         // print_r($clients);
