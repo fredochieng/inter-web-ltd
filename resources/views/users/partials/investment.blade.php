@@ -5,7 +5,7 @@
                 <div class="form-group">
                     {{Form::label('Investment Amount *')}}
                     <div class="form-group">
-                        {{Form::number('inv_amount', '',['class'=>'form-control', 'placeholder'=>'Minimum investments amount(Kshs 100,000.00)', 'min'=>'100000', 'required'])}}
+                        {{Form::number('inv_amount', '',['class'=>'form-control', 'placeholder'=>'Minimum investments amount(Kshs 100,000.00)', 'min'=>'1', 'required'])}}
                     </div>
                 </div>
             </div>
@@ -19,7 +19,7 @@
                 <div class="form-group">
                     {{Form::label('Investment Duration(Months) *')}}
                     <div class="form-group">
-                        {{Form::number('inv_duration', '',['class'=>'form-control', 'min' => '12', 'required'])}}
+                        {{Form::number('inv_duration', '',['class'=>'form-control', 'min' => '1', 'required'])}}
                         {{--  <span class="input-group-addon">Months</span>  --}}
                     </div>
                 </div>
@@ -43,7 +43,7 @@
                 <div class="form-group">
                     {{Form::label('Monthly Amount *')}}
                     <div class="form-group">
-                        {{Form::number('monthly_inv_amount', '',['class'=>'form-control', 'min'=>'100000', 'required'])}}
+                        {{Form::number('monthly_inv_amount', '',['class'=>'form-control', 'id'=>'monthly_inv_amount', 'min'=>'1', 'required'])}}
                     </div>
                 </div>
             </div>

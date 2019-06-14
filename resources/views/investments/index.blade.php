@@ -31,7 +31,7 @@
                         <!-- <th>Monthly Payment(Kshs)</th> -->
                         <!-- <th>Payable Amount(Kshs)</th> -->
                         <!-- <th>Last Payment Date</th> -->
-                        <th>Initiated By</th>
+                        <th>Served By</th>
                         <th>Action</th>
                     </tr>
                 </thead>

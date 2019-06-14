@@ -28,26 +28,34 @@
                     <td style=""><strong>ID NUMBER:</strong>{{$customer_data->id_no}}</td>
                     <td style=""><strong>PHONE NUMBER: </strong> {{$customer_data->telephone}}</td>
                     <td style=""><strong>NEXT PAY DATE: </strong>{{$next_pay_date}}</td>
+                    @if($customer_data->inv_type_id == 2)
+                    <td style=""><strong>PAY DATE: </strong>{{$next_pay_date}}</td>
+                    @endif
                 </tr>
                 <tr>
                     <td style=""><strong> INVESTMENTS :</strong>Kshs {{ number_format($customer_investments->user_sum,2,'.',',')}}</td>
                     <td style=""><strong> PAYABLE AMOUNT :</strong>Kshs {{ number_format($tot_payable->user_tot_payable,2,'.',',')}}</td>
                     <td style=""><strong> PAYMENTS MADE :</strong>Kshs {{ number_format($customer_payments->total_payments_made,2,'.',',')}}</td>
                     <td style=""><strong> DUE PAYMENTS :</strong>Kshs {{ number_format($tot_due_payments->total_due_payments,2,'.',',')}}</td>
-                     @if($customer_data->inv_type_id == 1)
+                    @if($customer_data->inv_type_id == 1 && $customer_data->topped_up==0)
                     <td style=""><strong> NEXT PAYMENT :</strong>Kshs {{ number_format($monthly_amnt,2,'.',',')}}</td>
-                    @elseif($customer_data->inv_type_id == 2)
-                    <td style=""><strong> NEXT PAYMENT :</strong>Kshs {{ number_format($next_pay_amount,2,'.',',')}}</td>
-                    @else
-                    <td style=""><strong> NEXT PAYMENT :</strong>Kshs {{ number_format($tot_monthly_payable,2,'.',',')}}</td>
+                    @endif
+                    @if($customer_data->inv_type_id == 1 && $customer_data->topped_up==1)
+                    <td style=""><strong> NEXT PAYMENT :</strong>Kshs {{ number_format($updated_monthly_amnt,2,'.',',')}}</td>
+                    @endif
+                    @if($customer_data->inv_type_id == 2)
+                    <td style=""><strong> COMPOUND PAYMENT :</strong>Kshs {{ number_format($comp_payable_amout,2,'.',',')}}</td>
+                    @endif
+                    @if($customer_data->inv_type_id == 3)
+                    <td style=""><strong> NEXT PAYMENT :</strong>Kshs {{ number_format($tot_payable->monthly_amount,2,'.',',')}}</td>
                     @endif
                 </tr>
                 <tr>
                     @if($customer_data->inv_type_id == 3)
-                    <td style=""><strong> NEXT MONTHLY PAYMENT :</strong>Kshs {{ number_format($tot_payable->monthly_amount,2,'.',',')}}</td>
-                    <td style=""><strong> NEXT COMPOUND PAYMENT :</strong>Kshs {{ number_format($next_pay_comp_amount,2,'.',',')}}</td>
+                    <td style=""><strong> COMPOUND AMOUNT :</strong>Kshs {{ number_format($tot_comp_amount,2,'.',',')}}</td>
+                    <td style=""><strong> COMPOUND PAYMENT DATE :</strong>{{$customer_investments->last_pay_date}}</td>
                     @endif
-                    <td style=""><strong> COMMISSION EARNED :</strong>Kshs 30,000.00</td>
+                    {{--  <td style=""><strong> COMMISSION EARNED :</strong>Kshs 30,000.00</td>  --}}
                 </tr>
             </tbody>
         </table>

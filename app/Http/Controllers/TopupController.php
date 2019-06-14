@@ -60,16 +60,44 @@ class TopupController extends Controller
 
                 $next_pay_amount = $data['investments']->monthly_amount;
                 $data['updated_next_pay'] = $next_pay_amount + $top_int;
-                echo"<pre>";
-                print_r($data['updated_next_pay']);
-                exit;
-                }
-                // echo "<pre>";
-                // print_r($data['investments']);
-                // exit;
+                $inv_amount = $data['investments']->investment_amount;
+                $topped_amount = $data['investments']->topup_amount;
 
-            // $payment->save();
-            // DB::beginTransaction();
+                $inv_duration = $data['investments']->investment_duration;
+                $tot_topups = $topped_amount + $topup->topup_amount;
+
+                $tot_investments = $inv_amount + $topup->topup_amount;
+                $new_monthly_pay = $interest_rate * $tot_investments;
+
+                // $multiplier = $inv_duration - 1;
+                // $separator = ',';
+                // $updated_pay = implode($separator, array_fill(0, $multiplier, $new_monthly_pay));
+                // $updated_pay = (array) $updated_pay;
+
+                // $updated_pay = json_encode($updated_pay);
+
+
+                echo"<pre>";
+                print_r($updated_pay);
+                exit;
+
+                $topup->save();
+
+                DB::table('investments')->where('account_no_id', $topup->account_id)->update(
+                    [
+                        'investment_amount' => $tot_investments
+                    ]
+                );
+
+                DB::table('payment_schedule')->where('account_no_id', $topup->account_id)->update(
+                    [
+                        'topped_up' => 1 ,'topup_amount' => $tot_topups,
+                         'updated_next_pay' => $data['updated_next_pay'], 'updated_montyhly_pay' => $new_monthly_pay
+                    ]
+                    );
+                    toast('New topup added successfully','success','top-right');
+                    return back();
+            }
 
         } catch (\Exception $e) {
             DB::rollBack();

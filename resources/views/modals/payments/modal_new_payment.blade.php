@@ -56,6 +56,7 @@
 
                         </div>
                     </div>
+
                     <div class="col-md-3">
                         <label for="franch" class="col-sm-12 control-label label-left">Payment Date</label>
                         <div class="col-sm-12">
@@ -63,6 +64,7 @@
 
                         </div>
                     </div>
+
                     <div class="col-md-3">
                         <label for="franch" class="col-sm-12 control-label label-left">Mothly Payment Amount</label>
                         <div class="col-sm-12">
@@ -71,18 +73,9 @@
                         </div>
                     </div>
                     <div class="col-md-3" id="monthly_amount_div">
-                        <label for="franch" class="col-sm-12 control-label label-left">Compounded Monthly Amount</label>
+                        <label for="franch" class="col-sm-12 control-label label-left">Total Compounded Amount</label>
                         <div class="col-sm-12">
-                            <input id="comp_monthly_amount" class="form-control" placeholder=""   readonly="readonly" name="comp_monthly_amount" type="text" value="">
-
-                        </div>
-                    </div>
-                    <br/>
-
-                    <div class="col-md-3" id="tot_payment_div">
-                        <label for="franch" class="col-sm-12 control-label label-left">Total Payment Amount</label>
-                        <div class="col-sm-12">
-                            <input id="tot_pay_amount" class="form-control" placeholder=""   readonly="readonly" name="tot_pay_amount" type="text" value="">
+                            <input id="tot_comp_amount" class="form-control" placeholder=""   readonly="readonly" name="comp_monthly_amount" type="text" value="">
 
                         </div>
                     </div>
@@ -95,6 +88,18 @@
                         </div>
                     </div> --}}
                 </div>
+                <br/>
+
+                <div class="row">
+
+                        <div class="col-md-3" id="tot_payment_div">
+                            <label for="franch" class="col-sm-12 control-label label-left">Total Payment Amount</label>
+                            <div class="col-sm-12">
+                                <input id="tot_pay_amount" class="form-control" placeholder=""   readonly="readonly" name="tot_pay_amount" type="text" value="">
+
+                            </div>
+                        </div>
+                    </div>
                 <br />
                 <div class="row">
                     <div class="col-md-4">

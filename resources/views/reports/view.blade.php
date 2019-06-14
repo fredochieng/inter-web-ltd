@@ -1,0 +1,261 @@
+@extends('adminlte::page')
+@section('title', 'Due Payments Report - Inter Web Ltd')
+@section('content_header')
+<h1>Due Payments Report</h1>
+@stop
+@section('content')
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-info" id="accordion">
+            <div class="box-header with-border">
+                <h3 class="box-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseFilter">
+                        <i class="fa fa-filter" aria-hidden="true"></i> Filters
+                    </a>
+                </h3>
+            </div>
+            <div id="collapseFilter" class="panel-collapse active collapse in" aria-expanded="true">
+                <div class="box-body">
+                    {!! Form::open(['url' => '#', 'method' => 'get', 'id' => 'sell_payment_report_form' ]) !!}
+                    <div class="col-md-3">
+                        {{Form::label('Payment Mode ')}}
+                        <div class="form-group">
+                            <select class="form-control select2" id="pay_mode_id" name="pay_mode_id"
+                                style="width: 100%;" tabindex="-1" aria-hidden="true">
+                                <option selected="selected" value="0">Select payment mode</option>
+                                @foreach($payment_modes as $payment_mode)
+                                <option value="{{ $payment_mode->method_id }}">{{ $payment_mode->method_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        {{Form::label('Investment Mode ')}}
+                        <div class="form-group">
+                            <select class="form-control select2" id="bank_id" name="bank_id" style="width: 100%;"
+                                tabindex="-1" aria-hidden="true">
+                                <option selected="selected" value="0">Select payment bank</option>
+                                @foreach($banks as $bank)
+                                <option value="{{ $bank->bank_id }}">{{ $bank->bank_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            {!! Form::label('Date') !!}
+                            {!! Form::text('date_range', null, ['placeholder' => 'Selecet date range', 'class' =>
+                            'form-control', 'id' => 'daterange-btn', 'readonly']); !!}
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" style="margin-top:25px;" class="btn btn-block btn-info"><strong><i
+                                    class="fa fa-fw fa-search"></i>
+                                Generate Report</strong></button>
+
+                    </div>
+                    {!! Form::close() !!}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-info">
+            <div class="box-body">
+                <div class="table-responsive">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"><b>Due Payment Report for period</b> {{$start_date}} -
+                            {{$end_date}}</h3>
+                    </div>
+                    <table class="table table-no-margin">
+                        <div class="btn-group  btn-sm" style="margin-left:930px;">
+                            <button type="button" class="btn btn-info btn-flat"><i class="fa fa-align-justify"></i>
+                                Action</button>
+                            <button type="button" class="btn btn-info btn-flat dropdown-toggle" data-toggle="dropdown"
+                                aria-expanded="false">
+                                <span class="caret"></span>
+                                <span class="sr-only">Toggle Dropdown</span>
+                            </button>
+                            <ul class="dropdown-menu" role="menu">
+                                <li><a href="/report/csv/generate"><i class="fa fa-file-o"></i> Export to CSV</a></li>
+                                <li><a href="#"><i class="fa fa-file-excel-o"></i> Export to Excel</a></li>
+                                <li><a href="#"><i class="fa fa-file-pdf-o"></i> Export to PDF</a></li>
+                            </ul>
+                        </div>
+
+                        <thead>
+                            <tr>
+                                <th>Account #</th>
+                                <th>Name</th>
+                                <th>ID Number</th>
+                                <th>Mode of Payment</th>
+                                <th>Bank</th>
+                                <th>Account No</th>
+                                <th>MPesa No</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if($type==1)
+                            @foreach ($today_due_payment_report as $item)
+                            <tr>
+                                <td>{{$item->account_no}}</td>
+                                <td><a href="/client/{{$item->id}}/edit">{{$item->name}}</a></td>
+                                <td>{{$item->id_no}}</td>
+                                <td>{{$item->method_name}}</td>
+                                @if($item->bank_name !='')
+                                <td>{{$item->bank_name}}</td>
+                                @else
+                                <td>N/A</td>
+                                @endif
+                                @if($item->pay_bank_acc !='')
+                                <td>{{$item->pay_bank_acc}}</td>
+                                @else
+                                <td>N/A</td>
+                                @endif
+                                @if($item->pay_mpesa_no !='')
+                                <td>{{$item->pay_mpesa_no}}</td>
+                                @else
+                                <td>N/A</td>
+                                @endif
+                                @if($item->inv_type_id ==1)
+                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
+                                @elseif ($item->inv_type_id ==2)
+                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
+                                @endif
+                            </tr>
+                            @endforeach
+                            @elseif($type==2)
+                            @foreach ($today_due_payment_report as $item)
+                            <tr>
+                                <td>{{$item->account_no}}</td>
+                                <td><a href="/client/{{$item->id}}/edit">{{$item->name}}</a></td>
+                                <td>{{$item->id_no}}</td>
+                                <td>{{$item->method_name}}</td>
+                                @if($item->bank_name !='')
+                                <td>{{$item->bank_name}}</td>
+                                @else
+                                <td>N/A</td>
+                                @endif
+                                @if($item->pay_bank_acc !='')
+                                <td>{{$item->pay_bank_acc}}</td>
+                                @else
+                                <td>N/A</td>
+                                @endif
+                                @if($item->pay_mpesa_no !='')
+                                <td>{{$item->pay_mpesa_no}}</td>
+                                @else
+                                <td>N/A</td>
+                                @endif
+                                @if($item->inv_type_id ==1)
+                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
+                                @elseif ($item->inv_type_id ==2)
+                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
+                                @endif
+                            </tr>
+                            @endforeach
+                            @elseif($type==3)
+                            @foreach ($today_due_payment_report as $item)
+                            <tr>
+                                <td>{{$item->account_no}}</td>
+                                <td><a href="/client/{{$item->id}}/edit">{{$item->name}}</a></td>
+                                <td>{{$item->id_no}}</td>
+                                <td>{{$item->method_name}}</td>
+                                @if($item->bank_name !='')
+                                <td>{{$item->bank_name}}</td>
+                                @else
+                                <td>N/A</td>
+                                @endif
+                                @if($item->pay_bank_acc !='')
+                                <td>{{$item->pay_bank_acc}}</td>
+                                @else
+                                <td>N/A</td>
+                                @endif
+                                @if($item->pay_mpesa_no !='')
+                                <td>{{$item->pay_mpesa_no}}</td>
+                                @else
+                                <td>N/A</td>
+                                @endif
+                                @if($item->inv_type_id ==1)
+                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
+                                @elseif ($item->inv_type_id ==2)
+                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
+                                @endif
+                            </tr>
+                            @endforeach
+                            @endif
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-gray font-17 footer-total text-center">
+                                <td colspan="7"><strong>Total:</strong></td>
+                                <td><span class="display_currency" id="footer_total_amount"
+                                        data-currency_symbol="true">4555</span></td>
+                                <td colspan="4"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@stop
+@section('css')
+<link rel="stylesheet" href="/plugins/bootstrap-daterangepicker/daterangepicker.css">
+@stop
+@section('js')
+<script src="/plugins/jquery/dist/jquery.js"></script>
+<script src="/plugins/moment/min/moment.min.js"></script>
+<script src="/plugins/bootstrap-daterangepicker/daterangepicker.js"></script>
+<script src="/js/select2.full.min.js"></script>
+{{-- <script src="/js/report.js"></script> --}}
+<script>
+    $(function () {
+              $(".select2").select2()
+             // $('#example1').DataTable()
+     })
+</script>
+<script>
+    $(function () {
+
+     //Initialize Select2 Elements
+     $('#example1').DataTable()
+     $('.select2').select2()
+     //Date range as a button
+     $('#daterange-btn').daterangepicker(
+       {
+         ranges   : {
+           'Today'       : [moment(), moment()],
+           'Yesterday'   : [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+           'Last 7 Days' : [moment().subtract(6, 'days'), moment()],
+           'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+           'This Month'  : [moment().startOf('month'), moment().endOf('month')],
+           'Last Month'  : [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+         },
+         startDate: moment().subtract(29, 'days'),
+         endDate  : moment()
+       },
+       function (start, end) {
+         $('#daterange-btn span').html(start.format('YYYY, MMMM, D') + ' - ' + end.format('YYYY, MMMM, D'))
+       }
+     )
+
+     var start = "";
+     var end = "";
+     if ($("input#daterange-btn").val()) {
+         start = $("input#daterange-btn")
+             .data("daterangepicker")
+             .startDate.format("YYYY-MM-DD");
+         end = $("input#daterange-btn")
+             .data("daterangepicker")
+             .endDate.format("YYYY-MM-DD");
+     }
+     start_date = start;
+     end_date = end;
+   })
+</script>
+@stop

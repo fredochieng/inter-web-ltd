@@ -351,11 +351,8 @@ class PaymentController extends Controller
                 $query->where('telephone', 'LIKE', '%' . $search);
             }
         }
-    //  $query = json_decode(json_encode($query), true);
-        // print_r($query , true);
-        // echo "<pre>";
 
-        $clients = $query->paginate($per_page, ['name', 'UD.user_id', 'id_no', 'telephone','account_no', 'account_no_id', 'inv_type', 'pay_dates', 'pay_mode_id', 'method_name', 'pay_mpesa_no', 'bank_name', 'pay_bank_acc', 'monthly_amount', 'comp_monthly_pay', 'tot_payable_amnt', 'monthly_amount', 'total_due_payments'], 'page', $page);
+        $clients = $query->paginate($per_page, ['name', 'UD.user_id', 'id_no', 'telephone','account_no', 'account_no_id', 'inv_type', 'pay_dates', 'pay_mode_id', 'method_name', 'pay_mpesa_no', 'bank_name', 'pay_bank_acc', 'tot_comp_amount', 'comp_monthly_pay', 'tot_payable_amnt', 'monthly_amount', 'total_due_payments'], 'page', $page);
 
         foreach ($clients as $key => $value) {
             $value->user_date = $this->getNextPayDate($value->user_id);

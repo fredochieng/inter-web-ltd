@@ -57,7 +57,6 @@
 
 @stop
 @section('css')
-<link rel="stylesheet" href="/css/admin_custom.css">
 <link rel="stylesheet" href="/css/bootstrap-datepicker.min.css">
 <style>
     .modal-actions {
@@ -79,6 +78,14 @@
 <script src="/js/bootstrap-datepicker.min.js"></script>
 <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.js"></script>
 <script src="/js/select2.full.min.js"></script>
+<script>
+    var monthly_inv_amount = $('#monthly_inv_amount');
+    var monthly_inv_amount = monthly_inv_amount.val();
+    var monthly_inv_amount = monthly_inv_amount;
+    var monthly_inv_amount = monthly_inv_amount.valueOf();
+    {{-- alert(monthly_inv_amount);
+    console.log(monthly_inv_amount); --}}
+</script>
 <script>
     $(function () {
 	 $('.dob').datepicker( {
@@ -260,6 +267,7 @@
 
             }
         });
+
  })
 </script>
 <script type="text/javascript">

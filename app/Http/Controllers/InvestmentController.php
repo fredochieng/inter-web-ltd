@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\InvestmentsExport;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Model\Investment;
 use App\Model\Account;
 use App\Model\Payment;
@@ -20,6 +22,12 @@ class InvestmentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
+    public function export()
+    {
+        return Excel::download(new InvestmentsExport, 'investments.xlsx');
+    }
+
     public function index()
     {
         $data['investments'] = Investment::getInvestments();
@@ -27,13 +35,13 @@ class InvestmentController extends Controller
         // $data['sum_payout'] = Investment::sumPayout();
         // $data['sum_total_payout'] = Investment::totalPayout();
 
-        $data['investments']-> map(function($item){
+        $data['investments']->map(function ($item) {
 
             $name = DB::table('users')
-                    ->select(
-                        DB::raw('users.name AS initiated_by_name')
-                    )
-            ->where('users.id', '=', $item->initiated_by)->get();
+                ->select(
+                    DB::raw('users.name AS initiated_by_name')
+                )
+                ->where('users.id', '=', $item->initiated_by)->get();
 
             $item->created_by_name = json_encode($name);
             $item->created_by_name = str_replace('[{"initiated_by_name":"', '', $item->created_by_name);
@@ -100,33 +108,33 @@ class InvestmentController extends Controller
                 $just_saved_account_id = $investment->account_no_id;
 
                 $account_due_payments = DB::table('accounts')
-                ->select(
-                    DB::raw('accounts.*'),
-                    DB::raw('investments.*')
+                    ->select(
+                        DB::raw('accounts.*'),
+                        DB::raw('investments.*')
                     )
                     ->leftJoin('investments', 'accounts.id', 'investments.account_no_id')
                     ->where('accounts.id', '=',  $just_saved_account_id)
                     ->first();
 
-                    $investments_bal = $account_due_payments->total_investments;
-                    $investments_bal = $investments_bal +  $investment->investment_amount;
+                $investments_bal = $account_due_payments->total_investments;
+                $investments_bal = $investments_bal +  $investment->investment_amount;
 
-                    $interests_bal = $account_due_payments->total_due_interests;
-                    $interests_bal = $interests_bal + $investment->payout;
+                $interests_bal = $account_due_payments->total_due_interests;
+                $interests_bal = $interests_bal + $investment->payout;
 
-                    $balanace = $account_due_payments->total_due_payments;
-                    $balance = $balanace +  $investment->total_payout;
+                $balanace = $account_due_payments->total_due_payments;
+                $balance = $balanace +  $investment->total_payout;
 
-                    $data['account_balance_array'] = array(
-                        'total_investments' => $investments_bal,
-                        'total_due_interests' => $interests_bal,
-                        'total_due_payments' => $balance
-                    );
+                $data['account_balance_array'] = array(
+                    'total_investments' => $investments_bal,
+                    'total_due_interests' => $interests_bal,
+                    'total_due_payments' => $balance
+                );
 
-                    $acc_balances = DB::table('accounts')->where('id',  $just_saved_account_id)
+                $acc_balances = DB::table('accounts')->where('id',  $just_saved_account_id)
                     ->update($data['account_balance_array']);
 
-                    DB::commit();
+                DB::commit();
                 Alert::success('New Investment', 'Investment added successfully');
                 return back();
             } catch (\Exception $e) {

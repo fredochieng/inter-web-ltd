@@ -36,4 +36,37 @@ class Report extends Model
             ->get();
         return $data['user_due_payments'];
     }
+
+    public static function duePaymentsReport(){
+          // FETCH CLIENTS DETAILS
+          $data['due_payments_report'] = DB::table('users')
+          ->select(
+              DB::raw('users.*'),
+              DB::raw('users_details.*'),
+              DB::raw('accounts.*'),
+              DB::raw('investments.*'),
+              DB::raw('user_pay_modes.*'),
+              DB::raw('inv_types.*'),
+              DB::raw('payment_schedule.*'),
+              DB::raw('payment_schedule.monthly_amount'),
+              DB::raw('payments.*'),
+              DB::raw('payment_methods.*'),
+              DB::raw('banks.*'),
+              DB::raw('model_has_roles.*')
+          )
+          ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
+          ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')
+          ->leftJoin('investments', 'accounts.id', '=', 'investments.account_no_id')
+          ->leftJoin('inv_types', 'investments.inv_type_id', '=', 'inv_types.inv_id')
+          ->leftJoin('user_pay_modes', 'users.id', '=', 'user_pay_modes.user_id')
+          ->leftJoin('payment_schedule', 'accounts.id', '=', 'payment_schedule.account_no_id')
+          ->leftJoin('payments', 'accounts.id', '=', 'payments.account_no_id')
+          ->leftJoin('payment_methods', 'user_pay_modes.pay_mode_id', '=', 'payment_methods.method_id')
+          ->leftJoin('banks', 'user_pay_modes.pay_bank_id', '=', 'banks.bank_id')
+          ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+           ->where('model_has_roles.role_id', '=', 3)
+          ->get();
+
+          return $data['due_payments_report'];
+    }
 }

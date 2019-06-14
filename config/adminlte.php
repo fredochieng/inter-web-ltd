@@ -1,5 +1,5 @@
 <?php
-
+// $logo_url="/images/logo.png";
 return [
 
     /*
@@ -30,9 +30,14 @@ return [
     |
     */
 
-    'logo' => '<b>INTER </b>WEB',
+    'logo' => '<b>INTER-WEB LTD</b>',
 
     'logo_mini' => '<b>I</b>W GF',
+
+
+    // 'logo' => '<img src="'.$logo_url.'"> CMS',
+
+    // 'logo_mini' => '<img src="'.$logo_url.'">',
 
     /*
     |--------------------------------------------------------------------------
@@ -108,7 +113,6 @@ return [
     */
 
     'menu' => [
-        'MAIN NAVIGATION',
         [
             'text' => 'Dashboard',
             'url'  => 'home',
@@ -118,7 +122,7 @@ return [
             'icon'    => 'users',
             'submenu' => [
 
-               [
+                [
                     'text'    => 'New Client',
                     'url'     => '/users/create',
                     'icon' => 'plus-circle'
@@ -149,7 +153,7 @@ return [
                     'icon' => 'dollar'
                 ],
             ],
-        ],[
+        ], [
             'text'    => 'Payments',
             'icon'    => 'money',
             'submenu' => [
@@ -239,7 +243,8 @@ return [
         'datatables' => true,
         'select2'    => true,
         'chartjs'    => true,
-        'pace' => true
+        'pace' => true,
+        'fullcalendar' => true
     ],
     'pace' => [
         'color' => 'white',
