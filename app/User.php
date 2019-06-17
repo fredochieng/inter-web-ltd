@@ -68,7 +68,7 @@ class User extends Authenticatable
             ->leftJoin('payment_methods', 'user_pay_modes.pay_mode_id', '=', 'payment_methods.method_id')
             ->leftJoin('banks', 'user_pay_modes.pay_bank_id', '=', 'banks.bank_id')
             ->where('model_has_roles.role_id', '=', '3')
-             ->orderBy('users.id', 'asc')->get();
+            ->orderBy('users.id', 'asc')->get();
         return $data['clients'];
     }
 
@@ -123,13 +123,13 @@ class User extends Authenticatable
                 $query .= "WHERE users IN({$phone_comma_separated_string}) ";
                 break;
 
-                    case "account_no":
-                    $query.="WHERE account_no='{$subscriber_value}' ";
-                    break;
+            case "account_no":
+                $query .= "WHERE account_no='{$subscriber_value}' ";
+                break;
 
-                case "telephone":
-                    $query.="WHERE telephone='{$subscriber_value}' ";
-                    break;
+            case "telephone":
+                $query .= "WHERE telephone='{$subscriber_value}' ";
+                break;
         }
 
 
@@ -137,7 +137,8 @@ class User extends Authenticatable
         return $data;
     }
 
-    public static function find_clients($request){
+    public static function find_clients($request)
+    {
 
 
         $query = "SELECT ";
@@ -148,58 +149,87 @@ class User extends Authenticatable
         $query .= "LEFT JOIN users_details ON users.id = users_details.user_id ";
         $query .= "LEFT JOIN accounts ON users.id = accounts.user_id ";
 
-        if(isset($_GET['find_client_by'])){
+        if (isset($_GET['find_client_by'])) {
 
-				$find_by=$request->get('find_client_by');
-				$find_by_value=$request->get('find_value');
+            $find_by = $request->get('find_client_by');
+            $find_by_value = $request->get('find_value');
 
-                switch ($find_by) {
-                    case "id_no":
-                        $query .= "WHERE id_no={$find_by_value} ";
-                        break;
+            switch ($find_by) {
+                case "id_no":
+                    $query .= "WHERE id_no={$find_by_value} ";
+                    break;
 
-                        case "name":
-                        $query.="WHERE name='{$find_by_value}' ";
-                        break;
+                case "name":
+                    $query .= "WHERE name='{$find_by_value}' ";
+                    break;
 
-                            case "account_no":
-                            $query.="WHERE account_no='{$find_by_value}' ";
-                            break;
+                case "account_no":
+                    $query .= "WHERE account_no='{$find_by_value}' ";
+                    break;
 
-                        case "telephone":
-                            $query.="WHERE telephone='{$find_by_value}' ";
-                            break;
-                }
-			}
+                case "telephone":
+                    $query .= "WHERE telephone='{$find_by_value}' ";
+                    break;
+            }
+        }
 
-            $data = DB::select($query);
-			return $data;
-
+        $data = DB::select($query);
+        return $data;
     }
 
-    public static function get_telephone(){
+    public static function get_telephone()
+    {
         $telephone = DB::table('users_details')
-                      ->select(
-                          DB::raw('users_details.*'),
-                        //   DB::raw('users.*')
-                      )
-                    //   ->leftJoin('users', 'users_datails.user_id', '=', 'users.id')
-                      ->get();
+            ->select(
+                DB::raw('users_details.*'),
+                //   DB::raw('users.*')
+            )
+            //   ->leftJoin('users', 'users_datails.user_id', '=', 'users.id')
+            ->get();
 
         return $telephone;
-
     }
 
     public static function getTotalCustomers()
     {
         $data['total_customers'] = DB::table('users')
-                                  ->select(
-                                      DB::raw('users.*'),
-                                      DB::raw('model_has_roles.*')
-                                      )
-                                      ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
-                                      ->where('model_has_roles.role_id', '=', '3')
-                                  ->count();
+            ->select(
+                DB::raw('users.*'),
+                DB::raw('model_has_roles.*')
+            )
+            ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->where('model_has_roles.role_id', '=', '3')
+            ->count();
         return $data['total_customers'];
+    }
+
+    public static function getTotalSecretaries()
+    {
+        $data['total_secretries'] = DB::table('users')
+            ->select(
+                DB::raw('users.*'),
+                DB::raw('model_has_roles.*')
+            )
+            ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->where('model_has_roles.role_id', '=', '2')
+            ->count();
+        return $data['total_secretries'];
+    }
+
+    public static function getSecretaries()
+    {
+        $data['secreatries'] = DB::table('users')
+            ->select(
+                DB::raw('users.*'),
+                DB::raw('users_details.*'),
+                DB::raw('model_has_roles.*')
+
+            )
+
+            ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id', '=', 'users_details.created_by')
+            ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->where('model_has_roles.role_id', '=', '2')
+            ->orderBy('users.id', 'asc')->get();
+        return $data['secreatries'];
     }
 }

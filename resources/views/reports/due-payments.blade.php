@@ -18,7 +18,7 @@
                 <div class="box-body">
                     {!!
                     Form::open(['action'=>['ReportController@showDuePaymentsReports'],
-                    'method'=>'GET','class'=>'form','enctype'=>'multipart/form-data'])
+                    'method'=>'GET','class'=>'form','enctype'=>'multipart/form-data', 'target'=>'blank'])
                     !!}
                     <div class="col-md-12">
                         <div class="col-md-3">
@@ -49,7 +49,7 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 {!! Form::label('Payment Date') !!}
-                                {!! Form::text('date_range', null, ['placeholder' => 'Select date range', 'class' =>
+                                {!! Form::text('date_range', null, ['placeholder' => 'Select payment date', 'class' =>
                                 'form-control', 'id' => 'daterange-btn', 'readonly']); !!}
                             </div>
                         </div>
@@ -72,59 +72,60 @@
             <div class="box-body">
                 <div class="table-responsive">
                     <table class="table table-no-margin" id="sell_payment_report_table">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Account #</th>
-                                    <th>Name</th>
-                                    <th>ID Number</th>
-                                    <th>Mode of Payment</th>
-                                    <th>Bank</th>
-                                    <th>Account No</th>
-                                    <th>MPesa No</th>
-                                    <th>Amount</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($due_payments_report as $item)
-                                <tr>
-                                    <td>{{$item->account_no}}</td>
-                                    <td><a href="/client/{{$item->id}}/edit">{{$item->name}}</a></td>
-                                    <td>{{$item->id_no}}</td>
-                                    <td>{{$item->method_name}}</td>
-                                    @if($item->bank_name !='')
-                                    <td>{{$item->bank_name}}</td>
-                                    @else
-                                    <td>N/A</td>
-                                    @endif
-                                    @if($item->pay_bank_acc !='')
-                                    <td>{{$item->pay_bank_acc}}</td>
-                                    @else
-                                    <td>N/A</td>
-                                    @endif
-                                    @if($item->pay_mpesa_no !='')
-                                    <td>{{$item->pay_mpesa_no}}</td>
-                                    @else
-                                    <td>N/A</td>
-                                    @endif
-                                    @if($item->inv_type_id ==1)
-                                    <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
-                                    @elseif ($item->inv_type_id ==2)
-                                    <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
-                                    @endif
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                        <tfoot>
+                        <thead>
+                            <tr>
+                                <th>Account #</th>
+                                <th>Name</th>
+                                <th>ID Number</th>
+                                <th>Mode of Payment</th>
+                                <th>Bank</th>
+                                <th>Account No</th>
+                                <th>MPesa No</th>
+                                <th>Amount</th>
+                                <th>Payment Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($due_payments_report as $item)
+                            <tr>
+                                <td>{{$item->account_no}}</td>
+                                <td><a href="/client/{{$item->id}}/edit">{{$item->name}}</a></td>
+                                <td>{{$item->id_no}}</td>
+                                <td>{{$item->method_name}}</td>
+                                @if($item->bank_name !='')
+                                <td>{{$item->bank_name}}</td>
+                                @else
+                                <td>N/A</td>
+                                @endif
+                                @if($item->pay_bank_acc !='')
+                                <td>{{$item->pay_bank_acc}}</td>
+                                @else
+                                <td>N/A</td>
+                                @endif
+                                @if($item->pay_mpesa_no !='')
+                                <td>{{$item->pay_mpesa_no}}</td>
+                                @else
+                                <td>N/A</td>
+                                @endif
+                                @if($item->inv_type_id ==1)
+                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
+                                @elseif ($item->inv_type_id ==2)
+                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
+                                @elseif ($item->inv_type_id ==3)
+                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
+                                @endif
+                                <td>{{$item->next_pay_date}}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                        {{-- <tfoot>
                             <tr class="bg-gray font-17 footer-total text-center">
                                 <td colspan="7"><strong>Total:</strong></td>
                                 <td><span class="display_currency" id="footer_total_amount"
                                         data-currency_symbol="true">4555</span></td>
                                 <td colspan="4"></td>
                             </tr>
-                        </tfoot>
+                        </tfoot> --}}
                     </table>
                 </div>
             </div>

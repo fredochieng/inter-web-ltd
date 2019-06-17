@@ -11,7 +11,8 @@
     <div class="box-header with-border">
         <h3 class="box-title">All Payments</h3>
         <div class="box-tools">
-            <a href="#" data-target="#modal_new_payment" data-toggle="modal" class="btn btn-block btn-primary" data-backdrop="static" data-keyboard="false"><i class="fa fa-plus"></i> NEW PAYMENT </a>
+            <a href="#" data-target="#modal_new_payment" data-toggle="modal" class="btn btn-block btn-primary"
+                data-backdrop="static" data-keyboard="false"><i class="fa fa-plus"></i> NEW PAYMENT </a>
         </div>
         <!-- <div class="box-tools">
             <a href="/payments/create" data-toggle="modal" class="btn btn-block btn-primary"><i
@@ -40,9 +41,12 @@
                         <td>Kshs {{ number_format($row->payment_amount, 2, '.', ',')}}</td>
                         <td>{{ $row->payment_date}}</td>
                         <td>
-                            <a href="" data-toggle="modal" data-target="#modal-edit-customer_{{$row->id}}" class="btn btn-xs btn-success"><i class="glyphicon glyphicon-edit"></i> Edit</a>
+                            <a href="" data-toggle="modal" data-target="#modal-edit-customer_{{$row->id}}"
+                                class="btn btn-xs btn-success"><i class="glyphicon glyphicon-edit"></i> Edit</a>
                             {{Form::hidden('_method','DELETE')}}
-                            <a href="" data-backdrop="static" data-keyboard="false" data-toggle="modal" data-target="#modal-delete-user_{{$row->id}}" class="btn btn-xs btn-danger delete_user_button">
+                            <a href="" data-backdrop="static" data-keyboard="false" data-toggle="modal"
+                                data-target="#modal-delete-user_{{$row->id}}"
+                                class="btn btn-xs btn-danger delete_user_button">
                                 <i class="glyphicon glyphicon-trash"></i> Delete</a>
                         </td>
                     </tr>
@@ -75,6 +79,7 @@
             $("#account_id").val(client.account_no_id);
             $("#name").val(client.name);
             $("#user_id").val(client.user_id);
+            $("#pay_times").val(client.payment_times);
             $("#id_no").val(client.id_no);
             $("#telephone").val(client.telephone);
             $("#method_name").val(client.method_name);
@@ -98,6 +103,10 @@
             if(client.monthly_amount == 0){
                 $("#monthly_amount").val('Kshs ' + number_format(client.next_pay_comp, 2));
              }
+            if(client.next_pay_comp == ''){
+                $("#monthly_amount").val('Kshs ' + number_format(client.monthly_amount, 2));
+             }
+
             if(client.next_pay_comp == ''){
                 $("#monthly_amount").val('Kshs ' + number_format(client.monthly_amount, 2));
              }

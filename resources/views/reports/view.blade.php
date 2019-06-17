@@ -17,41 +17,31 @@
             <div id="collapseFilter" class="panel-collapse active collapse in" aria-expanded="true">
                 <div class="box-body">
                     {!! Form::open(['url' => '#', 'method' => 'get', 'id' => 'sell_payment_report_form' ]) !!}
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         {{Form::label('Payment Mode ')}}
                         <div class="form-group">
-                            <select class="form-control select2" id="pay_mode_id" name="pay_mode_id"
-                                style="width: 100%;" tabindex="-1" aria-hidden="true">
-                                <option selected="selected" value="0">Select payment mode</option>
-                                @foreach($payment_modes as $payment_mode)
-                                <option value="{{ $payment_mode->method_id }}">{{ $payment_mode->method_name }}</option>
-                                @endforeach
-                            </select>
+                            {!! Form::text('telephone', $pay_mode, ['class' =>
+                            'form-control', 'required']); !!}
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        {{Form::label('Investment Mode ')}}
+                    <div class="col-md-4">
+                        {{Form::label('Payment Bank ')}}
                         <div class="form-group">
-                            <select class="form-control select2" id="bank_id" name="bank_id" style="width: 100%;"
-                                tabindex="-1" aria-hidden="true">
-                                <option selected="selected" value="0">Select payment bank</option>
-                                @foreach($banks as $bank)
-                                <option value="{{ $bank->bank_id }}">{{ $bank->bank_name }}</option>
-                                @endforeach
-                            </select>
+                            {!! Form::text('telephone', $pay_bank, ['class' =>
+                            'form-control', 'required']); !!}
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="form-group">
-                            {!! Form::label('Date') !!}
-                            {!! Form::text('date_range', null, ['placeholder' => 'Selecet date range', 'class' =>
+                            {!! Form::label('Payment Date') !!}
+                            {!! Form::text('date_range', $start_date .' - '. $end_date, ['placeholder' => '',
+                            'class' =>
                             'form-control', 'id' => 'daterange-btn', 'readonly']); !!}
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <button type="submit" style="margin-top:25px;" class="btn btn-block btn-info"><strong><i
-                                    class="fa fa-fw fa-search"></i>
-                                Generate Report</strong></button>
+                    <div class="col-md-1">
+                        <a href="/reports/due-payments" style="margin-top:25px;" class="btn bg-purple"><strong><i
+                                    class="fa fa-arrow-left"></i> BACK</strong></a>
 
                     </div>
                     {!! Form::close() !!}
@@ -67,8 +57,15 @@
             <div class="box-body">
                 <div class="table-responsive">
                     <div class="box-header with-border">
-                        <h3 class="box-title"><b>Due Payment Report for period</b> {{$start_date}} -
-                            {{$end_date}}</h3>
+                        <h3 class="box-title">
+                            @if($type == 1)
+                            <b>Due Payment Report for period</b>
+                            @elseif($type == 2)
+                            <b>{{$pay_mode}} Due Payment Report for period</b>
+                            @else
+                            <b>{{$pay_bank}} Due Payment Report for period</b>
+                            @endif
+                            {{$start_date}} - {{$end_date}}</h3>
                     </div>
                     <table class="table table-no-margin">
                         <div class="btn-group  btn-sm" style="margin-left:930px;">
@@ -80,12 +77,13 @@
                                 <span class="sr-only">Toggle Dropdown</span>
                             </button>
                             <ul class="dropdown-menu" role="menu">
-                                <li><a href="/report/csv/generate"><i class="fa fa-file-o"></i> Export to CSV</a></li>
+                                <li><a href="/report/excel/generate"><i class="fa fa-file-o"></i> Export to CSV</a></li>
                                 <li><a href="#"><i class="fa fa-file-excel-o"></i> Export to Excel</a></li>
                                 <li><a href="#"><i class="fa fa-file-pdf-o"></i> Export to PDF</a></li>
                             </ul>
                         </div>
 
+                        @if($type==1)
                         <thead>
                             <tr>
                                 <th>Account #</th>
@@ -96,9 +94,39 @@
                                 <th>Account No</th>
                                 <th>MPesa No</th>
                                 <th>Amount</th>
-                                <th>Date</th>
+                                <th>Payment Date</th>
                             </tr>
                         </thead>
+                        @elseif($type==2)
+                        <thead>
+                            <tr>
+                                <th>Account #</th>
+                                <th>Name</th>
+                                <th>ID Number</th>
+                                <th>Mode of Payment</th>
+                                @if($pay_mode == 'BANK ACCOUNT')
+                                <th>Bank</th>
+                                <th>Account No</th>
+                                @else
+                                <th>MPesa No</th>
+                                @endif
+                                <th>Amount</th>
+                                <th>Payment Date</th>
+                            </tr>
+                        </thead>
+                        @elseif($type==3)
+                        <thead>
+                            <tr>
+                                <th>Account #</th>
+                                <th>Name</th>
+                                <th>ID Number</th>
+                                <th>Bank</th>
+                                <th>Account No</th>
+                                <th>Amount</th>
+                                <th>Payment Date</th>
+                            </tr>
+                        </thead>
+                        @endif
                         <tbody>
                             @if($type==1)
                             @foreach ($today_due_payment_report as $item)
@@ -126,7 +154,10 @@
                                 <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
                                 @elseif ($item->inv_type_id ==2)
                                 <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
+                                @elseif ($item->inv_type_id ==3)
+                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
                                 @endif
+                                <td>{{$item->next_pay_date}}</td>
                             </tr>
                             @endforeach
                             @elseif($type==2)
@@ -135,27 +166,23 @@
                                 <td>{{$item->account_no}}</td>
                                 <td><a href="/client/{{$item->id}}/edit">{{$item->name}}</a></td>
                                 <td>{{$item->id_no}}</td>
+
                                 <td>{{$item->method_name}}</td>
-                                @if($item->bank_name !='')
+                                @if($pay_mode == 'BANK ACCOUNT')
                                 <td>{{$item->bank_name}}</td>
-                                @else
-                                <td>N/A</td>
-                                @endif
-                                @if($item->pay_bank_acc !='')
                                 <td>{{$item->pay_bank_acc}}</td>
                                 @else
-                                <td>N/A</td>
-                                @endif
-                                @if($item->pay_mpesa_no !='')
                                 <td>{{$item->pay_mpesa_no}}</td>
-                                @else
-                                <td>N/A</td>
                                 @endif
+
                                 @if($item->inv_type_id ==1)
                                 <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
                                 @elseif ($item->inv_type_id ==2)
                                 <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
+                                @elseif ($item->inv_type_id ==3)
+                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
                                 @endif
+                                <td>{{$item->next_pay_date}}</td>
                             </tr>
                             @endforeach
                             @elseif($type==3)
@@ -164,39 +191,26 @@
                                 <td>{{$item->account_no}}</td>
                                 <td><a href="/client/{{$item->id}}/edit">{{$item->name}}</a></td>
                                 <td>{{$item->id_no}}</td>
-                                <td>{{$item->method_name}}</td>
-                                @if($item->bank_name !='')
                                 <td>{{$item->bank_name}}</td>
-                                @else
-                                <td>N/A</td>
-                                @endif
-                                @if($item->pay_bank_acc !='')
                                 <td>{{$item->pay_bank_acc}}</td>
-                                @else
-                                <td>N/A</td>
-                                @endif
-                                @if($item->pay_mpesa_no !='')
-                                <td>{{$item->pay_mpesa_no}}</td>
-                                @else
-                                <td>N/A</td>
-                                @endif
                                 @if($item->inv_type_id ==1)
                                 <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
                                 @elseif ($item->inv_type_id ==2)
                                 <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
                                 @endif
+                                <td>{{$item->next_pay_date}}</td>
                             </tr>
                             @endforeach
                             @endif
                         </tbody>
-                        <tfoot>
+                        {{-- <tfoot>
                             <tr class="bg-gray font-17 footer-total text-center">
                                 <td colspan="7"><strong>Total:</strong></td>
                                 <td><span class="display_currency" id="footer_total_amount"
                                         data-currency_symbol="true">4555</span></td>
                                 <td colspan="4"></td>
                             </tr>
-                        </tfoot>
+                        </tfoot> --}}
                     </table>
                 </div>
             </div>

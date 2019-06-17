@@ -35,7 +35,7 @@
                     </li>
                 </ul>
 
-               {!! Form::open(['url' => action('UserController@store'), 'method' => 'post', 'id' => 'AddClientForm'
+                {!! Form::open(['url' => action('UserController@store'), 'method' => 'post', 'id' => 'AddClientForm'
                 ]) !!}
 
                 <div class="tab-content">
@@ -44,7 +44,7 @@
                     <!-- /.tab-pane -->
                     <div class="tab-pane" role="tabpanel" id="step2"> @include('users.partials.payment')
                     </div>
-                     <div class="tab-pane" role="tabpanel" id="step3">@include('users.partials.investment') </div>
+                    <div class="tab-pane" role="tabpanel" id="step3">@include('users.partials.investment') </div>
 
                 </div>
                 <div class="clearfix"></div>
@@ -247,6 +247,12 @@
         $("#cheq_inv_div").addClass("hide");
         // $("#bank_payment_acc").addClass("hide");
         }
+        if(val == 4){
+            $("#mpesa_inv_div").addClass("hide");
+            $("#bank_inv_div").addClass("hide");
+            $("#inv_bank_trans_id").addClass("hide");
+            $("#cheq_inv_div").addClass("hide");
+        }
         });
 
         // SELECTION OF MONTHLY + COMPOUNDED INVESTMENT TYPE
@@ -268,6 +274,14 @@
             }
         });
 
+        $('input').keyup(function(){
+            var totalInvestment  = Number($('#total_inv_amount').val());
+            var monthlyInvestment = Number($('#monthly_inv_amount').val());
+            var compoundedInvestment = totalInvestment - monthlyInvestment;
+
+            document.getElementById('compounded_inv_amount').value = compoundedInvestment;
+
+        });
  })
 </script>
 <script type="text/javascript">

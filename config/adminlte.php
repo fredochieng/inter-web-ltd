@@ -141,47 +141,33 @@ return [
         ],  [
             'text'    => 'Investments',
             'icon'    => 'dollar',
-            'submenu' => [
-                // [
-                //     'text'    => 'New Investment',
-                //     'url'     => '/investments/create',
-                //     'icon' => 'plus-circle'
-                // ],
-                [
-                    'text' => 'All Investments',
-                    'url'  => '/investments',
-                    'icon' => 'dollar'
-                ],
-            ],
-        ], [
+            'url' => '/investments'
+        ],
+        [
             'text'    => 'Payments',
             'icon'    => 'money',
-            'submenu' => [
-                // [
-                //     'text'    => 'New Payment',
-                //     'url'     => '/payments/create',
-                //     'icon' => 'plus-circle'
-                // ],
-                [
-                    'text' => 'All Payments',
-                    'url'  => '/payments',
-                    'icon' => 'money'
-                ],
-            ],
+            'url' => '/payments'
+        ],
+        [
+            'text'    => 'Secretaries',
+            'icon'    => 'users',
+            'url' => '/users/secretaries'
         ],
         [
             'text' => 'Reports',
             'icon' => 'bar-chart',
             'submenu' => [
+                // [
+                //     'text' => 'Customer Report',
+                //     'url'  => 'reports/customer',
+                //     'icon' => 'address-book'
+                // ], [
+                //     'text' => 'Investment Report',
+                //     'url'  => 'reports/investment',
+                //     'icon' => 'money'
+                // ],
+
                 [
-                    'text' => 'Customer Report',
-                    'url'  => 'reports/customer',
-                    'icon' => 'address-book'
-                ], [
-                    'text' => 'Investment Report',
-                    'url'  => 'reports/investment',
-                    'icon' => 'money'
-                ], [
                     'text' => 'Due Payments Report',
                     'url'  => 'reports/due-payments',
                     'icon' => 'money'

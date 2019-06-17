@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Model;
+
 use App\User;
 use DB;
 use Carbon\Carbon;
@@ -36,15 +37,47 @@ class Investment extends Model
             ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
             ->orderBy('investments.investment_id', 'asc')->get();
         return $data['investments'];
-
     }
 
-    public static function totalInvestments(){
+    public static function totalInvestments()
+    {
         $data['total_investments'] = number_format(DB::table('investments')->sum('investment_amount'), 2, '.', ',');
         return $data['total_investments'];
     }
 
-    public static function sumTotalPayable(){
+    public static function totalMonthlyInvestments()
+    {
+        $data['total_monthly_investments'] = DB::table('investments')
+            ->select(
+                DB::raw('sum(investment_amount) as tot_monthly_inv')
+            )->where('investments.inv_type_id', '=', 1)
+            ->first();
+
+        return $data['total_monthly_investments'];
+    }
+    public static function totalCompoundedInvestments()
+    {
+        $data['total_compounded_investments'] = DB::table('investments')
+            ->select(
+                DB::raw('sum(investment_amount) as tot_comp_inv')
+            )->where('investments.inv_type_id', '=', 2)
+            ->first();
+
+        return $data['total_compounded_investments'];
+    }
+    public static function totalMonthlyAndCompoundedInvestments()
+    {
+        $data['total_monthly_comp_investments'] = DB::table('investments')
+            ->select(
+                DB::raw('sum(investment_amount) as tot_monthly_comp_inv')
+            )->where('investments.inv_type_id', '=', 3)
+            ->first();
+
+        return $data['total_monthly_comp_investments'];
+    }
+
+    public static function sumTotalPayable()
+    {
         $data['sum_tot_payable'] = number_format(DB::table('payment_schedule')->sum('tot_payable_amnt'), 2, '.', ',');
         return $data['sum_tot_payable'];
     }
@@ -61,10 +94,11 @@ class Investment extends Model
     //     return $data['total_payments'];
     // }
 
-    public static function todayTotalInvestments(){
+    public static function todayTotalInvestments()
+    {
         $today = Carbon::now()->toDateString();
         $data['today_total_investments'] = number_format(DB::table('investments')->where('investments.created_at', '=', $today)->sum('investment_amount'), 2, '.', ',');
 
-            return $data['today_total_investments'];
+        return $data['today_total_investments'];
     }
 }

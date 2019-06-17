@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Model;
+
 use DB;
 
 use Illuminate\Database\Eloquent\Model;
@@ -31,10 +32,15 @@ class Topup extends Model
             // FIND A WAY OF JOINING WITH INV_BANK_CHEQ_ID TOO TO GET THE BANK CHEQUE NAME
             ->leftJoin('banks', 'investments.inv_bank_id', '=', 'banks.bank_id')
             ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
-            ->leftJoin('user_pay_modes','users.id', '=', 'user_pay_modes.user_id')
+            ->leftJoin('user_pay_modes', 'users.id', '=', 'user_pay_modes.user_id')
             ->where('investments.investment_id', '=', $inv_id)
             ->orderBy('investments.investment_id', 'asc')->first();
         return $data['investments'];
+    }
 
+    public static function totalTopups()
+    {
+        $data['total_topups'] = number_format(DB::table('topups')->sum('topup_amount'), 2, '.', ',');
+        return $data['total_topups'];
     }
 }

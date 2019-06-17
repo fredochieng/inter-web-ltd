@@ -29,6 +29,7 @@ Route::any('/users/store', 'UserController@store');
 Route::any('/users/approve', 'UserController@approveClient');
 Route::any('/customer/{id}', 'UserController@show');
 Route::any('/client/{id}/edit', 'UserController@edit');
+Route::resource('/users/secretaries', 'SecretaryController');
 
 Route::any('/accounts/get_accounts', 'AccountController@get_accounts');
 
@@ -46,7 +47,7 @@ Route::any('/reports/investment', 'ReportController@investmentReport');
 
 Route::any('/reports/due-payments', 'ReportController@duePaymentsReport');
 Route::any('/reports/view', 'ReportController@showDuePaymentsReports');
-Route::any('/report/csv/generate', 'ReportController@showDuePaymentsReports');
+Route::any('/report/excel/generate', 'ReportController@downloadExcel');
 
 Route::get('/test/{id}', 'PaymentController@test');
 
