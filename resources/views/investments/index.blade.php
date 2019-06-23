@@ -14,7 +14,7 @@
 
     <div class="box-body">
         <div class="table-responsive">
-            <table id="example1" class="table table-no-margin" style="font-size:12px">
+            <table id="example1" class="table table-hover" style="font-size:12px">
                 <thead>
                     <tr>
                         <!-- <th>Transaction ID</th> -->
@@ -24,9 +24,7 @@
                         <th>Client</th>
                         <th>Account No</th>
                         <th>Amount(Kshs)</th>
-                        <!-- <th>Monthly Payment(Kshs)</th> -->
-                        <!-- <th>Payable Amount(Kshs)</th> -->
-                        <!-- <th>Last Payment Date</th> -->
+                        <th>Status</th>
                         <th>Served By</th>
                         <th>Action</th>
                     </tr>
@@ -38,29 +36,25 @@
                         <td>{{ date('Y-m-d', strtotime($row->inv_date))}}</td>
                         <!-- <td>{{ $row->investment_duration}} Months</td> -->
                         <td>{{$row->inv_type}}</td>
-                        <td>{{$row->name}}</td>
+                        <td><a href="/client/{{$row->id}}/edit">{{$row->name}}</a></td>
                         <td>{{$row->account_no}}</td>
                         <!-- <td>{{$row->created_by_name}}</td> -->
                         <td>Kshs {{ number_format($row->investment_amount, 2, '.', ',')}}</td>
                         <!-- <td>Kshs {{ number_format($row->monthly_amount, 2, '.', ',') }}</td> -->
                         <!-- <td>Kshs {{ number_format($row->tot_payable_amnt, 2, '.', ',') }}</td> -->
                         <!-- <td>{{ date('Y-m-d', strtotime($row->last_pay_date))}}</td> -->
+                        @if($row->inv_status_id == 0)
+                        <td><span class="label label-warning">Pending</span></td>
+                        @else
+                        <td><span class="label label-success">Approved</span>
+                        </td>
+                        @endif
                         <td>{{$row->created_by_name}}</td>
-
-                        <!-- <td>
-                            <a href="" data-toggle="modal" data-target="#modal-edit-customer_{{$row->id}}"
-                                class="btn btn-xs btn-success"><i class="glyphicon glyphicon-edit"></i> Edit</a>
-                            {{Form::hidden('_method','DELETE')}}
-                            <a href="" data-backdrop="static" data-keyboard="false" data-toggle="modal"
-                                data-target="#modal-delete-user_{{$row->id}}" class="btn btn-xs btn-danger delete_user_button">
-                                <i class="glyphicon glyphicon-trash"></i> Delete</a>
-                        </td> -->
                         <td>
                             <a class="viewModal btn btn-info btn-sm" title="View Investment" href="#"
                                 data-toggle="modal" data-target="#modal-view-investment_{{$row->investment_id}}"
                                 data-backdrop="static" data-keyboard="false"><i class="fa fa-eye"></i></a> <a
-                                class="btn btn-primary btn-sm editTrans" title="Edit Transaction"
-                                href="http://62.8.88.218:84/transactions/batch/30899/editTransaction/2393617 "><i
+                                class="btn btn-primary btn-sm editTrans" title="Approve Investment" href="#"><i
                                     class="fa fa-pencil"></i></a> <a class="btn btn-danger btn-sm"
                                 title="Delete Transaction" href=""><i class="fa fa-trash"></i></a> <a
                                 class="btn bg-olive btn-sm subsPopup" title="View Client"

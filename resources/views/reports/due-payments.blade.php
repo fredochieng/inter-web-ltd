@@ -70,13 +70,14 @@
     <div class="col-md-12">
         <div class="box box-info">
             <div class="box-body">
-                <div class="table-responsive">
-                    <table class="table table-no-margin" id="sell_payment_report_table">
+                <div class="table-responsive" style="font-size:14px;">
+                    <table class="table table-hover" id="sell_payment_report_table">
                         <thead>
-                            <tr>
+                            <tr style="font-size:12px;">
                                 <th>Account #</th>
                                 <th>Name</th>
                                 <th>ID Number</th>
+                                <th>Phone</th>
                                 <th>Mode of Payment</th>
                                 <th>Bank</th>
                                 <th>Account No</th>
@@ -89,8 +90,9 @@
                             @foreach ($due_payments_report as $item)
                             <tr>
                                 <td>{{$item->account_no}}</td>
-                                <td><a href="/client/{{$item->id}}/edit">{{$item->name}}</a></td>
+                                <td><a href="/client/{{$item->client_id}}/edit">{{$item->name}}</a></td>
                                 <td>{{$item->id_no}}</td>
+                                <td>{{$item->telephone}}</td>
                                 <td>{{$item->method_name}}</td>
                                 @if($item->bank_name !='')
                                 <td>{{$item->bank_name}}</td>

@@ -21,14 +21,14 @@
                         {{Form::label('Payment Mode ')}}
                         <div class="form-group">
                             {!! Form::text('telephone', $pay_mode, ['class' =>
-                            'form-control', 'required']); !!}
+                            'form-control', 'readonly']); !!}
                         </div>
                     </div>
                     <div class="col-md-4">
                         {{Form::label('Payment Bank ')}}
                         <div class="form-group">
                             {!! Form::text('telephone', $pay_bank, ['class' =>
-                            'form-control', 'required']); !!}
+                            'form-control', 'readonly']); !!}
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -89,6 +89,7 @@
                                 <th>Account #</th>
                                 <th>Name</th>
                                 <th>ID Number</th>
+                                <th>Phone Number</th>
                                 <th>Mode of Payment</th>
                                 <th>Bank</th>
                                 <th>Account No</th>
@@ -103,6 +104,7 @@
                                 <th>Account #</th>
                                 <th>Name</th>
                                 <th>ID Number</th>
+                                <th>Phone Number</th>
                                 <th>Mode of Payment</th>
                                 @if($pay_mode == 'BANK ACCOUNT')
                                 <th>Bank</th>
@@ -120,6 +122,7 @@
                                 <th>Account #</th>
                                 <th>Name</th>
                                 <th>ID Number</th>
+                                <th>Phone Number</th>
                                 <th>Bank</th>
                                 <th>Account No</th>
                                 <th>Amount</th>
@@ -132,8 +135,9 @@
                             @foreach ($today_due_payment_report as $item)
                             <tr>
                                 <td>{{$item->account_no}}</td>
-                                <td><a href="/client/{{$item->id}}/edit">{{$item->name}}</a></td>
+                                <td><a href="/client/{{$item->client_id}}/edit">{{$item->name}}</a></td>
                                 <td>{{$item->id_no}}</td>
+                                <td>{{$item->telephone}}</td>
                                 <td>{{$item->method_name}}</td>
                                 @if($item->bank_name !='')
                                 <td>{{$item->bank_name}}</td>
@@ -164,9 +168,9 @@
                             @foreach ($today_due_payment_report as $item)
                             <tr>
                                 <td>{{$item->account_no}}</td>
-                                <td><a href="/client/{{$item->id}}/edit">{{$item->name}}</a></td>
+                                <td><a href="/client/{{$item->client_id}}/edit">{{$item->name}}</a></td>
                                 <td>{{$item->id_no}}</td>
-
+                                <td>{{$item->telephone}}</td>
                                 <td>{{$item->method_name}}</td>
                                 @if($pay_mode == 'BANK ACCOUNT')
                                 <td>{{$item->bank_name}}</td>
@@ -189,8 +193,9 @@
                             @foreach ($today_due_payment_report as $item)
                             <tr>
                                 <td>{{$item->account_no}}</td>
-                                <td><a href="/client/{{$item->id}}/edit">{{$item->name}}</a></td>
+                                <td><a href="/client/{{$item->client_id}}/edit">{{$item->name}}</a></td>
                                 <td>{{$item->id_no}}</td>
+                                <td>{{$item->telephone}}</td>
                                 <td>{{$item->bank_name}}</td>
                                 <td>{{$item->pay_bank_acc}}</td>
                                 @if($item->inv_type_id ==1)

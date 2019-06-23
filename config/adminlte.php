@@ -132,26 +132,31 @@ return [
                     'url'     => '/customers',
                     'icon' => 'search'
                 ],
-                [
-                    'text' => 'Roles',
-                    'url'  => 'roles',
-                    'icon' => 'angle-double-right'
-                ],
             ],
-        ],  [
+        ],
+        [
             'text'    => 'Investments',
             'icon'    => 'dollar',
-            'url' => '/investments'
+            'url' => '/investments',
+            'can' => 'investments.view'
+        ],
+        [
+            'text'    => 'Topups',
+            'icon'    => 'money',
+            'url' => '/topups',
+            'can' => 'topups.view'
         ],
         [
             'text'    => 'Payments',
             'icon'    => 'money',
-            'url' => '/payments'
+            'url' => '/payments',
+            'can' => 'payments.manage'
         ],
         [
             'text'    => 'Secretaries',
             'icon'    => 'users',
-            'url' => '/users/secretaries'
+            'url' => '/users/secretaries',
+            'can' => 'secretaries.manage'
         ],
         [
             'text' => 'Reports',
@@ -173,25 +178,27 @@ return [
                     'icon' => 'money'
                 ],
             ],
-        ], [
-            'text'    => 'System',
-            'icon'    => 'cogs',
-            'submenu' => [
-                [
-                    'text' => 'Import',
-                    'url'  => 'system/import',
-                    'icon' => 'angle-double-right'
-                ], [
-                    'text' => 'Logs',
-                    'url'  => 'system/logs',
-                    'icon' => 'angle-double-right'
-                ], [
-                    'text' => 'Settings',
-                    'url'  => 'system/settings',
-                    'icon' => 'angle-double-right'
-                ],
-            ],
+            'can' => 'reports.manage'
         ],
+        //  [
+        //     'text'    => 'System',
+        //     'icon'    => 'cogs',
+        //     'submenu' => [
+        //         [
+        //             'text' => 'Import',
+        //             'url'  => 'system/import',
+        //             'icon' => 'angle-double-right'
+        //         ], [
+        //             'text' => 'Logs',
+        //             'url'  => 'system/logs',
+        //             'icon' => 'angle-double-right'
+        //         ], [
+        //             'text' => 'Settings',
+        //             'url'  => 'system/settings',
+        //             'icon' => 'angle-double-right'
+        //         ],
+        //     ],
+        // ],
     ],
 
     /*

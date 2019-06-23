@@ -12,80 +12,312 @@
     <div class="box-header with-border">
         <h3 class="box-title">ADD NEW CLIENT</h3>
     </div>
-    <!-- /.box-header -->
-    <div class="box-body ">
-        <div class="nav-tabs-custom">
-            <div class="wizard">
-                <ul class="nav nav-tabs" role="tablist">
-                    <li role="presentation" class="active">
-                        <a href="#step1" data-toggle="tab" aria-controls="step1" role="tab" title="PERSONAL DETAILS">
-                            <strong><i class="fa fa-fw fa-user"></i> PERSONAL DETAILS</strong>
-                        </a>
-                    </li>
-
-                    <li role="presentation" class="disabled">
-                        <a href="#step2" data-toggle="tab" aria-controls="step2" role="tab" title="PAYMENT MODE">
-                            <strong><i class="fa fa-fw fa-calendar-check-o"></i>PAYMENT MODE</strong>
-                        </a>
-                    </li>
-                    <li role="presentation" class="disabled">
-                        <a href="#step3" data-toggle="tab" aria-controls="step3" role="tab" title="INVESTMENT">
-                            <strong><i class="fa fa-fw fa-desktop"></i> INVESTMENT</strong>
-                        </a>
-                    </li>
-                </ul>
-
-                {!! Form::open(['url' => action('UserController@store'), 'method' => 'post', 'id' => 'AddClientForm'
-                ]) !!}
-
-                <div class="tab-content">
-                    <div class="tab-pane active" role="tabpanel" id="step1"> @include('users.partials.details')
+    <div class="box-body">
+        {!! Form::open(['url' => action('UserController@store'), 'method' => 'post', 'id'=>'add_client_form'
+        ]) !!}
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {!! Form::label('Full Name *') !!}
+                        {!! Form::text('name', null, ['class' => 'form-control', 'required']); !!}
                     </div>
-                    <!-- /.tab-pane -->
-                    <div class="tab-pane" role="tabpanel" id="step2"> @include('users.partials.payment')
-                    </div>
-                    <div class="tab-pane" role="tabpanel" id="step3">@include('users.partials.investment') </div>
-
                 </div>
-                <div class="clearfix"></div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {!! Form::label('Email Address *') !!}
+                        {!! Form::email('email', null, ['class' => 'form-control', 'required' ]); !!}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {!! Form::label(' Phone Number *') !!}
+                        {!! Form::text('telephone', null, ['class' => 'form-control', 'required']); !!}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {!! Form::label('Date of Birth *') !!}
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                            {{Form::text('dob', null, ['class' => 'form-control dob', 'id' => 'dob', 'required' ])}}
+                        </div>
+                    </div>
+                </div>
             </div>
-            {!! Form::close() !!}
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {!! Form::label('ID Number *') !!}
+                        {!! Form::text('id_no', null, ['class' => 'form-control', 'required']); !!}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {!! Form::label(' Account Number *') !!}
+                        {!! Form::text('account_no', $generated_account, ['class' => 'form-control', 'readonly' ]); !!}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {!! Form::label('Home Town*') !!}
+                        {!! Form::text('home_town', null, ['class' => 'form-control', 'required']); !!}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {!! Form::label(' Home Address*') !!}
+                        {!! Form::text('home_address', null, ['class' => 'form-control', 'required' ]); !!}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {!! Form::label('Next of Kin *') !!}
+                        {!! Form::text('kin_name', null, ['class' => 'form-control', 'required']); !!}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {!! Form::label('Next of Kin Phone Number *') !!}
+                        {!! Form::text('kin_telephone', null, ['class' => 'form-control', 'required']); !!}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    {{ Form::label('Refered by (Optional) ')}}
+                    <div class="form-group">
+                        <select id="phone_no_id" class=" col-md-12 " name="referer_phone_id"> </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {{Form::label('Name')}}
+                        <div class="form-group">
+                            {{Form::text('referer_name', '',['class'=>'form-control', 'readonly', 'id' => 'referer_name'])}}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 hide">
+                    <div class="form-group">
+                        {{Form::label('Referer ID')}}
+                        <div class="form-group">
+                            {{Form::text('referer_id', '',['class'=>'form-control', 'readonly', 'id' => 'referer_id'])}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3" id="">
+                    {{Form::label('Payment Mode ')}}
+                    <div class="form-group">
+                        <select class="form-control select2" name="pay_mode_id" id="pay_mode_id" style="width: 100%;"
+                            tabindex="-1" aria-hidden="true">
+                            <option value"">Select payment mode</option>
+                            @foreach($payment_mode as $item)
+                            <option value="{{ $item->method_id }}">{{ $item->method_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3 hide mpesa_number_div" id="mpesa_number_div">
+                    <div class="form-group">
+                        {{Form::label('MPESA Number')}}
+                        <div class="form-group">
+                            {{Form::text('pay_mpesa_no', '',['class'=>'form-control', 'id' => 'mpesa_number'])}}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 hide bank_payment_div" id="bank_payment_div">
+                    {{Form::label('Payment Bank ')}}
+                    <div class="form-group">
+                        <select class="form-control select2" name="pay_bank_id" id="pay_bank_id" style="width: 100%;"
+                            tabindex="-1" aria-hidden="true">
+                            <option value"">Select payment bank</option>
+                            @foreach($banks as $item)
+                            <option value="{{ $item->bank_id }}">{{ $item->bank_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3 hide bank_payment_acc" id="bank_payment_acc">
+                    <div class="form-group">
+                        {{Form::label('Bank Account')}}
+                        <div class="form-group">
+                            {{Form::text('pay_bank_acc', '',['class'=>'form-control'])}}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        {!! Form::label('Investment Date *') !!}
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                            {{Form::text('inv_date', null, ['class' => 'form-control inv_date', 'id' => 'inv_date', 'required' ])}}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {{Form::label('Investment Amount *')}}
+                        <div class="form-group">
+                            {{Form::number('inv_amount', '',['class'=>'form-control', 'id'=>'total_inv_amount', 'placeholder'=>'Minimum amount(Kshs 100,000.00)', 'min'=>'1', 'required'])}}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-group">
+                        {{Form::label('Investment Duration(Months) *')}}
+                        <div class="input-group">
+                            {{Form::number('inv_duration', '',['class'=>'form-control', 'min' => '1', 'required'])}}
+                            <span class="input-group-addon">
+                                Months
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    {{Form::label('Investment Type ')}}
+                    <div class="form-group">
+                        <select class="form-control select2" name="inv_type_id" id="inv_type_id" required
+                            style="width: 100%;" tabindex="-1" aria-hidden="true">
+                            <option value="">Select investment type</option>
+                            @foreach($inv_types as $item)
+                            <option value='{{ $item->inv_id }}'>{{ $item->inv_type }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 hide" id="monthly_inv_amount_div">
+                    <div class="form-group">
+                        {{Form::label('Monthly Amount *')}}
+                        <div class="form-group">
+                            {{Form::number('monthly_inv_amount', '',['class'=>'form-control', 'id'=>'monthly_inv_amount', 'min'=>'1'])}}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 hide" id="monthly_inv_duration_div">
+                    <div class="form-group">
+                        {{Form::label('Duration *')}}
+                        <div class="form-group">
+                            {{Form::number('monthly_inv_duration', '',['class'=>'form-control', 'min' => '1'])}}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 hide" id="compounded_inv_amount_div">
+                    <div class="form-group">
+                        {{Form::label('Compounded Amount *')}}
+                        <div class="form-group">
+                            {{Form::number('compounded_inv_amount', '',['class'=>'form-control', 'id'=>'compounded_inv_amount'])}}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 hide" id="compounded_inv_duration_div">
+                    <div class="form-group">
+                        {{Form::label('Duration(Months) *')}}
+                        <div class="form-group">
+                            {{Form::number('compounded_inv_duration', '',['class'=>'form-control', 'min' => '1'])}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    {{Form::label('Investment Mode ')}}
+                    <div class="form-group">
+                        <select class="form-control select2" id="inv_mode_id" name="inv_mode_id" style="width: 100%;"
+                            tabindex="-1" aria-hidden="true">
+                            <option selected="selected" value="0">Select investment mode</option>
+                            @foreach($inv_modes as $item)
+                            <option value="{{ $item->id }}">{{ $item->inv_mode }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4 hide mpesa_inv_div" id="mpesa_inv_div">
+                    <div class="form-group">
+                        {{Form::label('MPESA Transaction Code *')}}
+                        <div class="form-group">
+                            {{Form::text('mpesa_trans_code', '',['class'=>'form-control'])}}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 hide bank_inv_div" id="bank_inv_div">
+                    {{Form::label('Bank ')}}
+                    <div class="form-group">
+                        <select class="form-control select2" id="inv_bank_id" name="inv_bank_id" style="width: 100%;"
+                            tabindex="-1" aria-hidden="true">
+                            <option selected="selected">Select investment bank</option>
+                            @foreach($banks as $item)
+                            <option value="{{ $item->bank_id }}">{{ $item->bank_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4 hide bank_inv_div" id="inv_bank_trans_id">
+                    <div class="form-group">
+                        {{Form::label('Bank Transaction Code')}}
+                        <div class="form-group">
+                            {{Form::text('bank_trans_code', '',['class'=>'form-control'])}}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 hide cheq_inv_div" id="cheq_inv_div">
+                    {{Form::label('Bank ')}}
+                    <div class="form-group">
+                        <select class="form-control select2" id="inv_cheq_bank_id" name="inv_cheq_bank_id"
+                            style="width: 100%;" tabindex="-1" aria-hidden="true">
+                            <option selected="selected">Select investment bank</option>
+                            @foreach($banks as $item)
+                            <option value='{{ $item->bank_id }}'>{{ $item->bank_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4 hide cheq_inv_div" id="cheq_no_inv_div">
+                    <div class="form-group">
+                        {{Form::label('Cheque Number')}}
+                        <div class="form-group">
+                            {{Form::text('cheque_no', '',['class'=>'form-control'])}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-offset-10 col-md-2">
+                    <ul class="list-inline pull-right">
+                        <button type="submit" class="btn btn-primary next-step">ADD NEW CLIENT</button>
+                    </ul>
+                </div>
+            </div>
         </div>
-        <!-- /.tab-content -->
+        {!! Form::close() !!}
     </div>
 </div>
 
 @stop
 @section('css')
 <link rel="stylesheet" href="/css/bootstrap-datepicker.min.css">
-<style>
-    .modal-actions {
-        margin-top: 30px;
-        margin-bottom: 10px;
-    }
 
-    .full-width {
-        width: 100%;
-    }
-
-    .amtwarning {
-        /* border-color: #fb0000; */
-        color: #fb0000;
-    }
-</style>
 @stop
 @section('js')
 <script src="/js/bootstrap-datepicker.min.js"></script>
-<script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.js"></script>
 <script src="/js/select2.full.min.js"></script>
-<script>
-    var monthly_inv_amount = $('#monthly_inv_amount');
-    var monthly_inv_amount = monthly_inv_amount.val();
-    var monthly_inv_amount = monthly_inv_amount;
-    var monthly_inv_amount = monthly_inv_amount.valueOf();
-    {{-- alert(monthly_inv_amount);
-    console.log(monthly_inv_amount); --}}
-</script>
 <script>
     $(function () {
 	 $('.dob').datepicker( {
@@ -97,7 +329,6 @@
          toggleActive: true,
          clearBtn: true,
      })
-
 	 $('.inv_date').datepicker( {
 	 	format: 'yyyy-mm-dd',
 		orientation: "bottom",
@@ -108,7 +339,6 @@
          clearBtn: true,
      })
      $(".select2").select2()
-
         })
 </script>
 <script>
@@ -137,7 +367,6 @@
         			}
                 retVal.push(lineObj);
         		});
-
               return {
                 results: retVal,
                 pagination: {
@@ -162,16 +391,12 @@
          if (repo.loading) {
             return repo.text;
           }
-
           var markup =repo.text;
-
           return markup;
         }
-
         function formatRepoSelection (repo) {
           return repo.text ;
         }
-
         $("#pay_bank_id").change(function() {
             var value = $(this).val();
             if (value != 0 ) {
@@ -181,7 +406,6 @@
             $("#bank_payment_acc").addClass("hide");
             }
     });
-
         $("#pay_mode_id").change(function() {
                     var val = $(this).val();
                     if (val == 1 ) {
@@ -199,7 +423,6 @@
                 //    $("#bank_payment_acc").addClass("hide");
                     }
         });
-
         $("#inv_bank_id").change(function() {
         var value = $(this).val();
         if (value != 0 ) {
@@ -209,7 +432,6 @@
         $("#inv_bank_trans_id").addClass("hide");
         }
         });
-
         $("#inv_cheq_bank_id").change(function() {
         var value = $(this).val();
         if (value != 0 ) {
@@ -219,7 +441,6 @@
         $("#cheq_no_inv_div").addClass("hide");
         }
         });
-
         // Investments Modes Selection
         $("#inv_mode_id").change(function() {
         var val = $(this).val();
@@ -254,7 +475,6 @@
             $("#cheq_inv_div").addClass("hide");
         }
         });
-
         // SELECTION OF MONTHLY + COMPOUNDED INVESTMENT TYPE
         $("#inv_type_id").change(function() {
         var val = $(this).val();
@@ -270,63 +490,17 @@
             $("#monthly_inv_duration_div").addClass("hide");
             $("#compounded_inv_amount_div").addClass("hide");
             $("#compounded_inv_duration_div").addClass("hide");
-
             }
         });
-
-        $('input').keyup(function(){
+       $('input').keyup(function(){
             var totalInvestment  = Number($('#total_inv_amount').val());
-            var monthlyInvestment = Number($('#monthly_inv_amount').val());
-            var compoundedInvestment = totalInvestment - monthlyInvestment;
-
-            document.getElementById('compounded_inv_amount').value = compoundedInvestment;
-
+           var monthlyInvestment = Number($('#monthly_inv_amount').val());
+          var compoundedInvestment = totalInvestment - monthlyInvestment;
+         document.getElementById('compounded_inv_amount').value = compoundedInvestment;
         });
+
+        var form = document.getElementById("add_client_form");
+        form.reset();
  })
-</script>
-<script type="text/javascript">
-    $(document).ready(function(){
-      $('#nextButton').click(function(e){
-      e.preventDefault();
-        $('#listMenu a[href="#second"]').addClass('active');
-    });
-
-      $(".next-step").click(function (e) {
-
-        var form = $("#AddClientForm");
-        form.validate();
-
-        if (form.valid() === true){
-                var $active = $('.nav-tabs li.active');
-                $active.next().removeClass('disabled');
-                nextTab($active);
-                }
-                else{
-
-                    $('.error').addClass('amtwarning');
-                }
-			});
-
-      $(".prev-step").click(function (e) {
-        var $active = $('.nav-tabs li.active');
-        prevTab($active);
-        });
-
-      //VALIDATE FORM
-
-      $('#BasicButton').click(function(){ });
-
-    $('form input').each(function() {
-        $('.error').removeClass('amtwarning');
-         });
-  });
-
-  function nextTab(elem) {
-    $(elem).next().find('a[data-toggle="tab"]').click();
-}
-function prevTab(elem) {
-    $(elem).prev().find('a[data-toggle="tab"]').click();
-}
-
 </script>
 @stop

@@ -3,14 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
-use App\Model\Report;
+use App\Model\Payment;
 use Illuminate\Http\Request;
 use DB;
 use App\User;
 use App\Model\Investment;
 use App\Model\PaymentMethod;
 use App\Model\Bank;
+use App\Model\Report;
 use Carbon\Carbon;
+use App\Http\Controllers\Controller;
 use ExcelReport;
 
 
@@ -121,14 +123,44 @@ class ReportController extends Controller
             ->where('users.id', '=', $id)
             ->first();
 
-        $data['to_be_paid'] = '';
-        $data['to_be_paid1'] = '';
-        $data['to_be_paid2'] = '';
-        $data['to_be_paid3'] = '';
+
+        if ($data['tot_payable']->topped_up == 0) {
+
+            $data['next_amount'] =  $data['tot_payable']->monthly_amount;
+            $data['to_be_paid'] =  $data['next_amount'];
+        } else {
+            $data['updated_next_pay'] =  $data['tot_payable']->updated_next_pay;
+            // CHECK IF THE UPDATED NEXT PAY HAS BEEN PAID
+            $data['client_payments'] = DB::table('payments')
+                ->select(
+                    DB::raw('payments.*'),
+                    DB::raw('accounts.*'),
+                    DB::raw('users.*')
+                )
+                ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+                ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+                ->where('users.id', '=', $id)
+                ->where('payments.payment_amount', '=',  $data['updated_next_pay'])
+                ->orderBy('payments.payment_id', 'desc')->first();
+
+            if ($data['client_payments']) {
+                $data['to_be_paid'] =  $data['tot_payable']->updated_monthly_pay;
+                // $data['next_amount'] =  $data['tot_payable']->updated_monthly_pay;
+            } else {
+                $data['to_be_paid'] =  $data['tot_payable']->updated_next_pay;
+                // $data['next_amount'] =  $data['tot_payable']->updated_next_pay;
+            }
+        }
+
+        // $data['to_be_paid'] = '';
+        // $data['to_be_paid1'] = '';
+        // $data['to_be_paid2'] = '';
+        // $data['to_be_paid3'] = '';
 
         if ($data['tot_payable']->comp_monthly_pay == '') {
 
-            $data['to_be_paid'] = $data['tot_payable']->monthly_amount;
+            $data['to_be_paid'] = $data['to_be_paid'];
+            // $data['to_be_paid'] = $data['tot_payable']->monthly_amount;
             $data['updated_monthly_amnt'] = $data['tot_payable']->updated_next_pay;
 
             return $data['to_be_paid'];
@@ -138,14 +170,16 @@ class ReportController extends Controller
 
             return $data['to_be_paid1'];
         } elseif ($data['tot_payable']->comp_monthly_pay != '' && $data['tot_payable']->monthly_amount != '') {
-
-            $data['to_be_paid2'] = $data['tot_payable']->monthly_amount;
+            $data['to_be_paid'] = $data['to_be_paid'];
+            // $data['to_be_paid'] = $data['tot_payable']->monthly_amount;
+            $data['updated_monthly_amnt'] = $data['tot_payable']->updated_next_pay;
+            // $data['to_be_paid2'] = $data['tot_payable']->monthly_amount;
             // $data['to_be_paid2'] = $data['tot_payable']->monthly_amount;
             // $data['to_be_paid3'] =  $data['tot_payable']->tot_comp_amount;
 
             // return array($data['to_be_paid2'], $data['to_be_paid3']);
             // logger()->error('An error occurred');
-            return $data['to_be_paid2'];
+            return $data['to_be_paid'];
         }
 
         // list($first, $second) = getNextPayment();
@@ -157,6 +191,9 @@ class ReportController extends Controller
 
     public function duePaymentsReport()
     {
+        if (!auth()->user()->can('reports.manage')) {
+            abort(401, 'Unauthorized action.');
+        }
         $data['clients'] = User::getClients();
         $data['payment_modes'] = PaymentMethod::getPaymentMethods();
         $data['banks'] = Bank::getBanks();
@@ -181,7 +218,9 @@ class ReportController extends Controller
 
     public function showDuePaymentsReports(Request $request)
     {
-
+        if (!auth()->user()->can('reports.manage')) {
+            abort(401, 'Unauthorized action.');
+        }
         $data['clients'] = User::getClients();
         $data['payment_modes'] = PaymentMethod::getPaymentMethods();
         $data['banks'] = Bank::getBanks();
@@ -223,39 +262,28 @@ class ReportController extends Controller
             });
 
             $data['pay_mode'] = 'NO SELECTION';
-            $data['pay_bank'] = 'NO COLLECTION';
+            $data['pay_bank'] = 'NO SELECTION';
+
+            $data['today_due_payment_report'] = $data['due_payments_report']->whereBetween('next_pay_date', array($data['start_date'], $data['end_date']));
 
             $data['meta'] = ['Payment Date' => $data['start_date'] . ' To ' . $data['end_date']];
 
-            $data['today_due_payment_report'] = $data['due_payments_report']->whereBetween('next_pay_date', array($data['start_date'], $data['end_date']));
             $data['columns'] = [
                 'Account No' => 'account_no', 'Name' => 'name', 'ID Number' => 'id_no',
                 'Mode of Payment' => 'method_name', 'Bank' => 'bank_name', 'Bank account' => 'pay_bank_acc',
                 'MPESA Number' => 'pay_mpesa_no', 'Amount' => 'to_be_paid', 'Payment Date' => 'next_pay_date'
             ];
 
-            //return view('reports.view')->with($data);
             $data['title'] = "Due Payments Report";
             $download_excel = ExcelReport::of($data['title'], $data['meta'],  $data['today_due_payment_report'], $data['columns'])
                 ->limit(20)
                 ->download('payments');
 
             return $download_excel;
-
-            // function downloadExcel()
-            // {
-            //     $title = "Due Payments Report";
-            //     $meta = ['Payment Date' => '23-04-2019' . ' To ' . '23-08-2019'];
-            //     $download_excel = ExcelReport::of($title, $meta)
-            //         ->limit(20)
-            //         ->download('payments');
-
-            //     return $download_excel;
-            // }
-            // return $data['today_due_payment_report'];
-        } elseif (($date_range != '') && ($pay_mode_id != '')) {
+        } elseif (($date_range != '') && ($pay_mode_id != '') && ($bank_id == '')) {
 
             $data['type'] = 2;
+
             $data['due_payments_report'] = Report::duePaymentsReport();
 
             $data['due_payments_report']->map(function ($item) {
@@ -287,9 +315,30 @@ class ReportController extends Controller
             $user = \Auth::user();
 
             logger($data['pay_mode'] . ' due payments report from ' . $data['start_date'] . ' to ' . $data['end_date'] .  ' run by ' . $user->name);
+
+            $data['meta'] = ['Payment Date' => $data['start_date'] . ' To ' . $data['end_date']];
+
+            if ($pay_mode_id == 1) {
+                $data['columns'] = [
+                    'Account No' => 'account_no', 'Name' => 'name', 'ID Number' => 'id_no',
+                    'Mode of Payment' => 'method_name', 'MPESA Number' => 'pay_mpesa_no', 'Amount' => 'to_be_paid', 'Payment Date' => 'next_pay_date'
+                ];
+            } else {
+
+                $data['columns'] = [
+                    'Account No' => 'account_no', 'Name' => 'name', 'ID Number' => 'id_no',
+                    'Mode of Payment' => 'method_name', 'Amount' => 'to_be_paid', 'Payment Date' => 'next_pay_date'
+                ];
+            }
+
+            $data['title'] = "Due Payments Report";
+            $download_excel = ExcelReport::of($data['title'], $data['meta'],  $data['today_due_payment_report'], $data['columns'])
+                ->limit(20)
+                ->download('payments');
+
+            return $download_excel;
         }
         if (!empty($date_range) && !empty($pay_mode_id) && !empty($bank_id)) {
-
 
             $data['type'] = 3;
 
@@ -320,6 +369,21 @@ class ReportController extends Controller
             $user = \Auth::user();
 
             logger($data['pay_bank'] . ' due payments report from ' . $data['start_date'] . ' to ' . $data['end_date'] .  ' run by ' . $user->name);
+
+            $data['meta'] = ['Payment Date' => $data['start_date'] . ' To ' . $data['end_date']];
+
+            $data['columns'] = [
+                'Account No' => 'account_no', 'Name' => 'name', 'ID Number' => 'id_no',
+                'Mode of Payment' => 'method_name', 'Bank' => 'bank_name', 'Bank Account' => 'pay_bank_acc',
+                'Amount' => 'to_be_paid', 'Payment Date' => 'next_pay_date'
+            ];
+
+            $data['title'] = "Due Payments Report";
+            $download_excel = ExcelReport::of($data['title'], $data['meta'],  $data['today_due_payment_report'], $data['columns'])
+                ->limit(20)
+                ->download('payments');
+
+            return $download_excel;
         }
 
         return view('reports.view')->with($data);
@@ -334,20 +398,20 @@ class ReportController extends Controller
         //     ->download('payments');
 
         // return $download_excel;
-        $title = "Due Payments Report";
-        $meta = ['Payment Date' => '2019-01-02' . ' To ' . '2019-12-01'];
-        $queryBuilder = User::getClients();
+        // $title = "Due Payments Report";
+        // $meta = ['Payment Date' => '2019-01-02' . ' To ' . '2019-12-01'];
+        // $queryBuilder = User::getClients();
 
-        $columns = [
-            'Name' => 'name',
-            'Email' => 'email',
-            'Registered At' => 'created_at'
-        ];
-        $download_excel = ExcelReport::of($title, $meta, $queryBuilder, $columns)
-            ->limit(20)
-            ->download('payments');
+        // $columns = [
+        //     'Name' => 'name',
+        //     'Email' => 'email',
+        //     'Registered At' => 'created_at'
+        // ];
+        // $download_excel = ExcelReport::of($title, $meta, $queryBuilder, $columns)
+        //     ->limit(20)
+        //     ->download('payments');
 
-        return $download_excel;
+        // return $download_excel;
     }
 
     /**

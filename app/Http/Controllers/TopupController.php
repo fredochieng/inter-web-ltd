@@ -19,7 +19,14 @@ class TopupController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index()
-    { }
+    {
+        if (!auth()->user()->can('topups.view')) {
+            abort(401, 'Unauthorized action.');
+        }
+        $data['topups'] = Topup::getTopups();
+
+        return view('topups.index')->with($data);
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -43,6 +50,9 @@ class TopupController extends Controller
             $topup = new Topup();
             $inv_id = $request->input('inv_id');
             $data['investments'] = Topup::getInvestments($inv_id);
+            // echo "<pre>";
+            // print_r($data['investments']->investment_amount);
+            // exit;
             $next_pay_date = new Carbon(Session::get('next_pay_day'));
             $pay_times = $data['investments']->payment_times;
 
@@ -50,8 +60,10 @@ class TopupController extends Controller
             $number_of_days = $next_pay_date->diffInDays($topup_date);
 
             $inv_type = $request->input('inv_type_id');
+            $user_id = $request->input('user_id');
             $topup->account_id = $request->input('account_no_id');
             $topup->topup_amount = $request->input('topup_amount');
+            $topup->served_by = Auth::user()->id;
             $topup->inv_mode_id = $request->input('inv_mode_id');
             $topup->mpesa_trans_code = $request->input('mpesa_trans_code');
             $topup->inv_bank_id = $request->input('inv_bank_id');
@@ -69,8 +81,26 @@ class TopupController extends Controller
                 if ($data['investments']->topped_up  == 0) {
                     $next_pay_amount = $data['investments']->monthly_amount;
                 } else {
+                    $updated_next_pay = $data['investments']->updated_next_pay;
 
-                    $next_pay_amount = $data['investments']->updated_monthly_pay;
+                    // CHECK IF THE UPDATED NEXT PAY HAS BEEN PAID
+                    $data['client_payments'] = DB::table('payments')
+                        ->select(
+                            DB::raw('payments.*'),
+                            DB::raw('accounts.*'),
+                            DB::raw('users.*')
+                        )
+                        ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+                        ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+                        ->where('users.id', '=', $user_id)
+                        ->where('payments.payment_amount', '=', $updated_next_pay)
+                        ->orderBy('payments.payment_id', 'desc')->first();
+
+                    if ($data['client_payments']) {
+                        $next_pay_amount =  $data['investments']->updated_monthly_pay;
+                    } else {
+                        $next_pay_amount =  $data['investments']->updated_next_pay;
+                    }
                 }
 
                 $data['updated_next_pay'] = $next_pay_amount + $top_int;
@@ -81,30 +111,12 @@ class TopupController extends Controller
                 $inv_duration = $data['investments']->investment_duration;
                 $tot_topups = $topped_amount + $topup->topup_amount;
 
-
                 $tot_investments = $inv_amount + $topup->topup_amount;
                 $new_monthly_pay = $interest_rate * $tot_investments;
-
 
                 $pay_times_remaining = $inv_duration - $pay_times - 1;
                 $new_tot_monthly_payable = $new_monthly_pay * $pay_times_remaining;
                 $new_due_payments = $new_tot_monthly_payable + $data['updated_next_pay'];
-
-                // echo $new_due_payments;
-                // echo
-                //     exit;
-
-                // $multiplier = $inv_duration - 1;
-                // $separator = ',';
-                // $updated_pay = implode($separator, array_fill(0, $multiplier, $new_monthly_pay));
-                // $updated_pay = (array) $updated_pay;
-
-                // $updated_pay = json_encode($updated_pay);
-
-
-                // echo"<pre>";
-                // print_r($updated_pay);
-                // exit;
 
                 $topup->save();
 
@@ -128,6 +140,176 @@ class TopupController extends Controller
                 );
                 toast('New topup added successfully', 'success', 'top-right');
                 return back();
+            } elseif ($inv_type == 2) {
+
+                // GET LAST PAYMENT DATE
+                $last_pay_date = new Carbon(Session::get('last_pay_date'));
+
+                $interest_rate = 0.2;
+                $days = 30;
+                $number_of_days = $last_pay_date->diffInDays($topup_date);
+                $interest = $interest_rate * $topup->topup_amount;
+                $top_int = floor(($interest * $number_of_days) / $days);
+
+                $next_pay_amount = $data['investments']->tot_payable_amnt;
+                $updated_next_pay = $next_pay_amount + $top_int;
+
+                //GET CLIENT TOTAL INVESTMENT AND UPDATE EITH THE NEW VALUE
+                $inv_amount = $data['investments']->investment_amount;
+                $topped_amount = $data['investments']->topup_amount;
+                $tot_topups = $topped_amount + $topup->topup_amount;
+                $tot_investments = $inv_amount + $topup->topup_amount;
+
+                $topup->save();
+
+                DB::table('investments')->where('account_no_id', $topup->account_id)->update(
+                    [
+                        'investment_amount' => $tot_investments
+                    ]
+                );
+
+                DB::table('payment_schedule')->where('account_no_id', $topup->account_id)->update(
+                    [
+                        'topped_up' => 1, 'topup_amount' => $tot_topups,
+                        'tot_payable_amnt' => $updated_next_pay
+                    ]
+                );
+
+                DB::table('accounts')->where('id', $topup->account_id)->update(
+                    [
+                        'total_due_payments' => $updated_next_pay
+                    ]
+                );
+                toast('New topup added successfully', 'success', 'top-right');
+                return back();
+            } elseif ($inv_type == 3) {
+
+                $inv_subtype_id = $request->input('inv_subtype_id');
+                if ($inv_subtype_id == 1) {
+
+                    if ($data['investments']->topped_up  == 0) {
+                        $next_pay_amount = $data['investments']->monthly_amount;
+                    } else {
+                        $updated_next_pay = $data['investments']->updated_next_pay;
+
+                        // CHECK IF THE UPDATED NEXT PAY HAS BEEN PAID
+                        $data['client_payments'] = DB::table('payments')
+                            ->select(
+                                DB::raw('payments.*'),
+                                DB::raw('accounts.*'),
+                                DB::raw('users.*')
+                            )
+                            ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+                            ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+                            ->where('users.id', '=', $user_id)
+                            ->where('payments.payment_amount', '=', $updated_next_pay)
+                            ->orderBy('payments.payment_id', 'desc')->first();
+
+                        if ($data['client_payments']) {
+                            $next_pay_amount =  $data['investments']->updated_monthly_pay;
+                        } else {
+                            $next_pay_amount =  $data['investments']->updated_next_pay;
+                        }
+                    }
+
+                    $data['updated_next_pay'] = $next_pay_amount + $top_int;
+                    // $next_pay_amount =  $data['investments']->updated_next_pay;
+
+                    $inv_amount = $data['investments']->monthly_inv;
+                    $overall_inv = $data['investments']->investment_amount;;
+
+                    $topped_amount = $data['investments']->topup_amount;
+
+                    $inv_duration = $data['investments']->monthly_duration;
+                    $tot_topups = $topped_amount + $topup->topup_amount;
+
+                    $tot_investments = $inv_amount + $topup->topup_amount;
+                    $new_tot_overall_inv = $overall_inv + $topup->topup_amount;
+                    $new_monthly_pay = $interest_rate * $tot_investments;
+
+                    $pay_times_remaining = $inv_duration - $pay_times - 1;
+                    $new_tot_monthly_payable = $new_monthly_pay * $pay_times_remaining;
+                    $comp_due_amount = $data['investments']->tot_comp_amount;
+
+                    $new_due_payments = $new_tot_monthly_payable + $data['updated_next_pay'] + $comp_due_amount;
+                    // echo $new_tot_overall_inv;
+                    // exit;
+
+                    $topup->save();
+
+                    DB::table('investments')->where('account_no_id', $topup->account_id)->update(
+                        [
+                            'monthly_inv' => $tot_investments, 'investment_amount' => $new_tot_overall_inv
+                        ]
+                    );
+
+                    DB::table('payment_schedule')->where('account_no_id', $topup->account_id)->update(
+                        [
+                            'topped_up' => 1, 'topup_amount' => $tot_topups, 'tot_payable_amnt' => $new_due_payments,
+                            'updated_next_pay' => $data['updated_next_pay'], 'updated_monthly_pay' => $new_monthly_pay
+                        ]
+                    );
+
+                    DB::table('accounts')->where('id', $topup->account_id)->update(
+                        [
+                            'total_due_payments' => $new_due_payments
+                        ]
+                    );
+                    toast('New topup added successfully', 'success', 'top-right');
+                    return back();
+                } else {
+
+                    // GET LAST PAYMENT DATE
+                    $last_pay_date = new Carbon(Session::get('last_pay_date'));
+                    $last_pay_date = Carbon::parse($last_pay_date)->toDateString();
+
+                    $interest_rate = 0.2;
+                    $days = 30;
+                    $topup_date = new Carbon(Carbon::now('Africa/Nairobi')->toDateString());
+                    $number_of_days = Carbon::parse($last_pay_date)->diffInDays($topup_date);
+
+                    $interest = $interest_rate * $topup->topup_amount;
+
+                    $top_int = floor(($interest * $number_of_days) / $days);
+
+                    $next_pay_amount = $data['investments']->tot_comp_amount;
+                    $tot_overall__due_payments = $data['investments']->tot_payable_amnt;
+                    $overall_inv = $data['investments']->investment_amount;
+                    $investments = $data['investments']->compounded_inv;
+                    $updated_next_pay = $next_pay_amount + $top_int;
+
+                    // //GET CLIENT TOTAL INVESTMENT AND UPDATE EITH THE NEW VALUE
+                    $new_tot_overall_inv = $overall_inv + $topup->topup_amount;
+
+
+                    $topped_amount = $data['investments']->topup_amount;
+                    $tot_topups = $topped_amount + $topup->topup_amount;
+                    $new_comp_investments = $investments + $topup->topup_amount;
+                    $new_overall_due_apyments = $tot_overall__due_payments + $top_int;
+
+                    $topup->save();
+
+                    DB::table('investments')->where('account_no_id', $topup->account_id)->update(
+                        [
+                            'investment_amount' => $new_tot_overall_inv, 'compounded_inv' => $new_comp_investments
+                        ]
+                    );
+
+                    DB::table('payment_schedule')->where('account_no_id', $topup->account_id)->update(
+                        [
+                            'topped_up' => 1, 'topup_amount' => $tot_topups,
+                            'tot_payable_amnt' => $new_overall_due_apyments, 'tot_comp_amount' => $updated_next_pay
+                        ]
+                    );
+
+                    DB::table('accounts')->where('id', $topup->account_id)->update(
+                        [
+                            'total_due_payments' => $new_overall_due_apyments
+                        ]
+                    );
+                    toast('New topup added successfully', 'success', 'top-right');
+                    return back();
+                }
             }
         } catch (\Exception $e) {
             DB::rollBack();

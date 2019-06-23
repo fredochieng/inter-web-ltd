@@ -2,18 +2,13 @@
 
 namespace App\Exports;
 
-use Illuminate\Contracts\View\View;
-use Maatwebsite\Excel\Concerns\FromView;
-
 use App\User;
-// use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\FromCollection;
 
-class UsersExport implements FromView
+class UsersExport implements FromCollection
 {
-    public function view(): View
+    public function collection()
     {
-        return view('users.index', [
-            'users' => User::all()
-        ]);
+        return User::all();
     }
 }

@@ -52,7 +52,7 @@ class Report extends Model
                 DB::raw('inv_types.*'),
                 DB::raw('payment_schedule.*'),
                 DB::raw('payment_schedule.monthly_amount'),
-                DB::raw('payments.*'),
+                //DB::raw('payments.account_no_id'),
                 DB::raw('payment_methods.*'),
                 DB::raw('banks.*'),
                 DB::raw('model_has_roles.*')
@@ -63,7 +63,7 @@ class Report extends Model
             ->leftJoin('inv_types', 'investments.inv_type_id', '=', 'inv_types.inv_id')
             ->leftJoin('user_pay_modes', 'users.id', '=', 'user_pay_modes.user_id')
             ->leftJoin('payment_schedule', 'accounts.id', '=', 'payment_schedule.account_no_id')
-            ->leftJoin('payments', 'accounts.id', '=', 'payments.account_no_id')
+            // ->leftJoin('payments', 'accounts.id', '=', 'payments.account_no_id')
             ->leftJoin('payment_methods', 'user_pay_modes.pay_mode_id', '=', 'payment_methods.method_id')
             ->leftJoin('banks', 'user_pay_modes.pay_bank_id', '=', 'banks.bank_id')
             ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')

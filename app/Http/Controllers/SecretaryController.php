@@ -18,6 +18,9 @@ class SecretaryController extends Controller
      */
     public function index()
     {
+        if (!auth()->user()->can('secretaries.manage')) {
+            abort(401, 'Unauthorized action.');
+        }
         $data['secretaries'] = User::getSecretaries();
         return view('users.secretaries.index')->with($data);
     }
@@ -105,7 +108,28 @@ class SecretaryController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $user = User::find($id);
+        // print_r($user);
+        // exit;
+        $user->name = strtoupper($request->input('name'));
+        // $user->email = $request->input('email');
+        $id_no = $request->input('id_no');
+        $telephone = $request->input('telephone');
+
+        DB::beginTransaction();
+        $user->save();
+
+        $updated_user_id = $user->id;
+
+        $sec_data = array(
+            'id_no' => $id_no,
+            'telephone' => $telephone
+        );
+        $save_details_data = DB::table('users_details')->where('user_id', $updated_user_id)->update($sec_data);
+
+        DB::commit();
+        toast('Secreatary details updated successfully', 'success', 'top-right');
+        return back();
     }
 
     /**

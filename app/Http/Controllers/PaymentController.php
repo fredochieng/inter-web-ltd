@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use DB;
 use Illuminate\Support\Facades\Validator;
 use RealRashid\SweetAlert\Facades\Alert;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Model\Account;
 use App\DataTable\DatatablePaginator;
@@ -24,8 +25,29 @@ class PaymentController extends Controller
      */
     public function index()
     {
-        $data['payments'] = Payment::getPayments();
+        if (!auth()->user()->can('payments.manage')) {
+            abort(401, 'Unauthorized action.');
+        }
         $data['inactive_clients'] = User::getClients();
+        $data['payments'] = Payment::getPayments();
+
+        $data['payments']->map(function ($item) {
+
+            $name = DB::table('users')
+                ->select(
+                    DB::raw('users.name AS served_by_name')
+                )
+                ->where('users.id', '=', $item->served_by)->get();
+
+            $item->served_by_name = json_encode($name);
+            $item->served_by_name = str_replace('[{"served_by_name":"', '', $item->served_by_name);
+            $item->served_by_name = str_replace('"}]', '', $item->served_by_name);
+            return $item;
+        });
+
+        // echo "<pre>";
+        // print_r($data['payments']);
+        // exit;
 
         return view('payments.index')->with($data);
     }
@@ -61,16 +83,19 @@ class PaymentController extends Controller
         } else {
 
             try {
-                // $payment = new Payment();
-                // $payment->account_no_id = $request->input('account_id');
-                // $payment_amount = $request->input('monthly_pay');
-                // $payment->payment_amount = str_replace('Kshs', '', $payment_amount);
-                // $payment->payment_amount = str_replace(',', '', $payment->payment_amount);
-                // $payment->payment_amount = str_replace('.00', '', $payment->payment_amount);
-                // $payment->user_pay_date = $request->input('user_date');
-                // $generated_transaction_code = strtoupper(str_random(8));
-                // $payment->trans_id = $generated_transaction_code;
-                // $inv_type = $request->input('inv_type');
+                $payment = new Payment();
+                $payment->account_no_id = $request->input('account_id');
+                $payment_amount = $request->input('monthly_pay');
+                $payment->payment_amount = str_replace('Kshs', '', $payment_amount);
+                $payment->payment_amount = str_replace(',', '', $payment->payment_amount);
+                $payment->payment_amount = str_replace('.00', '', $payment->payment_amount);
+                $payment->user_pay_date = $request->input('user_date');
+                $payment_mode_info_id = $request->input('select_pay_mode');
+                $generated_transaction_code = strtoupper(str_random(8));
+                $payment->trans_id = $generated_transaction_code;
+                $conf_code = $request->input('conf_code');
+                $comments = $request->input('comments');
+                $inv_type = $request->input('inv_type');
 
                 $payment = new Payment();
                 $account_no_id = $request->input('account_id');
@@ -94,6 +119,7 @@ class PaymentController extends Controller
                     $tot_comp_amount = 0;
                 }
 
+                $auth_user = Auth::user()->id;
                 $user_pay_date = $request->input('user_date');
                 $generated_transaction_code = strtoupper(str_random(8));
                 $trans_id = $generated_transaction_code;
@@ -106,6 +132,10 @@ class PaymentController extends Controller
                     $payment->payment_amount = $payment_amount;
                     $payment->trans_id = $trans_id;
                     $payment->user_pay_date = $user_pay_date;
+                    $payment->payment_mode_info_id = $payment_mode_info_id;
+                    $payment->comments = $comments;
+                    $payment->conf_code = $conf_code;
+                    $payment->served_by = $auth_user;
 
                     $payment->save();
                 } elseif ($inv_type == 2) {
@@ -114,6 +144,10 @@ class PaymentController extends Controller
                     $payment->payment_amount = $comp_payment_amount;
                     $payment->trans_id = $trans_id;
                     $payment->user_pay_date = $user_pay_date;
+                    $payment->payment_mode_info_id = $payment_mode_info_id;
+                    $payment->comments = $comments;
+                    $payment->conf_code = $conf_code;
+                    $payment->served_by = $auth_user;
 
                     $payment->save();
                 } elseif ($inv_type == 3) {
@@ -122,6 +156,10 @@ class PaymentController extends Controller
                     $payment->comp_amount_paid = $tot_comp_amount;
                     $payment->trans_id = $trans_id;
                     $payment->user_pay_date = $user_pay_date;
+                    $payment->payment_mode_info_id = $payment_mode_info_id;
+                    $payment->comments = $comments;
+                    $payment->conf_code = $conf_code;
+                    $payment->served_by = $auth_user;
 
                     $payment->total_paid = $payment->payment_amount + $payment->comp_amount_paid;
 
@@ -177,7 +215,6 @@ class PaymentController extends Controller
                 );
                 DB::commit();
 
-                // Alert::success('New Payment', 'Payment added successfully');
                 toast('New payment added successfully', 'success', 'top-right');
                 return back();
             } catch (\Exception $e) {

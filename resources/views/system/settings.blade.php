@@ -1,11 +1,9 @@
 @extends('adminlte::page')
-
-@section('title', 'System - BManager')
-
+@section('title', 'Settings - Inter-Web Ltd')
 @section('content_header')
 <h1>System<small>system configuration</small></h1>
-@stop
 
+@stop
 @section('content')
 <div class="row">
     <div class="col-xs-12">
@@ -14,9 +12,8 @@
             <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2 pos-tab-menu">
                 <div class="list-group">
                     <a href="#" class="list-group-item text-center active">Business</a>
-                    <a href="#" class="list-group-item text-center">Settings</a>
-                    <a href="#" class="list-group-item text-center">Sale</a>
-                    <a href="#" class="list-group-item text-center">Purchases</a>
+                    <a href="#" class="list-group-item text-center">Investments</a>
+                    <a href="#" class="list-group-item text-center">Topups</a>
                     <a href="#" class="list-group-item text-center">Dashboard</a>
                     <a href="#" class="list-group-item text-center">System</a>
                     <a href="#" class="list-group-item text-center">Prefixes</a>
@@ -25,8 +22,9 @@
             </div>
             <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 pos-tab">
                 <!-- tab 1 start -->
-              @include('system.partials.settings')
-              {{--  @include('system.partials.settings_tax')  --}}
+                @include('system.partials.settings')
+                @include('system.partials.investments')
+                @include('system.partials.topups')
             </div>
         </div>
         <!--  </pos-tab-container> -->
@@ -41,9 +39,9 @@
 @stop
 @section('css')
 <link rel="stylesheet" href="/css/custom.css">
+<link rel="stylesheet" href="/css/pos-menu.css">
 @stop
 @section('js')
-<script src="/js/custom.js"></script>
 <script>
     $(document).ready(function(){
      $("div.pos-tab-menu>div.list-group>a").click(function(e) {
@@ -54,7 +52,7 @@
         $("div.pos-tab>div.pos-tab-content").removeClass("active");
         $("div.pos-tab>div.pos-tab-content").eq(index).addClass("active");
         });
-
     });
 </script>
+
 @stop

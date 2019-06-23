@@ -41,7 +41,7 @@ class Investment extends Model
 
     public static function totalInvestments()
     {
-        $data['total_investments'] = number_format(DB::table('investments')->sum('investment_amount'), 2, '.', ',');
+        $data['total_investments'] = number_format(DB::table('investments')->where('investments.inv_status_id', '=', 1)->sum('investment_amount'), 2, '.', ',');
         return $data['total_investments'];
     }
 
@@ -51,6 +51,7 @@ class Investment extends Model
             ->select(
                 DB::raw('sum(investment_amount) as tot_monthly_inv')
             )->where('investments.inv_type_id', '=', 1)
+            ->where('investments.inv_status_id', '=', 1)
             ->first();
 
         return $data['total_monthly_investments'];
@@ -61,6 +62,7 @@ class Investment extends Model
             ->select(
                 DB::raw('sum(investment_amount) as tot_comp_inv')
             )->where('investments.inv_type_id', '=', 2)
+            ->where('investments.inv_status_id', '=', 1)
             ->first();
 
         return $data['total_compounded_investments'];
@@ -71,6 +73,7 @@ class Investment extends Model
             ->select(
                 DB::raw('sum(investment_amount) as tot_monthly_comp_inv')
             )->where('investments.inv_type_id', '=', 3)
+            ->where('investments.inv_status_id', '=', 1)
             ->first();
 
         return $data['total_monthly_comp_investments'];

@@ -7,6 +7,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Model\Investment;
 use App\Model\Account;
 use App\Model\Payment;
+use App\Model\Topup;
 use App\User;
 use Illuminate\Http\Request;
 use DB;
@@ -14,6 +15,9 @@ use Illuminate\Support\Facades\Validator;
 use RealRashid\SweetAlert\Facades\Alert;
 use Carbon\Carbon;
 use App\Model\UserDetails;
+
+use Illuminate\Support\Facades\Mail;
+use App\Mail\InvestmentApproved;
 
 class InvestmentController extends Controller
 {
@@ -30,10 +34,13 @@ class InvestmentController extends Controller
 
     public function index()
     {
+        if (!auth()->user()->can('investments.view')) {
+            abort(401, 'Unauthorized action.');
+        }
+
         $data['investments'] = Investment::getInvestments();
         $data['sum_investments'] = Investment::totalInvestments();
-        // $data['sum_payout'] = Investment::sumPayout();
-        // $data['sum_total_payout'] = Investment::totalPayout();
+        $data['topups'] = Topup::getTopups();
 
         $data['investments']->map(function ($item) {
 
@@ -46,6 +53,17 @@ class InvestmentController extends Controller
             $item->created_by_name = json_encode($name);
             $item->created_by_name = str_replace('[{"initiated_by_name":"', '', $item->created_by_name);
             $item->created_by_name = str_replace('"}]', '', $item->created_by_name);
+
+            $topups  = DB::table('topups')
+                ->select(
+                    DB::raw('topups.id'),
+                    DB::raw('accounts.id'),
+                    DB::raw('users.id')
+                )
+                ->leftJoin('accounts', 'topups.account_id', 'accounts.id')
+                ->leftJoin('users', 'accounts.user_id', 'users.id')
+                ->where('users.id', '=', $item->user_id)->count();
+            $item->number_of_topups = $topups;
             return $item;
         });
         // echo "<pre>";
@@ -136,6 +154,7 @@ class InvestmentController extends Controller
 
                 DB::commit();
                 Alert::success('New Investment', 'Investment added successfully');
+                toast('New Investment added successfully', 'success', 'top-right');
                 return back();
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -143,6 +162,45 @@ class InvestmentController extends Controller
                 return back();
             }
         }
+    }
+
+    public function approve(Request $request)
+    {
+        $inv_id = $request->input('investment_id');
+        $trans_id = $request->input('trans_id');
+
+        $status = 1;
+
+         DB::table('investments')->where('investment_id', $inv_id)
+            ->update([
+                'inv_status_id' => $status
+            ]);
+        //$approved_inv = Investment::getInvestments()->where('investments.investment_id', '=', $inv_id)->first();
+
+        // echo "<pre>";
+        // print_r($approved_inv);
+        // exit;
+
+        // $objDemo = new \stdClass();
+        // $objDemo->subject = 'Successful Registration';
+        // $company = "Inter-Web Global Fortune";
+        // $objDemo->company = $company;
+
+        // //1. Send to the user
+        // $message = "You have been successfully registered as a client at Inter-Web Global Fortune";
+        // $objDemo->email = $user->email;
+        // $objDemo->name = $user->name;
+        // $objDemo->account_no = $user->account_no;
+        // $objDemo->amount = $user->investment_amount;
+        // $objDemo->inv_date = $inv_date;
+        // $objDemo->duration = $inv_duration;
+        // $objDemo->inv_type = $inv_type_name;
+        // $objDemo->message = $message;
+
+        // Mail::to($objDemo->email)->send(new InvestmentApproved($objDemo));
+
+        toast('Investment ' . '-' . $trans_id . ' approved successfully', 'success', 'top-right');
+        return back();
     }
 
     // Fetch issue subcategories

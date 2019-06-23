@@ -15,7 +15,7 @@ class SystemController extends Controller
      */
     public function index()
     {
-        return view('system.index');
+        return view('system.settings');
     }
 
     public function showLogs()

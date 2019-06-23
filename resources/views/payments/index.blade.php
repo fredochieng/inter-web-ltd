@@ -10,25 +10,21 @@
 <div class="box box-info">
     <div class="box-header with-border">
         <h3 class="box-title">All Payments</h3>
-        <div class="box-tools">
-            <a href="#" data-target="#modal_new_payment" data-toggle="modal" class="btn btn-block btn-primary"
-                data-backdrop="static" data-keyboard="false"><i class="fa fa-plus"></i> NEW PAYMENT </a>
-        </div>
-        <!-- <div class="box-tools">
-            <a href="/payments/create" data-toggle="modal" class="btn btn-block btn-primary"><i
-                    class="fa fa-plus"></i> NEW PAYMENT </a>
-        </div> -->
     </div>
     <div class="box-body">
         <div class="table-responsive">
-            <table id="example1" class="table table-no-margin" style="font-size:12px">
+            <table id="example1" class="table table-hover" style="font-size:12px">
                 <thead>
                     <tr>
                         <th>S/N</th>
                         <th>Transaction ID</th>
+                        <th>Client Name</th>
+                        <th>ID Number</th>
+                        <th>Phone No</th>
                         <th>Account No</th>
-                        <th>Payment Amount(Kshs)</th>
+                        <th>Amount(Kshs)</th>
                         <th>Payment Date</th>
+                        <th>Comments</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -37,19 +33,30 @@
                     <tr>
                         <td>{{$count + 1}}</td>
                         <td><b>{{$row->trans_id }}</b></td>
+                        <td><a href="/client/{{$row->id}}/edit">{{$row->name}}</a></td>
+                        <td>{{$row->id_no}}</td>
+                        <td>{{$row->telephone}}</td>
                         <td>{{$row->account_no}}</td>
                         <td>Kshs {{ number_format($row->payment_amount, 2, '.', ',')}}</td>
                         <td>{{ $row->payment_date}}</td>
-                        <td>
-                            <a href="" data-toggle="modal" data-target="#modal-edit-customer_{{$row->id}}"
-                                class="btn btn-xs btn-success"><i class="glyphicon glyphicon-edit"></i> Edit</a>
-                            {{Form::hidden('_method','DELETE')}}
-                            <a href="" data-backdrop="static" data-keyboard="false" data-toggle="modal"
-                                data-target="#modal-delete-user_{{$row->id}}"
-                                class="btn btn-xs btn-danger delete_user_button">
-                                <i class="glyphicon glyphicon-trash"></i> Delete</a>
+                        <td><a href="" data-toggle="modal"
+                                data-target="#modal-show-payment-comments_{{$row->payment_id}}"><strong>
+                                    <center>View</center>
+                                </strong></a></p>
                         </td>
+                        <td>
+                            <a class="viewModal btn btn-info btn-sm" title="View Payment" href="#" data-toggle="modal"
+                                data-target="#modal-view-payment_{{$row->payment_id}}" data-backdrop="static"
+                                data-keyboard="false"><i class="fa fa-eye"></i></a> <a
+                                class="btn btn-primary btn-sm editTrans" title="Approve Investment" href="#"><i
+                                    class="fa fa-pencil"></i></a> <a class="btn btn-danger btn-sm"
+                                title="Delete Transaction" href=""><i class="fa fa-trash"></i></a> <a
+                                class="btn bg-olive btn-sm subsPopup" title="View Client"
+                                href="/client/{{$row->user_id}}/edit" data-href="/customer/{{$row->id}}"><i
+                                    class="fa fa-user"></i></a></td>
                     </tr>
+                    @include('modals.payments.modal-view-payment')
+                    @include('modals.payments.modal-show-payment-comments')
                     @endforeach
                 </tbody>
             </table>
@@ -57,8 +64,6 @@
     </div>
     <!-- /.box-body -->
 </div>
-@include('modals.payments.modal_new_payment')
-@include('modals.payments.modal_search_client')
 @stop
 @section('css')
 
@@ -69,62 +74,10 @@
 <script src="/js/bootstrap-datepicker.min.js"></script>
 <script src="/js/select2.full.min.js"></script>
 <script src="/js/numberformat.js"></script>
-
-<script>
-    $(document).ready(function() {
-        $("#clients-list").on('click', '.action-select-client', function(e) {
-            var client = JSON.parse($(this).attr('data-row'));
-            $("#acc").val(client.account_no);
-            $("#inv_type").val(client.inv_type);
-            $("#account_id").val(client.account_no_id);
-            $("#name").val(client.name);
-            $("#user_id").val(client.user_id);
-            $("#pay_times").val(client.payment_times);
-            $("#id_no").val(client.id_no);
-            $("#telephone").val(client.telephone);
-            $("#method_name").val(client.method_name);
-
-            if(client.method_name == 'BANK ACCOUNT'){
-            //   console.log('Yeaaaaaaaahhh....it is bank');
-              $("#bank_name_div").removeClass("hide");
-                    $("#bank_account_div").removeClass("hide");
-            }else{
-                // console.log('Its is MPESA');
-                $("#bank_name_div").addClass("hide");
-                    $("#bank_account_div").addClass("hide");
-                    $("#pay_mpesa_no_div").removeClass("hide");
-            }
-            $("#user_date").val(client.user_date);
-            $("#pay_mpesa_no").val(client.pay_mpesa_no);
-            $("#bank_name").val(client.bank_name);
-            $("#pay_bank_acc").val(client.pay_bank_acc);
-
-            $("#tot_payable_amnt").val('Kshs ' + number_format(client.total_due_payments, 2));
-            if(client.monthly_amount == 0){
-                $("#monthly_amount").val('Kshs ' + number_format(client.next_pay_comp, 2));
-             }
-            if(client.next_pay_comp == ''){
-                $("#monthly_amount").val('Kshs ' + number_format(client.monthly_amount, 2));
-             }
-
-            if(client.next_pay_comp == ''){
-                $("#monthly_amount").val('Kshs ' + number_format(client.monthly_amount, 2));
-             }
-             if(client.monthly_amount != 0 && client.next_pay_comp !=''){
-                $("#tot_comp_amount").val('Kshs ' + number_format(client.tot_comp_amount, 2));
-                $("#monthly_amount").val('Kshs ' + number_format(client.monthly_amount, 2));
-                var tot_pay_amount = parseInt(client.monthly_amount) + parseInt(client.next_pay_monthly_comp);
-                $("#tot_pay_amount").val('Kshs ' + number_format(client.tot_payable_amnt , 2));
-             }
-            $('#modal_search_client').modal('hide')
-        });
-    });
-</script>
 <script>
     $(function() {
         $(".select2").select2()
         $('#example1').DataTable()
-        $('#example2').DataTable()
     })
 </script>
 @stop

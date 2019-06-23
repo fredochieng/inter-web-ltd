@@ -7,9 +7,10 @@
 @stop
 
 @section('content')
+@if(auth()->user()->can('dashboard.data'))
 <div class="row">
     <a href="investments">
-        <div class="col-md-3 col-sm-6 col-xs-12">
+        <div class="col-md-4 col-sm-6 col-xs-12">
             <div class="info-box bg-green">
                 <span class="info-box-icon"><i class="fa fa-money"></i></span>
                 <div class="info-box-content">
@@ -29,7 +30,7 @@
         </div>
     </a>
     <!-- /.col -->
-    <div class="col-md-3 col-sm-6 col-xs-12">
+    <div class="col-md-4 col-sm-6 col-xs-12">
         <div class="info-box bg-yellow">
             <span class="info-box-icon"><i class="ion ion-cash"></i></i></span>
             <div class="info-box-content">
@@ -47,7 +48,7 @@
         <!-- /.info-box -->
     </div>
     <!-- /.col -->
-    <div class="col-md-3 col-sm-6 col-xs-12">
+    <div class="col-md-4 col-sm-6 col-xs-12">
         <div class="info-box bg-aqua">
             <span class="info-box-icon"><i class="fa fa-dollar"></i><i class="fa fa-exclamation"></i></i></span>
             <div class="info-box-content">
@@ -65,29 +66,29 @@
         <!-- /.info-box -->
     </div>
     <!-- /.col -->
-    <input type="hidden" name="clients" value="{{ $total_customers}}" id="tot_clients">
-    <div class="col-md-3 col-sm-6 col-xs-12">
+    {{-- <div class="col-md-3 col-sm-6 col-xs-12">
         <div class="info-box bg-blue">
             <span class="info-box-icon"><i class="ion ion-cash"></i></i></span>
             <div class="info-box-content">
                 <span class="info-box-text"><b>Total Topups</b></span>
                 <span class="info-box-number">{{$sum_tot_topups }}</span>
-                <div class="progress">
-                    <div class="progress-bar" style="width: 4.3478260869565%"></div>
-                </div>
-                <span class="progress-description">
-                    More info
-                </span>
-            </div>
-            <!-- /.info-box-content -->
-        </div>
-        <!-- /.info-box -->
+    <div class="progress">
+        <div class="progress-bar" style="width: 4.3478260869565%"></div>
     </div>
+    <span class="progress-description">
+        More info
+    </span>
+</div>
+<!-- /.info-box-content -->
+</div>
+<!-- /.info-box -->
+</div> --}}
 </div>
 <input type="hidden" id="tot_investments" value="{{ $sum_investments1 }}">
 <input type="hidden" id="sum_tot_payments" value="{{ $sum_tot_payments1 }}">
 <input type="hidden" id="tot_due_payments" value="{{ $sum_tot_due_payments1 }}">
 <input type="hidden" id="sum_tot_topups" value="{{ $sum_tot_topups1 }}">
+<input type="hidden" name="clients" value="{{ $total_customers}}" id="tot_clients">
 <div class="row">
     <div class="col-md-8">
         <!-- AREA CHART -->
@@ -104,7 +105,7 @@
             </div>
             <div class="box-body">
                 <div class="chart">
-                    <canvas id="myChart" style="height:340px"></canvas>
+                    <canvas id="myChart" style="height:337px"></canvas>
                 </div>
             </div>
             <!-- /.box-body -->
@@ -173,7 +174,11 @@
 
             <div class="info-box-content">
                 <span class="info-box-text">Total Clients</span>
+                <div class="pull-right" style="margin-top:-20px;"><span class="info-box-text">Total Secretaries</span>
+                </div>
                 <span class="info-box-number">{{$total_customers}}</span>
+                <div class="pull-right" style="margin-top:-20px;"> <span
+                        class="info-box-number">{{$total_secretaries}}</span></div>
 
                 <div class="progress">
                     <div class="progress-bar" style="width: 40%"></div>
@@ -235,7 +240,10 @@
     </div>
     <!-- /.col -->
 </div> --}}
-</div> @stop @section('css') @stop @section('js') <script>
+</div>
+@endif
+@stop
+@section('css') @stop @section('js') <script>
     Chart.defaults.doughnutLabels = Chart.helpers.clone(Chart.defaults.doughnut);
 
 var helpers = Chart.helpers;

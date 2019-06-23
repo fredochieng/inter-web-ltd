@@ -163,8 +163,8 @@ return [
         Illuminate\View\ViewServiceProvider::class,
         JeroenNoten\LaravelAdminLte\ServiceProvider::class,
         RealRashid\SweetAlert\SweetAlertServiceProvider::class,
-        Maatwebsite\Excel\ExcelServiceProvider::class,
         Jimmyjs\ReportGenerator\ServiceProvider::class,
+
 
 
         /*
@@ -179,7 +179,7 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-
+        Maatwebsite\Excel\ExcelServiceProvider::class,
     ],
 
     /*
@@ -231,12 +231,10 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
         'Alert' => RealRashid\SweetAlert\Facades\Alert::class,
-        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
         'PdfReport' => Jimmyjs\ReportGenerator\Facades\PdfReportFacade::class,
         'ExcelReport' => Jimmyjs\ReportGenerator\Facades\ExcelReportFacade::class,
         'CSVReport' => Jimmyjs\ReportGenerator\Facades\CSVReportFacade::class,
-
-
+        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
     ],
 
 ];

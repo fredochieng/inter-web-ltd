@@ -37,7 +37,7 @@
             <div class="form-group">
                 {{Form::label('find_client_by', 'Search Clients By',['class'=>'col-sm-4 control-label'])}}
                 <div class="col-sm-8">
-                    {{ Form::select('find_client_by', $array_clients_by,$find_client_by, ['class' => 'form-control','style'=>'width:100%']) }}
+                    {{ Form::select('find_client_by', $array_clients_by,$find_client_by, ['class' => 'form-control select2','style'=>'width:100%']) }}
                 </div>
             </div>
         </div>

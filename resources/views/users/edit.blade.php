@@ -11,10 +11,26 @@
     <div class="box-header with-border">
         <h3 class="box-title">MANAGE CLIENT</h3>
         <p class="pull-right">
-            <a href="" data-toggle="modal" data-target="#modal_new_topup" data-backdrop="static" data-keyboard="false"
-                class="btn btn-info btn-sm ad-click-event">NEW TOP UP</a>
-            <a href="" data-toggle="modal" data-target="#modal_add_payment" data-backdrop="static" data-keyboard="false"
-                class="btn btn-warning btn-sm ad-click-event">NEW PAYMENT</a>
+            @if($approved =='Y' && $fully_paid == 'N')
+            <button data-toggle="modal" data-target="#modal_new_topup" data-backdrop="static" data-keyboard="false"
+                class="btn bg-aqua margin"><i class="fa fa-plus"></i> NEW TOPUP</button>
+            @elseif($approved =='N' && $fully_paid == 'N')
+            <button data-toggle="modal" disabled data-target="#modal_new_topup" data-backdrop="static"
+                data-keyboard="false" class="btn bg-aqua margin"><i class="fa fa-plus"></i> NEW TOPUP</button>
+            @elseif($approved =='Y' && $fully_paid == 'Y')
+            <button data-toggle="modal" disabled data-target="#modal_new_topup" data-backdrop="static"
+                data-keyboard="false" class="btn bg-aqua margin"><i class="fa fa-plus"></i> NEW TOPUP</button>
+            @endif
+            @if((auth()->user()->can('payments.manage')) && $approved =='Y' && $fully_paid == 'N')
+            <button data-toggle="modal" data-target="#modal_add_payment" data-backdrop="static" data-keyboard="false"
+                class="btn bg-purple margin"><i class="fa fa-check"></i> CONFIRM PAYMENT</button>
+            @elseif((auth()->user()->can('payments.manage')) && $approved =='N' && $fully_paid == 'N')
+            <button data-toggle="modal" disabled data-target="#modal_add_payment" data-backdrop="static"
+                data-keyboard="false" class="btn bg-purple margin"><i class="fa fa-check"></i> CONFIRM PAYMENT</button>
+            @elseif((auth()->user()->can('payments.manage')) && $approved =='Y' && $fully_paid == 'Y')
+            <button data-toggle="modal" disabled data-target="#modal_add_payment" data-backdrop="static"
+                data-keyboard="false" class="btn bg-purple margin"><i class="fa fa-check"></i> CONFIRM PAYMENT</button>
+            @endif
         </p>
     </div>
     <!-- /.box-header -->
@@ -22,51 +38,79 @@
         <table class="table table-no-margin">
             <tbody style="font-size:12px">
                 <tr>
-                    <td style=""><strong>ACCOUNT NO :</strong>{{$customer_data->account_no}}</td>
+                    <td style=""><strong>ACCOUNT # :</strong>{{$customer_data->account_no}}</td>
                     <td style=""><strong>FULL NAME: </strong> {{$customer_data->name}}</td>
                     <td style=""><strong>ID NUMBER:</strong>{{$customer_data->id_no}}</td>
                     <td style=""><strong>PHONE NUMBER: </strong> {{$customer_data->telephone}}</td>
+                    @if($customer_data->inv_status_id == 0)
+                    <td><strong>INVESTMENT STATUS: <span class="label label-warning"> PENDING</span></strong></td>
+                    @else
+                    <td><strong> INVETSMENT STATUS: <span class="label label-success"> APPROVED</span></strong></td>
+                    @endif
+                </tr>
+                <tr>
                     @if(empty($next_pay_date))
                     <td>N/A</td>
-                    @else
+                    @elseif(!empty($next_pay_date) && $approved == 'Y')
                     <td style=""><strong>NEXT PAY DATE: </strong>{{$next_pay_date}}</td>
+                    @elseif(!empty($next_pay_date) && $approved == 'N')
+                    <td style=""><strong>NEXT PAY DATE: </strong>N/A</td>
                     @endif
-                    @if($customer_data->inv_type_id == 2)
-                    <td style=""><strong>PAY DATE: </strong>{{$next_pay_date}}</td>
-                    @endif
-                </tr>
-                <tr>
+                    @if($approved == 'Y')
                     <td style=""><strong> INVESTMENTS :</strong>Kshs
-                        {{ number_format($customer_investments->user_sum,2,'.',',')}}</td>
-                    {{-- <td style=""><strong> PAYABLE AMOUNT :</strong>Kshs
-                        {{ number_format($tot_payable->user_tot_payable,2,'.',',')}}</td> --}}
+                        {{ number_format($real_tot_inv,2,'.',',')}}</td>
+                    @else
+                    <td style=""><strong> INVESTMENTS :</strong>
+                        N/A</td>
+                    @endif
+                    @if($approved == 'Y')
                     <td style=""><strong> PAYMENTS MADE :</strong>Kshs
                         {{ number_format($customer_payments->total_payments_made,2,'.',',')}}</td>
+                    @else
+                    <td style=""><strong> PAYMENTS MADE :</strong>
+                        N/A</td>
+                    @endif
+                    @if($approved == 'Y' && $fully_paid == 'N')
                     <td style=""><strong> DUE PAYMENTS :</strong>Kshs
                         {{ number_format($tot_due_payments->total_due_payments,2,'.',',')}}</td>
-                    @if($customer_data->inv_type_id == 1 && $customer_data->topped_up==0)
-                    <td style=""><strong> NEXT PAYMENT :</strong>Kshs {{ number_format($monthly_amnt,2,'.',',')}}</td>
+                    @elseif($approved == 'Y' && $fully_paid == 'Y')
+                    <td style=""><strong> DUE PAYMENTS :</strong>FULLY PAID</td>
+                    @else
+                    <td style=""><strong> DUE PAYMENTS :</strong>
+                        N/A</td>
                     @endif
-                    @if($customer_data->inv_type_id == 1 && $customer_data->topped_up==1)
-                    <td style=""><strong> NEXT PAYMENT :</strong>Kshs
-                        {{ number_format($updated_monthly_amnt,2,'.',',')}}</td>
+                    @if($customer_data->inv_type_id == 1 && $approved == 'Y' && $fully_paid =='N')
+                    <td style=""><strong> NEXT PAYMENT :</strong>Kshs {{ number_format($next_amount,2,'.',',')}}</td>
+                    @elseif($customer_data->inv_type_id == 1 && $approved == 'Y' && $fully_paid =='Y')
+                    <td style=""><strong> NEXT PAYMENT :</strong>FULLY PAID</td>
+                    @elseif($customer_data->inv_type_id == 1 && $approved == 'N')
+                    <td style=""><strong> NEXT PAYMENT :</strong>N/A</td>
                     @endif
-                    @if($customer_data->inv_type_id == 2)
+                    @if($customer_data->inv_type_id ==2 && $approved == 'Y' && $fully_paid == 'N')
                     <td style=""><strong> COMPOUND PAYMENT :</strong>Kshs
                         {{ number_format($comp_payable_amout,2,'.',',')}}</td>
+                    @elseif($customer_data->inv_type_id ==2 && $approved == 'Y' && $fully_paid == 'Y')
+                    <td style=""><strong> COMPOUND PAYMENT :</strong>FULLY PAID</td>
+                    @elseif($customer_data->inv_type_id ==2 && $approved == 'N')
+                    <td style=""><strong> COMPOUND PAYMENT :</strong>N/A</td>
                     @endif
-                    @if($customer_data->inv_type_id == 3)
+                    @if($customer_data->inv_type_id == 3 && $approved == 'Y')
                     <td style=""><strong> NEXT PAYMENT :</strong>Kshs
-                        {{ number_format($tot_payable->monthly_amount,2,'.',',')}}</td>
+                        {{ number_format($next_amount,2,'.',',')}}</td>
+                    @elseif ($customer_data->inv_type_id == 3 && $approved == 'N')
+                    <td style=""><strong> NEXT PAYMENT :</strong>N/A</td>
                     @endif
                 </tr>
                 <tr>
-                    @if($customer_data->inv_type_id == 3)
+                    @if($customer_data->inv_type_id == 3 && $approved == 'Y')
                     <td style=""><strong> COMPOUND AMOUNT :</strong>Kshs {{ number_format($tot_comp_amount,2,'.',',')}}
                     </td>
                     <td style=""><strong> COMPOUND PAYMENT DATE :</strong>{{$customer_investments->last_pay_date}}</td>
+                    @elseif ($customer_data->inv_type_id == 3 && $approved == 'N')
+                    <td style=""><strong> COMPOUND AMOUNT :</strong>N/A
+                    </td>
+                    <td style=""><strong> COMPOUND PAYMENT DATE :</strong>N/A</td>
                     @endif
-                    {{--  <td style=""><strong> COMMISSION EARNED :</strong>Kshs 30,000.00</td>  --}}
                 </tr>
             </tbody>
         </table>
@@ -249,28 +293,38 @@
                     <table id="example1" class="table table-no-margin" style="font-size:12px">
                         <thead>
                             <tr>
+                                <th>S/N</td>
                                 <th>Transaction ID</th>
                                 <th>Investment Date</th>
                                 <th>Duration</th>
                                 <th>Investment Type</th>
                                 <th>Invested Amount</th>
-                                {{-- <th>Payable Amount</th> --}}
-                                <th>Monthly Payment</th>
-                                <th>Last Payment Date</th>
+                                @if($customer_data->inv_type==2)
+                                <th>Payment Date</th>
+                                @endif
+                                <th>Status</th>
+                                <th>View Investment</th>
                             </tr>
                         </thead>
                         <tbody>
+                            {{--  {{ $client_payment_modes}} --}}
                             @foreach ($customer_trans as $count=> $row)
                             <tr>
-                                <!-- <td>{{ $count + 1 }}</td> -->
+                                <td>{{ $count + 1 }}</td>
                                 <td><b>{{$row->trans_id }}</b></td>
                                 <td>{{ date('Y-m-d', strtotime($row->inv_date))}}</td>
                                 <td>{{$row->investment_duration }} Months</td>
                                 <td>{{$row->inv_type }}</td>
-                                <td>Kshs {{ number_format($row->investment_amount, 2, '.', ',')}}</td>
-                                <td>Kshs {{ number_format($row->tot_payable_amnt, 2, '.', ',') }}</td>
-                                {{-- <td>Kshs {{ number_format($row->monthly_amount, 2, '.', ',') }}</td> --}}
+                                <td>Kshs {{ number_format($real_tot_inv, 2, '.', ',')}}</td>
+                                @if($customer_data->inv_type==2)
                                 <td>{{ date('Y-m-d', strtotime($row->last_pay_date))}}</td>
+                                @endif
+                                @if($row->inv_status_id == 0)
+                                <td><span class="label label-warning">Pending</span></td>
+                                @else
+                                <td><span class="label label-success">Approved</span>
+                                </td>
+                                @endif
                                 <td><a class="viewModal btn btn-info btn-sm" title="View Investment" href="#"
                                         data-toggle="modal" data-target="#modal-view-investment_{{$row->investment_id}}"
                                         data-backdrop="static" data-keyboard="false"><i class="fa fa-eye"></i> View
@@ -287,7 +341,7 @@
         <div class="tab-pane" id="topups">
             <div class="box-body">
                 <br>
-                <h4>All investment topups related to this client &nbsp;
+                <h4>All topups related to this client &nbsp;
                     <div style="clear:both"></div>
                 </h4>
                 <div style="clear:both"></div>
@@ -297,8 +351,10 @@
                             <tr>
                                 <th>S/N</th>
                                 <th>Topup Amount</th>
+                                <th>Topup Mode</th>
+                                <th>Served By</th>
                                 <th>Topup Date</th>
-                                </th>
+                                <th>View Topup</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -306,8 +362,15 @@
                             <tr>
                                 <td>{{ $count + 1 }}</td>
                                 <td>Ksh {{$row->topup_amount }}</td>
-                                <td>{{$row->created_at }}</td>
+                                <td>{{$row->inv_mode }}</td>
+                                <td>{{$row->served_by_name }}</td>
+                                <td>{{$row->topped_date}}</td>
+                                <td><a class="viewModal btn btn-info btn-sm" title="View Topup" href="#"
+                                        data-toggle="modal" data-target="#modal-view-topup_{{$row->topup_id}}"
+                                        data-backdrop="static" data-keyboard="false"><i class="fa fa-eye"></i> View
+                                        Topup</a></td>
                             </tr>
+                            @include('modals.topups.modal-view-topup')
                             @endforeach
                     </table>
                 </div>
@@ -328,7 +391,12 @@
                                 <th>Transaction ID</th>
                                 <th>Payment Date</th>
                                 <th>Payment Amount</th>
+                                <th>Payment Mode</th>
+                                <th>Mpesa/Bank Trans Code</th>
                                 <th>Paid At</th>
+                                <th>Served By</th>
+                                <th>Comments</th>
+                                <th>View Payment</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -338,8 +406,22 @@
                                 <td><b>{{$row->trans_id }}</b></td>
                                 <td>{{ date('Y-m-d', strtotime($row->user_pay_date))}}</td>
                                 <td>Kshs {{ number_format($row->payment_amount, 2, '.', ',')}}</td>
+                                <td>{{ $row->method_name}}</td>
+                                <td><b>{{$row->conf_code }}</b></td>
                                 <td>{{ $row->payment_created_at}}</td>
+                                <td>{{ $row->served_by_name}}</td>
+                                <td><a href="" data-toggle="modal"
+                                        data-target="#modal-show-payment-comments_{{$row->payment_id}}"><strong>
+                                            <center>View</center>
+                                        </strong></a></p>
+                                </td>
+                                <td><a class="viewModal btn btn-info btn-sm" title="View Payment" href="#"
+                                        data-toggle="modal" data-target="#modal-view-payment_{{$row->payment_id}}"
+                                        data-backdrop="static" data-keyboard="false"><i class="fa fa-eye"></i> View
+                                        Payment</a></td>
                             </tr>
+                            @include('modals.payments.modal-view-payment')
+                            @include('modals.payments.modal-show-payment-comments')
                             @endforeach
                     </table>
                 </div>
@@ -350,96 +432,111 @@
 <!-- /.tab-content -->
 @include('modals.topups.modal_new_topup')
 @include('modals.payments.modal_add_payment')
+@include('modals.payments.modal_view_payment_mode')
 </div>
 
 @stop
 @section('css')
-<link rel="stylesheet" href="/css/admin_custom.css">
 <link rel="stylesheet" href="/css/bootstrap-datepicker.min.css">
+<link rel="stylesheet" href="/plugins/iCheck/all.css">
 @stop
 @section('js')
 
 <script src="/js/bootstrap-datepicker.min.js"></script>
 <script src="/js/select2.full.min.js"></script>
-
+<script src="/plugins/iCheck/icheck.min.js"></script>
+</script>
 <script>
     $(function() {
-
+        var form = document.getElementById("confirm_payment_form");
+        form.reset();
         $("#pay_mode_id").change(function() {
                     var val = $(this).val();
                     if (val == 1 ) {
+
                     $("#mpesa_number_div").removeClass("hide");
+                    $("#bank_acc_div").addClass("hide");
+                    $("#bank_payment_div").addClass("hide");
                     }else{
                     $("#mpesa_number_div").addClass("hide");
                     }
                     if (val == 2 ) {
+
                     $("#bank_payment_div").removeClass("hide");
-                // $("#bank_payment_acc").removeClass("hide");
+                    $("#bank_acc_div").removeClass("hide");
                     }
                     else{
                     $("#bank_payment_div").addClass("hide");
-                //    $("#bank_payment_acc").addClass("hide");
+                    $("#bank_acc_div").addClass("hide");
                     }
         });
+           // CONFIRM PAYMENT
 
-
-        $("#inv_bank_id").change(function() {
-            var value = $(this).val();
-            if (value != 0 ) {
-            $("#inv_bank_trans_id").removeClass("hide");
-            }
-            else{
-            $("#inv_bank_trans_id").addClass("hide");
-            }
-            });
-
-            $("#inv_cheq_bank_id").change(function() {
-            var value = $(this).val();
-            if (value != 0 ) {
-            $("#cheq_no_inv_div").removeClass("hide");
-            }
-            else{
-            $("#cheq_no_inv_div").addClass("hide");
-            }
-            });
-          // Investments Modes Selection
-          $("#inv_mode_id").change(function() {
-            var val = $(this).val();
-                if (val == 1 ) {
-                $("#mpesa_inv_div").removeClass("hide");
-                $("#inv_bank_trans_id").addClass("hide");
-                $("#cheq_no_inv_div").addClass("hide");
-                }else{
-                $("#mpesa_inv_div").addClass("hide");
-                }
-            if (val == 2 ) {
-            $("#bank_inv_div").removeClass("hide");
-            $("#bank_payment_acc").removeClass("hide");
-            $("#cheq_no_inv_div").addClass("hide");
-            }
-            else{
-            $("#bank_inv_div").addClass("hide");
-            // $("#bank_payment_acc").addClass("hide");
-            }
-            if (val == 3 ) {
-            $("#cheq_inv_div").removeClass("hide");
-            // $("#bank_payment_acc").removeClass("hide");
-            }
-            else{
-            $("#cheq_inv_div").addClass("hide");
-            // $("#bank_payment_acc").addClass("hide");
-            }
-            if(val == 4){
-                $("#mpesa_inv_div").addClass("hide");
-                $("#bank_inv_div").addClass("hide");
-                $("#inv_bank_trans_id").addClass("hide");
-                $("#cheq_inv_div").addClass("hide");
-            }
-            });
         $(".select2").select2()
         $('#example1').DataTable()
+
+        // TOPUP MODE
+
+        $("#inv_mode_id").change(function() {
+            var val = $(this).val();
+            if (val == 1 ) {
+
+            $("#mpesa_div").removeClass("hide");
+            $("#bank_id_div").addClass("hide");
+            $("#bank_trans_div").addClass("hide");
+            $("#cheq_bank_div").addClass("hide");
+            $("#cheq_no_div").addClass("hide");
+            }else{
+            $("#mpesa_div").addClass("hide");
+            }
+            if (val == 2 ) {
+
+            $("#bank_id_div").removeClass("hide");
+            $("#mpesa_div").addClass("hide");
+            $("#bank_trans_div").removeClass("hide");
+            $("#cheq_bank_div").addClass("hide");
+            $("#cheq_no_div").addClass("hide");
+            }
+            else{
+            $("#bank_id_div").addClass("hide");
+            $("#bank_trans_div").addClass("hide");
+            }
+
+            if(val == 3 ){
+                $("#cheq_bank_div").removeClass("hide");
+                $("#cheq_no_div").removeClass("hide");
+                $("#bank_id_div").addClass("hide");
+                $("#mpesa_div").addClass("hide");
+                $("#bank_trans_div").addClass("hide");
+            }else{
+                $("#cheq_bank_div").addClass("hide");
+                $("#cheq_no_div").addClass("hide");
+            }
+});
     })
 </script>
+<script>
+    $(document).ready(function (){
+        var max_limit = 1; // Max Limit
+        $(".pay:input:checkbox").each(function (index){
+            this.checked = (".pay:input:checkbox" < max_limit);
+        }).change(function (){
+            if ($(".pay:input:checkbox:checked").length > max_limit){
+                this.checked = false;
+            }
+        });
 
+        $('#confirmPayment').click(function() {
+            checked = $("input[type=checkbox]:checked").length;
+
+            if(!checked) {
+              alert("You must check at least one payment mode.");
+             // toast('No client found matching your entry', 'warning', 'top-right');
+              return false;
+            }
+
+          });
+    });
+</script>
 
 @stop

@@ -29,12 +29,17 @@ Route::any('/users/store', 'UserController@store');
 Route::any('/users/approve', 'UserController@approveClient');
 Route::any('/customer/{id}', 'UserController@show');
 Route::any('/client/{id}/edit', 'UserController@edit');
+Route::any('profile', 'UserController@getUserProfile');
+Route::any('update-profile/{user}', 'UserController@updateUserProfile');
 Route::resource('/users/secretaries', 'SecretaryController');
+// Route::resource('/update/secretary/{secretary}', 'SecretaryController@update');
 
 Route::any('/accounts/get_accounts', 'AccountController@get_accounts');
 
 Route::resource('/investments', 'InvestmentController');
+Route::any('/investment/approve', 'InvestmentController@approve');
 
+Route::resource('/payment_modes', 'PaymentModeController');
 Route::resource('/payments', 'PaymentController');
 Route::any('/payments/client/search', 'PaymentController@SearchClient');
 
@@ -52,7 +57,7 @@ Route::any('/report/excel/generate', 'ReportController@downloadExcel');
 Route::get('/test/{id}', 'PaymentController@test');
 
 Route::resource('/system/settings', 'SystemController');
-Route::any('/system/logs', 'SystemController@showLogs');
-Route::post('/system/logs', 'SystemController@postRegister')->name('business.postRegister');
+Route::any('/system/logs', 'SystemController@getLogs');
+Route::any('/system/import', 'SystemController@getImport');
 
 Route::get('/users/export', 'InvestmentController@export');

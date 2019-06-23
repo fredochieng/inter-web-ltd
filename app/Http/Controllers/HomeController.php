@@ -46,6 +46,12 @@ class HomeController extends Controller
         $data['sum_tot_due_payments1'] = DB::table('accounts')->sum('total_due_payments');
         $data['sum_tot_payments1'] = DB::table('payments')->sum('payment_amount');
         $data['sum_tot_topups1'] = DB::table('topups')->sum('topup_amount');
+
+
+        // echo "<pre>";
+        // $data['sum_tot_due_payments']->$data['sum_tot_due_payments']->;
+        // print_r($data['sum_tot_due_payments']);
+        // exit;
         return view('home')->with($data);
     }
 }
