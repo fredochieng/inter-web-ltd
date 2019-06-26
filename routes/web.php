@@ -32,7 +32,8 @@ Route::any('/client/{id}/edit', 'UserController@edit');
 Route::any('profile', 'UserController@getUserProfile');
 Route::any('update-profile/{user}', 'UserController@updateUserProfile');
 Route::resource('/users/secretaries', 'SecretaryController');
-// Route::resource('/update/secretary/{secretary}', 'SecretaryController@update');
+
+Route::resource('/users/blacklist', 'BlacklistController');
 
 Route::any('/accounts/get_accounts', 'AccountController@get_accounts');
 
@@ -44,8 +45,6 @@ Route::resource('/payments', 'PaymentController');
 Route::any('/payments/client/search', 'PaymentController@SearchClient');
 
 Route::resource('/topups', 'TopupController');
-
-
 
 Route::any('/reports/customer', 'ReportController@customerReport');
 Route::any('/reports/investment', 'ReportController@investmentReport');

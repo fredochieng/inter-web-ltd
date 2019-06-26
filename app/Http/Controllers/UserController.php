@@ -18,6 +18,7 @@ use App\Model\InvestmentType;
 use Faker\Provider\el_GR\Payment;
 use App\Model\PaymentMethod;
 use App\Model\Bank;
+use App\Model\Blacklist;
 use App\Model\GenerateAccountNumber;
 use App\Model\InvestmentMode;
 use Carbon\Carbon;
@@ -104,10 +105,13 @@ class UserController extends Controller
             ->select(
                 DB::raw('telephone as text'),
                 DB::raw('users_details.user_id as id'),
-                DB::raw('users.name as referer_name')
+                DB::raw('users.name as referer_name'),
+                DB::raw('model_has_roles.role_id')
             )
             ->join('users', 'users_details.user_id', '=', 'users.id')
+            ->join('model_has_roles', 'users_details.user_id', 'model_has_roles.model_id')
             ->where('telephone', 'like', $search_term)
+            ->where('model_has_roles.role_id', '=', 3)
             ->get();
 
         echo json_encode($data);
@@ -127,6 +131,17 @@ class UserController extends Controller
         $data['inv_types'] = InvestmentType::getInvTypes();
         $data['payment_mode'] = PaymentMethod::getPaymentMethods();
         $data['banks'] = Bank::getBanks();
+        $blacklists = Blacklist::getBlacklists();
+
+        $blacklists = json_decode(json_encode($blacklists), true);
+        $id_nos = array_column($blacklists, 'id_no');
+        $data['phone_nos'] = array_column($blacklists, 'phone');
+
+        // echo "<pre>";
+        // print_r($id_nos);
+        // echo "<pre>";
+        // print_r($phone_nos);
+        // exit;
         return view('users.create')->with($data);
     }
 
@@ -255,6 +270,9 @@ class UserController extends Controller
             );
             $save_user_details_data = DB::table('users_details')->insertGetId($users_details_data);
 
+            $inv_comm_per = 0.05;
+            $inv_comm = $inv_comm_per * $user->investment_amount;
+
             if ($user->inv_type_id == 1) {
 
                 $inv_duration =  $request->input('inv_duration');
@@ -293,6 +311,8 @@ class UserController extends Controller
                     'inv_date' => $user->inv_date,
                     'account_no_id' => $save_user_account_data,
                     'investment_amount' => $user->investment_amount,
+                    'initial_inv' => $user->investment_amount,
+                    'inv_comm' => $inv_comm,
                     'investment_duration' => $user->investment_duration,
                     'inv_type_id' => $user->inv_type_id,
                     'inv_mode_id' => $user->inv_mode_id,
@@ -343,7 +363,9 @@ class UserController extends Controller
                     'trans_id' => $user->trans_id,
                     'inv_date' => $user->inv_date,
                     'account_no_id' => $save_user_account_data,
+                    'initial_inv' => $user->investment_amount,
                     'investment_amount' => $user->investment_amount,
+                    'inv_comm' => $inv_comm,
                     'investment_duration' => $user->investment_duration,
                     'inv_type_id' => $user->inv_type_id,
                     'inv_mode_id' => $user->inv_mode_id,
@@ -407,7 +429,9 @@ class UserController extends Controller
                     'trans_id' => $user->trans_id,
                     'inv_date' => $user->inv_date,
                     'account_no_id' => $save_user_account_data,
+                    'initial_inv' => $user->investment_amount,
                     'investment_amount' => $user->investment_amount,
+                    'inv_comm' => $inv_comm,
                     'investment_duration' => $user->investment_duration,
                     'monthly_inv' => $monthly_inv_amount,
                     'compounded_inv' => $compounded_inv_amount,
@@ -566,8 +590,62 @@ class UserController extends Controller
             ->leftJoin('payment_methods', 'user_pay_modes.pay_mode_id', '=', 'payment_methods.method_id')
             ->leftJoin('banks', 'user_pay_modes.pay_bank_id', '=', 'banks.bank_id')
             ->where('users.id', '=', $id)
-            // ->where('investments.inv_status_id', '=', 1)
             ->first();
+
+        // GET CLIENT REFERALS AND ALL THE RELATED DATA (INVESTMENTS, TOPUPS)
+        // FETCH CLIENTS DETAILS AND INVESTMENTS
+        $referer = DB::table('users')
+            ->select(
+                DB::raw('users.*'),
+                DB::raw('users.id as referee_id'),
+                DB::raw('users_details.*'),
+                DB::raw('accounts.*'),
+                DB::raw('accounts.id AS accnt_id'),
+                DB::raw('investments.*'),
+                DB::raw('user_pay_modes.*'),
+                DB::raw('inv_types.*'),
+                DB::raw('payment_schedule.*'),
+                DB::raw('payment_schedule.monthly_amount'),
+                DB::raw('payments.*'),
+                DB::raw('payment_methods.*'),
+                DB::raw('banks.*')
+            )
+            ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
+            ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')
+            ->leftJoin('investments', 'accounts.id', '=', 'investments.account_no_id')
+            ->leftJoin('inv_types', 'investments.inv_type_id', '=', 'inv_types.inv_id')
+            ->leftJoin('user_pay_modes', 'users.id', '=', 'user_pay_modes.user_id')
+            ->leftJoin('payment_schedule', 'accounts.id', '=', 'payment_schedule.account_no_id')
+            ->leftJoin('payments', 'accounts.id', '=', 'payments.account_no_id')
+            ->leftJoin('payment_methods', 'user_pay_modes.pay_mode_id', '=', 'payment_methods.method_id')
+            ->leftJoin('banks', 'user_pay_modes.pay_bank_id', '=', 'banks.bank_id')
+            ->where('users.refered_by', '=', $id)
+            ->where('investments.inv_status_id', '=', 1)
+            ->get();
+
+        // GET CLIENT TOPUP HISTORY FOR REFEREE
+
+        $referer_topups = DB::table('topups')
+            ->select(
+                DB::raw('topups.*'),
+                DB::raw('topups.created_at AS topped_date'),
+                DB::raw('accounts.*'),
+                DB::raw('accounts.id as acc_id'),
+                DB::raw('inv_modes.*'),
+                DB::raw('banks.*'),
+                DB::raw('users.*'),
+                DB::raw('users_details.*')
+            )
+            ->leftJoin('accounts', 'topups.account_id', '=', 'accounts.id')
+            ->leftJoin('inv_modes', 'topups.inv_mode_id', '=', 'inv_modes.id')
+            ->leftJoin('banks', 'topups.inv_bank_id', '=', 'banks.bank_id')
+            ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+            ->leftJoin('users_details', 'users.id', 'users_details.user_id')
+            ->where('users.refered_by', '=', $id)
+            ->orderBy('topups.topup_id', 'desc')
+            ->get();
+
+        // END CLIENT REFERALS
 
         $data['client_payment_modes'] = DB::table('client_payment_modes')
             ->select(
@@ -581,11 +659,6 @@ class UserController extends Controller
             ->leftJoin('users', 'client_payment_modes.user_id', '=', 'users.id')
             ->where('users.id', '=', $id)
             ->get();
-
-
-        // echo "<pre>";
-        // print_r($data['client_payment_modes']);
-        // exit;
 
         // GET CLIENT PAYMENT DATES AND TOTAL AMOUNTS PAID FOR CLIENT (DATE THE CLIENT WAS PAID)
         $user_pay_dates = DB::table('payments')
@@ -623,15 +696,112 @@ class UserController extends Controller
 
         $pay_dates = explode(',', $pay_dates);
 
-        // GET THE NEXT PAYMENT DATE FOR THE CLIENT
-        // CHECK IF THE PAYMENT DATE EXISTS, IF YES SKIP AND PICK THE LEAST DATE
-        $data['next_pay_date'] = array_diff($pay_dates, $user_pay_dates);
+        // GET ALL REFERED CLIENTS INVETSMENT and TOPUP DATES EG FOR CLIENT 2, CLIENT3, CLIENT 4 ETC... CLIENTS REFERED BY EG CLIENT 1
+
+        $last_pay_record = DB::table('payments')
+            ->select(
+                DB::raw('payments.account_no_id'),
+                DB::raw('payments.user_pay_date'),
+                DB::raw('accounts.id'),
+                DB::raw('users.id')
+            )
+            ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+            ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+            ->orderBy('payment_id', 'DESC')
+            ->where('users.id', '=', $id)
+            ->first();
+
+        $inv_dates = json_decode(json_encode($referer), true);
+        $inv_dates = array_column($inv_dates, 'inv_date');
+
+        // ELIMINATE DATES LESS THAN THE PREVIOUS PAYMENT DATE
+
+        $topup_dates = json_decode(json_encode($referer_topups), true);
+        $topup_dates = array_column($topup_dates, 'topped_at');
+
+        // GET REFEREE CLIENT NEXT PAYMENT DATE AND CONVERT TO AN ARRAY
+        $data['next_pay_date'] = min(array_diff($pay_dates, $user_pay_dates));
+        $data['next_pay_date'] = json_decode(json_encode($data['next_pay_date'], true));
+        $data['next_pay_date'] = (array)$data['next_pay_date'];
+
+        // COMBINE ARRAYS TO GET THE OUTPUT ARRAY
+        $fred = array("505");
+        $data['next_pay_date'] = array_combine($data['next_pay_date'], $fred);
+
+        // GET INVETSMENT AND TOPUP COMMISSIONS FOR ALL REFERED CLIENTS
+        $inv_comm = json_decode(json_encode($referer), true);
+        $inv_comm = array_column($inv_comm, 'inv_comm');
+
+        $topup_comm = json_decode(json_encode($referer_topups), true);
+        $topup_comm = array_column($topup_comm, 'topup_comm');
+
+        //COMBINE INVESTMENT AND TOPUP DATES ARRAY AND COMMISSIONS ARRAY TO GET KEY VALUE PAIRS
+        $inv_comm_array = array_combine($inv_dates,  $inv_comm);
+        $topup_comm_array = array_combine($topup_dates,  $topup_comm);
+
+        if ($last_pay_record) {
+
+            $prev_pay_date = $last_pay_record->user_pay_date;
+            $final_inv_comm_array = array();
+            $final_topup_comm_array = array();
+
+            foreach ($inv_comm_array as $key => $value) {
+                if ($key >= $prev_pay_date) {
+                    $final_inv_comm_array[$key] = $value;
+                }
+            }
+
+            foreach ($topup_comm_array as $key => $value) {
+                if ($key >= $prev_pay_date) {
+                    $final_topup_comm_array[$key] = $value;
+                }
+            }
+        } else {
+            $final_inv_comm_array = $inv_comm_array;
+            $final_topup_comm_array = $topup_comm_array;
+        }
+
+
+        // ELIMINATE DATE AND COMMISSIONS TO BE PAID ON THE DATE SIMILAR TO REFEREE NEXT PAYMENT DATE
+        $inv_comm = array_diff_key($final_inv_comm_array, $data['next_pay_date']);
+        $topup_comm = array_diff_key($final_topup_comm_array, $data['next_pay_date']);
+
+        // echo "<pre>";
+        // echo "********************";
+        // echo "<pre>";
+        // print_r($topup_comm);
+        // echo "<pre>";
+        // echo "********************";
+        // echo "<pre>";
+        // exit;
+
+        // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
+        $inv_comm_sum = 0;
+        foreach ($inv_comm as $key => $item) {
+            $inv_comm_sum += $item;
+        }
+        //  echo $inv_comm_sum;
+        // echo "<pre>";
+
+        // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
+        $topup_comm_sum = 0;
+        foreach ($topup_comm as $key => $item) {
+            $topup_comm_sum += $item;
+        }
+        // echo 'Coo' . $topup_comm_sum;
+        $tot_comm = $inv_comm_sum + $topup_comm_sum;
+        // echo 'tOT' . $tot_comm;
+        // echo "<pre>";
+        // exit;
+
         if (empty($data['next_pay_date'])) {
             $data['next_pay_date'] = "FULLY PAID";
         } else {
 
             $data['next_pay_date'] = min(array_diff($pay_dates, $user_pay_dates));
         }
+        // echo 'next payment date: ' . $data['next_pay_date'];
+        // echo "<pre>";
 
         Session::put('next_pay_day', $data['next_pay_date']);
 
@@ -648,7 +818,6 @@ class UserController extends Controller
             ->leftJoin('users', 'accounts.user_id', 'users.id')
             ->groupBy('investments.account_no_id')
             ->where('users.id', '=', $id)
-            // ->where('investments.inv_status_id', '=', 1)
             ->first();
 
         $data['inv_duration'] = $data['customer_investments']->investment_duration;
@@ -660,8 +829,6 @@ class UserController extends Controller
 
         $comp_pay_date = $data['customer_investments']->last_pay_date;
         Session::put('last_pay_date', $comp_pay_date);
-
-
 
         if ($comp_pay_date == $today) {
             $data['comp_pay_date'] = 1;
@@ -688,7 +855,8 @@ class UserController extends Controller
 
         if ($data['tot_payable']->topped_up == 0) {
 
-            $data['next_amount'] =  $data['tot_payable']->monthly_amount;
+            // ADD THE EXPECTED PAYMENT AMOUNT PLUS THE COMMISSION
+            $data['next_amount'] =  $data['tot_payable']->monthly_amount + $tot_comm;
         } else {
             $data['updated_next_pay'] =  $data['tot_payable']->updated_next_pay;
 
@@ -706,11 +874,14 @@ class UserController extends Controller
                 ->orderBy('payments.payment_id', 'desc')->first();
 
             if ($data['client_payments']) {
-                $data['next_amount'] =  $data['tot_payable']->updated_monthly_pay;
+                $data['next_amount'] =  $data['tot_payable']->updated_monthly_pay + $tot_comm;
             } else {
-                $data['next_amount'] =  $data['tot_payable']->updated_next_pay;
+                $data['next_amount'] =  $data['tot_payable']->updated_next_pay + $tot_comm;
             }
         }
+
+        //echo 'Referee Next Payment Amount: ' . ' KSHS ' . $data['next_amount'];
+        //exit;
 
         // GET CLIENT PAYMENT HISTORY FOR BOTH MONTHLY AND COMPOUNDED
 
@@ -765,10 +936,6 @@ class UserController extends Controller
             return $item;
         });
 
-        // echo "<pre>";
-        // print_r($data['client_topups']);
-        // exit;
-
         $data['tot_topups'] = DB::table('topups')
             ->select(
                 DB::raw('sum(topup_amount) as c_tot_topups, account_id'),
@@ -780,10 +947,6 @@ class UserController extends Controller
             ->where('users.id', '=', $id)
             ->groupBy('topups.account_id')
             ->first();
-
-        // echo "<pre>";
-        // print_r($data['tot_topups']->c_tot_topups);
-        // exit;
 
         $data['c_tot_inv'] =  $data['customer_investments']->user_sum;
         if ($data['tot_topups'] == '') {
@@ -833,28 +996,8 @@ class UserController extends Controller
             $data['comp_payable_amout'] = $data['customer_data']->total_due_payments = 0;
         } else {
             $data['approved'] = "Y";
-            $data['comp_payable_amout'] = $data['customer_data']->total_due_payments;
+            $data['comp_payable_amout'] = $data['customer_data']->total_due_payments + $tot_comm;
         }
-        // exit;
-
-        // $data['comp_payable_amout'] = $data['customer_data']->total_due_payments;
-
-
-        // GET PAYMENT PLAN FOR THE CLIENT
-        //     $client_monthly_com = json_decode(json_encode($client_monthly_com), true);
-        //     $client_monthly_com = array_column($client_monthly_com, 'comp_monthly_pay');
-
-        //     $client_monthly_com = str_replace('[', '', $client_monthly_com);
-        //     $client_monthly_com = str_replace(']', '', $client_monthly_com);
-
-        // foreach ($client_monthly_com as $key => $value) {
-        //     $client_monthly_com = ($value);
-        // }
-
-        // $client_monthly_com = explode(',', $client_monthly_com);
-
-        // GET CLIENT NEXT PAYMENT FOR COMPOUND
-        // $data['next_pay_amount'] = min(array_diff($client_monthly_com, $client_payments_comp));
 
         // GET CLIENT PAYMENTS COMPOUNDED
 
@@ -901,26 +1044,16 @@ class UserController extends Controller
 
         $client_comp_payments = explode(',', $client_comp_payments);
 
-        // GET CLIENT NEXT PAYMENT FOR COMPOUND
-        // $data['next_pay_comp_amount'] = min(array_diff($client_comp_payments, $next_pay_comp));
-
         // GET TOTAL AMOUNT OF PAYMENT FOR MONTHLY + COMP
         // TAKE MONTHLY PAYMENT + $DATA['NEXT_PAY_AMOUNT'] (COMPOUND AMOUNT FOR A MONTH)
         if ($data['tot_payable']->comp_monthly_pay == '' && $data['tot_payable']->total_due_payments != 0) {
             $data['monthly_amnt'] = $data['tot_payable']->monthly_amount;
             $data['updated_monthly_amnt'] = $data['tot_payable']->updated_next_pay;
         } elseif ($data['tot_payable']->total_due_payments == 0) {
-
             $data['monthly_amnt'] = 0;
-        }
-        // }elseif($data['tot_payable']->comp_monthly_pay !='' && $data['tot_payable']->monthly_amount ==''){
-        //     $monthly_amnt = $data['tot_payable']->monthly_amount;
-        //     $monthly_comp_amnt = $data['next_pay_amount'];
-        //     $data['tot_monthly_payable'] = $monthly_amnt + $monthly_comp_amnt;
-        elseif ($data['tot_payable']->comp_monthly_pay != '' && $data['tot_payable']->monthly_amount != '') {
+        } elseif ($data['tot_payable']->comp_monthly_pay != '' && $data['tot_payable']->monthly_amount != '') {
             $data['monthly_amnt'] = $data['tot_payable']->monthly_amount;
             $data['tot_comp_amount'] =  $data['tot_payable']->tot_comp_amount;
-            // $data['tot_monthly_payable'] =   $data['monthly_amnt'] + $monthly_comp_amnt;
         }
 
         // GET CLIENT TOTAL PAYAMENTS
@@ -1098,7 +1231,6 @@ class UserController extends Controller
             Alert::error('Update User', 'Oops!!! An error ocurred while updating client details');
             return back();
         }
-        // }
     }
 
 

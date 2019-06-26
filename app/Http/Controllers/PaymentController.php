@@ -45,10 +45,6 @@ class PaymentController extends Controller
             return $item;
         });
 
-        // echo "<pre>";
-        // print_r($data['payments']);
-        // exit;
-
         return view('payments.index')->with($data);
     }
 

@@ -6,6 +6,7 @@ use App\Model\Topup;
 use App\Model\InvestmentMode;
 use App\Model\Bank;
 use User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use DB;
 use Session;
@@ -75,6 +76,10 @@ class TopupController extends Controller
             $days = 30;
             $interest = $interest_rate * $topup->topup_amount;
             $top_int = floor(($interest * $number_of_days) / $days);
+
+            $topup_comm_per = 0.05;
+            $topup_comm = $topup_comm_per *  $topup->topup_amount;
+            $topup->topup_comm = $topup_comm;
 
             if ($inv_type == 1) {
 

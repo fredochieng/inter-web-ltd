@@ -11,16 +11,19 @@
 <div class="box box-info">
     <div class="box-header with-border">
         <h3 class="box-title">ADD NEW CLIENT</h3>
+        <div class="box-tools">
+            <a href="#" data-target="#modal_blacklist_client" data-toggle="modal" class="btn btn-block btn-primary"
+                data-backdrop="static" data-keyboard="false"><i class="fa fa-plus"></i> BLACKLIST PHONE/ID NUMBER </a>
+        </div>
     </div>
     <div class="box-body">
-        {!! Form::open(['url' => action('UserController@store'), 'method' => 'post', 'id'=>'add_client_form'
-        ]) !!}
+        {!! Form::open(['url' => action('UserController@store'), 'method' => 'post', 'class' => 'addClientForm']) !!}
         <div class="col-md-12">
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
                         {!! Form::label('Full Name *') !!}
-                        {!! Form::text('name', null, ['class' => 'form-control', 'required']); !!}
+                        {!! Form::text('name', null, ['class' => 'form-control']); !!}
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -92,6 +95,8 @@
                         <select id="phone_no_id" class=" col-md-12 " name="referer_phone_id"> </select>
                     </div>
                 </div>
+                <input type="hidden" id="referer_phone" name="referer_phone">
+
                 <div class="col-md-3">
                     <div class="form-group">
                         {{Form::label('Name')}}
@@ -108,21 +113,23 @@
                         </div>
                     </div>
                 </div>
+
             </div>
 
             <div class="row">
-                <div class="col-md-3" id="">
+                <div class="col-md-3">
                     {{Form::label('Payment Mode ')}}
                     <div class="form-group">
-                        <select class="form-control select2" name="pay_mode_id" id="pay_mode_id" style="width: 100%;"
-                            tabindex="-1" aria-hidden="true">
-                            <option value"">Select payment mode</option>
+                        <select class="form-control select2" name="pay_mode_id" id="pay_mode_id" required
+                            style="width: 100%;" tabindex="-1" aria-hidden="true">
+                            <option value="">Select payment mode</option>
                             @foreach($payment_mode as $item)
-                            <option value="{{ $item->method_id }}">{{ $item->method_name }}</option>
+                            <option value='{{ $item->method_id }}'>{{ $item->method_name }}</option>
                             @endforeach
                         </select>
                     </div>
                 </div>
+
                 <div class="col-md-3 hide mpesa_number_div" id="mpesa_number_div">
                     <div class="form-group">
                         {{Form::label('MPESA Number')}}
@@ -240,9 +247,9 @@
                 <div class="col-md-4">
                     {{Form::label('Investment Mode ')}}
                     <div class="form-group">
-                        <select class="form-control select2" id="inv_mode_id" name="inv_mode_id" style="width: 100%;"
-                            tabindex="-1" aria-hidden="true">
-                            <option selected="selected" value="0">Select investment mode</option>
+                        <select class="form-control select2" id="inv_mode_id" name="inv_mode_id" required
+                            style="width: 100%;" tabindex="-1" aria-hidden="true">
+                            <option selected="selected" value="">Select investment mode</option>
                             @foreach($inv_modes as $item)
                             <option value="{{ $item->id }}">{{ $item->inv_mode }}</option>
                             @endforeach
@@ -309,6 +316,7 @@
         {!! Form::close() !!}
     </div>
 </div>
+@include('modals.users.modal_blacklist_client')
 
 @stop
 @section('css')
@@ -318,6 +326,100 @@
 @section('js')
 <script src="/js/bootstrap-datepicker.min.js"></script>
 <script src="/js/select2.full.min.js"></script>
+<script src="https://oss.maxcdn.com/jquery.bootstrapvalidator/0.5.2/js/bootstrapValidator.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+$('.addClientForm').bootstrapValidator({
+    message: 'This value is not valid',
+    feedbackIcons: {
+    valid: 'glyphicon glyphicon-ok',
+    invalid: 'glyphicon glyphicon-remove',
+    validating: 'glyphicon glyphicon-refresh'
+},
+fields: {
+    name: {
+    message: 'The username is not valid',
+    validators: {
+    notEmpty: {
+    message: 'The username is required'
+},
+    stringLength: {
+    min: 6,
+    max: 30,
+    message: 'The name must be more than 6 and less than 30 characters long'
+},
+    regexp: {
+        regexp: /^[a-z\s]+$/i,
+    message: 'The name can only consist of alphabetical letters'
+}
+}
+},
+    telephone: {
+    message: 'The phone number is not valid',
+    validators: {
+    notEmpty: {
+    message: 'The phone number is required'
+},
+    stringLength: {
+    min: 10,
+    max: 10,
+    message: 'The phone number must be 10 characters long'
+},
+    regexp: {
+     regexp: /^[0-9][0-9]{0,15}$/,
+    message: 'Phone number can only consist of numbers'
+}
+}
+},
+    kin_telephone: {
+    message: 'The phone number is not valid',
+    validators: {
+    notEmpty: {
+    message: 'The phone number is required'
+},
+    stringLength: {
+    min: 10,
+    max: 10,
+    message: 'The phone number must be 10 characters long'
+},
+    regexp: {
+     regexp: /^[0-9][0-9]{0,15}$/,
+    message: 'Phone number can only consist of numbers'
+}
+}
+},
+    id_no: {
+    message: 'The ID number is not valid',
+    validators: {
+    notEmpty: {
+    message: 'The ID number is required'
+},
+    stringLength: {
+    min: 7,
+    max: 8,
+    message: 'The ID number must be 7 or 8 characters long'
+},
+    regexp: {
+     regexp: /^[1-9][1-9]{1,15}$/,
+    message: 'ID number can only consist of numbers'
+}
+}
+},
+email: {
+    validators: {
+    notEmpty: {
+    message: 'The email is required and cannot be empty'
+},
+emailAddress: {
+message: 'The input is not a valid email address'
+}
+}
+}
+}
+});
+});
+</script>
 <script>
     $(function () {
 	 $('.dob').datepicker( {
@@ -364,7 +466,7 @@
         				  id: element.id,
                           text: element.text,
                           referer_name: element.referer_name
-        			}
+                    }
                 retVal.push(lineObj);
         		});
               return {
@@ -385,6 +487,7 @@
             var data = e.params.data;
             $("#referer_name").val(data.referer_name);
             $("#referer_id").val(data.id);
+            $("#referer_phone").val(data.text);
             console.log();
         });
         function formatRepo (repo) {
@@ -397,6 +500,7 @@
         function formatRepoSelection (repo) {
           return repo.text ;
         }
+
         $("#pay_bank_id").change(function() {
             var value = $(this).val();
             if (value != 0 ) {
@@ -499,7 +603,10 @@
          document.getElementById('compounded_inv_amount').value = compoundedInvestment;
         });
 
-        var form = document.getElementById("add_client_form");
+        //var phone  = $('#referer_phone').val();
+       // alert(phone);
+
+        var form = document.getElementById("addClientForm");
         form.reset();
  })
 </script>
