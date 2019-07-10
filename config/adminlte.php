@@ -1,5 +1,5 @@
 <?php
-// $logo_url="/images/logo.png";
+$logo_url = "/images/logo.png";
 return [
 
     /*

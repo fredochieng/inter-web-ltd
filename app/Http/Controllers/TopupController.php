@@ -57,8 +57,12 @@ class TopupController extends Controller
             $next_pay_date = new Carbon(Session::get('next_pay_day'));
             $pay_times = $data['investments']->payment_times;
 
-            $topup_date = new Carbon(Carbon::now('Africa/Nairobi')->toDateString());
+            $topup_date = $request->input('topup_date');
             $number_of_days = $next_pay_date->diffInDays($topup_date);
+
+            // $number_of_days = 4;
+            // echo $number_of_days;
+            // exit;
 
             $inv_type = $request->input('inv_type_id');
             $user_id = $request->input('user_id');
@@ -69,17 +73,50 @@ class TopupController extends Controller
             $topup->mpesa_trans_code = $request->input('mpesa_trans_code');
             $topup->inv_bank_id = $request->input('inv_bank_id');
             $topup->bank_trans_code = $request->input('bank_trans_code');
-            $topup->inv_bank_id = $request->input('inv_cheq_bank_id');
+            //  $topup->inv_bank_id = $request->input('inv_cheq_bank_id');
             $topup->cheque_no = $request->input('cheque_no');
-            $topup->topped_at = Carbon::now()->toDateString();
+            $topup->topped_at = $request->input('topup_date');
+            $referee_id = $request->input('referee_id');
+
+            // echo $request->input('inv_bank_id');
+            // exit;
+
+
             $interest_rate = 0.2;
             $days = 30;
             $interest = $interest_rate * $topup->topup_amount;
             $top_int = floor(($interest * $number_of_days) / $days);
 
+            // echo $top_int;
+            // exit;
+
             $topup_comm_per = 0.05;
             $topup_comm = $topup_comm_per *  $topup->topup_amount;
             $topup->topup_comm = $topup_comm;
+
+
+            if (!empty($referee_id)) {
+                $referee_data = DB::table('accounts')
+                    ->select(
+                        DB::raw('accounts.*'),
+                        DB::raw('users.id as referee_id')
+                    )
+                    ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+                    ->where('users.id', '=', $referee_id)
+                    ->first();
+
+                $account_id = $referee_data->id;
+                $due_pay = $referee_data->total_due_payments;
+                $new_due_pay = $due_pay + $topup_comm;
+
+                $acc_bal = array(
+
+                    'total_due_payments' => $new_due_pay
+                );
+
+                $acc_balances = DB::table('accounts')->where('id', $account_id)
+                    ->update($acc_bal);
+            }
 
             if ($inv_type == 1) {
 

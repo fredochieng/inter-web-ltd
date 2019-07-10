@@ -49,7 +49,6 @@ class ReportController extends Controller
 
     public function getNextPayDate($id)
     {
-
         // GET THE DATES THE CLIENT HAS BEEN PAID
         $user_pay_dates = DB::table('payments')
             ->select(
@@ -98,11 +97,120 @@ class ReportController extends Controller
             $data['next_pay_date'] = min(array_diff($client_pay_dates, $user_pay_dates));
         }
 
-
         // GET CLIENTS NEXT PAYMENT DATE
         // $data['next_pay_date'] = min(array_diff($client_pay_dates, $user_pay_dates));
 
         return $data['next_pay_date'];
+    }
+
+    public function getInvType($id)
+    {
+        $inv_type = DB::table('user_pay_modes')
+            ->select(
+                DB::raw('user_pay_modes.*'),
+                DB::raw('users.*'),
+                DB::raw('accounts.*'),
+                DB::raw('payment_schedule.*')
+            )
+            ->leftJoin('users', 'user_pay_modes.user_id', '=', 'users.id')
+            ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')
+            ->leftJoin('payment_schedule', 'accounts.id', '=', 'payment_schedule.account_no_id')
+            ->where('user_pay_modes.user_id', '=', $id)
+            ->first();
+
+        $inv_type_id = $inv_type->inv_type;
+        return $inv_type_id;
+    }
+
+    public function getSixthPayDate($id)
+    {
+
+        $pay_dates = DB::table('user_pay_modes')
+            ->select(
+                DB::raw('user_pay_modes.pay_dates')
+            )
+            ->where('user_pay_modes.user_id', '=', $id)
+            ->first();
+
+        // echo "<pre>";
+        // print_r($pay_dates);
+        // exit;
+
+        $pay_dates = explode(';',  $pay_dates->pay_dates);
+        $pay_dates = array_filter(array_map('trim', $pay_dates));
+        $pay_dates = str_replace('["', '', $pay_dates);
+        $pay_dates = str_replace('"]', '', $pay_dates);
+        $pay_dates = str_replace('","', ',', $pay_dates);
+
+        foreach ($pay_dates as $key => $value) {
+            $pay_dates = ($value);
+        }
+
+        $pay_dates = explode(',', $pay_dates);
+
+        // echo "<pre>";
+        // print_r($pay_dates);
+        // exit;
+        return $pay_dates;
+    }
+
+    public function getReferer($id)
+    {
+        $referer = DB::table('users')
+            ->select(
+                DB::raw('users.*'),
+                DB::raw('users.id as referee_id'),
+                DB::raw('users_details.*'),
+                DB::raw('accounts.*'),
+                DB::raw('accounts.id AS accnt_id'),
+                DB::raw('investments.*'),
+                DB::raw('user_pay_modes.*'),
+                DB::raw('inv_types.*'),
+                DB::raw('payment_schedule.*'),
+                DB::raw('payment_schedule.monthly_amount'),
+                DB::raw('payments.*'),
+                DB::raw('payment_methods.*'),
+                DB::raw('banks.*')
+            )
+            ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
+            ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')
+            ->leftJoin('investments', 'accounts.id', '=', 'investments.account_no_id')
+            ->leftJoin('inv_types', 'investments.inv_type_id', '=', 'inv_types.inv_id')
+            ->leftJoin('user_pay_modes', 'users.id', '=', 'user_pay_modes.user_id')
+            ->leftJoin('payment_schedule', 'accounts.id', '=', 'payment_schedule.account_no_id')
+            ->leftJoin('payments', 'accounts.id', '=', 'payments.account_no_id')
+            ->leftJoin('payment_methods', 'user_pay_modes.pay_mode_id', '=', 'payment_methods.method_id')
+            ->leftJoin('banks', 'user_pay_modes.pay_bank_id', '=', 'banks.bank_id')
+            ->where('users.refered_by', '=', $id)
+            ->where('investments.inv_status_id', '=', 1)
+            ->get();
+
+        return $referer;
+    }
+
+    public function getRefererTopups($id)
+    {
+        $referer_topups = DB::table('topups')
+            ->select(
+                DB::raw('topups.*'),
+                DB::raw('topups.created_at AS topped_date'),
+                DB::raw('accounts.*'),
+                DB::raw('accounts.id as acc_id'),
+                DB::raw('inv_modes.*'),
+                DB::raw('banks.*'),
+                DB::raw('users.*'),
+                DB::raw('users_details.*')
+            )
+            ->leftJoin('accounts', 'topups.account_id', '=', 'accounts.id')
+            ->leftJoin('inv_modes', 'topups.inv_mode_id', '=', 'inv_modes.id')
+            ->leftJoin('banks', 'topups.inv_bank_id', '=', 'banks.bank_id')
+            ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+            ->leftJoin('users_details', 'users.id', 'users_details.user_id')
+            ->where('users.refered_by', '=', $id)
+            ->orderBy('topups.topup_id', 'desc')
+            ->get();
+
+        return $referer_topups;
     }
 
     public function getNextPayment($id)
@@ -122,7 +230,6 @@ class ReportController extends Controller
             ->groupBy('payment_schedule.account_no_id')
             ->where('users.id', '=', $id)
             ->first();
-
 
         if ($data['tot_payable']->topped_up == 0) {
 
@@ -152,11 +259,6 @@ class ReportController extends Controller
             }
         }
 
-        // $data['to_be_paid'] = '';
-        // $data['to_be_paid1'] = '';
-        // $data['to_be_paid2'] = '';
-        // $data['to_be_paid3'] = '';
-
         if ($data['tot_payable']->comp_monthly_pay == '') {
 
             $data['to_be_paid'] = $data['to_be_paid'];
@@ -166,7 +268,8 @@ class ReportController extends Controller
             return $data['to_be_paid'];
         } elseif ($data['tot_payable']->monthly_amount == '' && $data['tot_payable']->comp_monthly_pay != '') {
 
-            $data['to_be_paid1'] = $data['tot_payable']->tot_payable_amnt;
+            $data['to_be_paid1'] = $data['tot_payable']->total_due_payments;
+            // $data['to_be_paid1'] = $data['tot_payable']->tot_payable_amnt;
 
             return $data['to_be_paid1'];
         } elseif ($data['tot_payable']->comp_monthly_pay != '' && $data['tot_payable']->monthly_amount != '') {
@@ -213,6 +316,10 @@ class ReportController extends Controller
             return $item;
         });
 
+        // echo "<pre>";
+        // print_r($data['due_payments_report']);
+        // exit;
+
         return view('reports.due-payments')->with($data);
     }
 
@@ -226,7 +333,7 @@ class ReportController extends Controller
         $data['banks'] = Bank::getBanks();
 
         $date_range = $request->input('date_range');
-        $date_range = (array)$date_range;
+        $date_range = (array) $date_range;
         $date_range = str_replace(' - ', ',', $date_range);
 
         foreach ($date_range as $key => $value) {
@@ -236,6 +343,459 @@ class ReportController extends Controller
         $date_range = explode(',', $date_range);
         $data['start_date'] = date('Y-m-d', strtotime($date_range[0]));
         $data['end_date'] = date('Y-m-d', strtotime($date_range[1]));
+
+        $today = Carbon::now()->toDateString();
+        $pay_mode_id = $request->input('pay_mode_id');
+        $bank_id = $request->input('bank_id');
+
+        if (($date_range != '') && ($pay_mode_id == '') && ($bank_id == '')) {
+
+            $data['type'] = 1;
+
+            $data['due_payments_report'] = Report::duePaymentsReport();
+
+            $data['due_payments_report']->map(function ($item) {
+
+                $item->next_pay_date = $this->getNextPayDate($item->user_id);
+                $item->inv_typeddd = $this->getInvType($item->user_id);
+                $item->paymentsss_dates =  $this->getSixthPayDate($item->user_id);
+                $item->referer = $this->getReferer($item->user_id);
+                $item->referer_topups = $this->getRefererTopups($item->user_id);
+                $item->remarks = '';
+
+                if ($item->inv_type == 1) {
+                    if ($item->next_pay_date <=  $item->paymentsss_dates[5]) {
+                        $item->inv_comm = json_decode(json_encode($item->referer), true);
+                        $item->inv_comm = array_column($item->inv_comm, 'inv_comm');
+
+                        $item->topup_comm = json_decode(json_encode($item->referer_topups), true);
+                        $item->topup_comm = array_column($item->topup_comm, 'topup_comm');
+
+                        // // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
+                        $item->inv_comm_sum = 0;
+                        foreach ($item->inv_comm as $key => $value) {
+                            $item->inv_comm_sum += $value;
+                        }
+
+                        // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
+                        $item->topup_comm_sum = 0;
+                        foreach ($item->topup_comm as $key => $value) {
+                            $item->topup_comm_sum += $value;
+                        }
+
+                        $item->tot_comm = $item->inv_comm_sum + $item->topup_comm_sum;
+
+                        $item->to_be_paid = $this->getNextPayment($item->user_id);
+                    } elseif ($item->next_pay_date[0] > $item->paymentsss_dates[5]) {
+                        $item->tot_comm = 0;
+                    }
+                } elseif ($item->inv_type == 2) {
+                    $item->inv_comm = json_decode(json_encode($item->referer), true);
+                    $item->inv_comm = array_column($item->inv_comm, 'inv_comm');
+
+                    $item->topup_comm = json_decode(json_encode($item->referer_topups), true);
+                    $item->topup_comm = array_column($item->topup_comm, 'topup_comm');
+
+                    // // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
+                    $item->inv_comm_sum = 0;
+                    foreach ($item->inv_comm as $key => $value) {
+                        $item->inv_comm_sum += $value * 6;
+                    }
+
+                    // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
+                    $item->topup_comm_sum = 0;
+                    foreach ($item->topup_comm as $key => $value) {
+                        $item->topup_comm_sum += $value * 6;
+                    }
+
+                    $item->tot_comm = $item->inv_comm_sum + $item->topup_comm_sum;
+                    $item->to_be_paid = $this->getNextPayment($item->user_id);
+                } elseif ($item->inv_type == 3) {
+                    if ($item->next_pay_date <=  $item->paymentsss_dates[5]) {
+                        $item->inv_comm = json_decode(json_encode($item->referer), true);
+                        $item->inv_comm = array_column($item->inv_comm, 'inv_comm');
+
+                        $item->topup_comm = json_decode(json_encode($item->referer_topups), true);
+                        $item->topup_comm = array_column($item->topup_comm, 'topup_comm');
+
+                        // // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
+                        $item->inv_comm_sum = 0;
+                        foreach ($item->inv_comm as $key => $value) {
+                            $item->inv_comm_sum += $value;
+                        }
+
+                        // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
+                        $item->topup_comm_sum = 0;
+                        foreach ($item->topup_comm as $key => $value) {
+                            $item->topup_comm_sum += $value;
+                        }
+
+                        $item->tot_comm = $item->inv_comm_sum + $item->topup_comm_sum;
+
+                        $item->to_be_paid = $this->getNextPayment($item->user_id);
+                        // $item->to_be_paid = $this->getNextPayment($item->user_id) + $item->tot_comm;
+                    } elseif ($item->next_pay_date[0] > $item->paymentsss_dates[5]) {
+                        $item->tot_comm = 0;
+                    }
+                }
+
+                $item->to_be_paid = $this->getNextPayment($item->user_id) + $item->tot_comm;
+
+                return $item;
+            });
+
+            $data['pay_mode'] = 'NO SELECTION';
+            $data['pay_bank'] = 'NO SELECTION';
+            $data['bank_idd'] = $bank_id;
+
+            $data['today_due_payment_report'] = $data['due_payments_report']->whereBetween('next_pay_date', array($data['start_date'], $data['end_date']));
+
+            $data['meta'] = ['Payment Date' => $data['start_date'] . ' To ' . $data['end_date']];
+
+            $data['columns'] = [
+                'Account No' => 'account_no', 'Name' => 'name', 'ID Number' => 'id_no', 'Phone Number' => 'telephone',
+                'Mode of Payment' => 'method_name', 'Bank' => 'bank_name', 'Bank account' => 'pay_bank_acc',
+                'MPESA Number' => 'pay_mpesa_no', 'Amount' => 'to_be_paid', 'Payment Date' => 'next_pay_date', 'Remarks' => 'remarks'
+            ];
+
+            $data['title'] = "Due Payments Report";
+            $download_excel = ExcelReport::of($data['title'], $data['meta'],  $data['today_due_payment_report'], $data['columns'])
+                // ->limit(20)
+                ->download('interweb_due_payments_report' . '_' . $data['start_date'] . ' to ' . $data['end_date']);
+
+            return $download_excel;
+        } elseif (($date_range != '') && ($pay_mode_id != '') && ($bank_id == '')) {
+
+            $data['type'] = 2;
+            $data['pay_id'] = $pay_mode_id;
+            $data['bank_idd'] = $bank_id;
+
+            $data['due_payments_report'] = Report::duePaymentsReport();
+
+            $data['due_payments_report']->map(function ($item) {
+
+                $item->next_pay_date = $this->getNextPayDate($item->user_id);
+                $item->inv_typeddd = $this->getInvType($item->user_id);
+                $item->paymentsss_dates =  $this->getSixthPayDate($item->user_id);
+                $item->referer = $this->getReferer($item->user_id);
+                $item->referer_topups = $this->getRefererTopups($item->user_id);
+                $item->remarks = '';
+
+                if ($item->inv_type == 1) {
+
+                    if ($item->next_pay_date <=  $item->paymentsss_dates[5]) {
+
+                        $item->inv_comm = json_decode(json_encode($item->referer), true);
+                        $item->inv_comm = array_column($item->inv_comm, 'inv_comm');
+
+                        $item->topup_comm = json_decode(json_encode($item->referer_topups), true);
+                        $item->topup_comm = array_column($item->topup_comm, 'topup_comm');
+
+                        // // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
+                        $item->inv_comm_sum = 0;
+                        foreach ($item->inv_comm as $key => $value) {
+                            $item->inv_comm_sum += $value;
+                        }
+
+                        // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
+                        $item->topup_comm_sum = 0;
+                        foreach ($item->topup_comm as $key => $value) {
+                            $item->topup_comm_sum += $value;
+                        }
+
+                        $item->tot_comm = $item->inv_comm_sum + $item->topup_comm_sum;
+
+                        // $item->tot_commddd =  $item->tot_comm;
+
+                        $item->to_be_paid = $this->getNextPayment($item->user_id) + $item->tot_comm;
+                    } elseif ($item->next_pay_date[0] > $item->paymentsss_dates[5]) {
+
+                        $item->tot_comm = 0;
+                        $item->to_be_paid = $this->getNextPayment($item->user_id) + $item->tot_comm;
+                    }
+                } elseif ($item->inv_type == 2) {
+                    $item->inv_comm = json_decode(json_encode($item->referer), true);
+                    $item->inv_comm = array_column($item->inv_comm, 'inv_comm');
+
+                    $item->topup_comm = json_decode(json_encode($item->referer_topups), true);
+                    $item->topup_comm = array_column($item->topup_comm, 'topup_comm');
+
+                    // // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
+                    $item->inv_comm_sum = 0;
+                    foreach ($item->inv_comm as $key => $value) {
+                        $item->inv_comm_sum += $value * 6;
+                    }
+
+                    // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
+                    $item->topup_comm_sum = 0;
+                    foreach ($item->topup_comm as $key => $value) {
+                        $item->topup_comm_sum += $value * 6;
+                    }
+
+                    $item->tot_comm = $item->inv_comm_sum + $item->topup_comm_sum;
+                    $item->to_be_paid = $this->getNextPayment($item->user_id) + $item->tot_comm;
+                } elseif ($item->inv_type == 3) {
+                    if ($item->next_pay_date <=  $item->paymentsss_dates[5]) {
+                        $item->inv_comm = json_decode(json_encode($item->referer), true);
+                        $item->inv_comm = array_column($item->inv_comm, 'inv_comm');
+
+                        $item->topup_comm = json_decode(json_encode($item->referer_topups), true);
+                        $item->topup_comm = array_column($item->topup_comm, 'topup_comm');
+
+                        // // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
+                        $item->inv_comm_sum = 0;
+                        foreach ($item->inv_comm as $key => $value) {
+                            $item->inv_comm_sum += $value;
+                        }
+
+                        // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
+                        $item->topup_comm_sum = 0;
+                        foreach ($item->topup_comm as $key => $value) {
+                            $item->topup_comm_sum += $value;
+                        }
+
+                        $item->tot_comm = $item->inv_comm_sum + $item->topup_comm_sum;
+
+                        $item->to_be_paid = $this->getNextPayment($item->user_id) + $item->tot_comm;
+                    } elseif ($item->next_pay_date[0] > $item->paymentsss_dates[5]) {
+                        $tot_comm = 0;
+                        $item->to_be_paid = $this->getNextPayment($item->user_id) + $item->tot_comm;
+                    }
+                }
+
+                //   $item->to_be_paid = $this->getNextPayment($item->user_id) + $item->tot_comm;
+
+                return $item;
+            });
+
+            // echo "<pre>";
+            // print_r($data['due_payments_report']);
+            // exit;
+
+            // $data['today_due_payment_report'] = $data['due_payments_report']->where('pay_mode_id', '=>', $pay_mode_id)->whereBetween(
+            //     'next_pay_date',
+            //     array($data['start_date'], $data['end_date'])
+            // );
+
+            $data['today_due_payment_report'] = $data['due_payments_report']
+                ->where('pay_mode_id', '=', 1)
+                //  ->where('bank_id', '=', $bank_id)
+                ->whereBetween(
+                    'next_pay_date',
+                    array($data['start_date'], $data['end_date'])
+                );
+
+
+            // echo "<pre>";
+            // print_r($data['today_due_payment_report']);
+            // exit;
+
+            $data['pay_mode'] = 'NO SELECTION';
+            $data['pay_bank'] = 'NO SELECTION';
+            $data['pay_mode_id'] = $pay_mode_id;
+
+            $data['pay_mode'] = $data['payment_modes']->where('method_id', '=', $pay_mode_id)->pluck('method_name')->first();
+
+            $user = \Auth::user();
+
+            logger($data['pay_mode'] . ' due payments report from ' . $data['start_date'] . ' to ' . $data['end_date'] .  ' run by ' . $user->name);
+
+            $data['meta'] = ['Payment Date' => $data['start_date'] . ' To ' . $data['end_date']];
+
+            if ($pay_mode_id == 1) {
+
+                $data['columns'] = [
+                    'Account No' => 'account_no', 'Name' => 'name', 'ID Number' => 'id_no', 'Phone Number' => 'telephone',
+                    'Mode of Payment' => 'method_name', 'MPESA Number' => 'pay_mpesa_no', 'Amount' => 'to_be_paid', 'Payment Date' => 'next_pay_date', 'Remarks' => 'remarks'
+                ];
+
+                $data['title'] = "Due Payments Report";
+                $download_excel = ExcelReport::of($data['title'], $data['meta'],  $data['today_due_payment_report'], $data['columns'])
+                    // ->limit(20)
+                    ->download('interweb_due_payments_report' . '_' . $data['start_date'] . ' to ' . $data['end_date']);
+
+                return $download_excel;
+            } else {
+
+                $data['columns'] = [
+                    'Account No' => 'account_no', 'Name' => 'name', 'ID Number' => 'id_no', 'Phone Number' => 'telephone',
+                    'Mode of Payment' => 'method_name', 'Amount' => 'to_be_paid', 'Payment Date' => 'next_pay_date', 'Remarks' => 'remarks'
+                ];
+
+                $data['title'] = "Due Payments Report";
+                $download_excel = ExcelReport::of($data['title'], $data['meta'],  $data['today_due_payment_report'], $data['columns'])
+                    // ->limit(20)
+                    ->download('payments');
+
+                return $download_excel;
+            }
+        }
+        if (!empty($date_range) && !empty($pay_mode_id) && !empty($bank_id)) {
+
+            $data['type'] = 3;
+            $data['bank_idd'] = $bank_id;
+
+            $data['due_payments_report'] = Report::duePaymentsReport();
+
+            $data['due_payments_report']->map(function ($item) {
+
+                $item->next_pay_date = $this->getNextPayDate($item->user_id);
+                $item->inv_typeddd = $this->getInvType($item->user_id);
+                $item->paymentsss_dates =  $this->getSixthPayDate($item->user_id);
+                $item->referer = $this->getReferer($item->user_id);
+                $item->referer_topups = $this->getRefererTopups($item->user_id);
+                $item->remarks = '';
+
+                // echo "<pre>";
+                // print_r($item->referer);
+                // exit;
+                if ($item->inv_type == 1) {
+                    if ($item->next_pay_date <=  $item->paymentsss_dates[5]) {
+                        $item->inv_comm = json_decode(json_encode($item->referer), true);
+                        $item->inv_comm = array_column($item->inv_comm, 'inv_comm');
+
+                        $item->topup_comm = json_decode(json_encode($item->referer_topups), true);
+                        $item->topup_comm = array_column($item->topup_comm, 'topup_comm');
+
+                        // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
+                        $item->inv_comm_sum = 0;
+                        foreach ($item->inv_comm as $key => $value) {
+                            $item->inv_comm_sum += $value;
+                        }
+
+                        // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
+                        $item->topup_comm_sum = 0;
+                        foreach ($item->topup_comm as $key => $value) {
+                            $item->topup_comm_sum += $value;
+                        }
+
+                        $item->tot_comm = $item->inv_comm_sum + $item->topup_comm_sum;
+
+                        $item->to_be_paid = $this->getNextPayment($item->user_id) + $item->tot_comm;
+                    } elseif ($item->next_pay_date[0] > $item->paymentsss_dates[5]) {
+                        $item->tot_comm = 0;
+                        $item->to_be_paid = $this->getNextPayment($item->user_id) + $item->tot_comm;
+                    }
+                } elseif ($item->inv_type == 2) {
+                    $item->inv_comm = json_decode(json_encode($item->referer), true);
+                    $item->inv_comm = array_column($item->inv_comm, 'inv_comm');
+
+                    $item->topup_comm = json_decode(json_encode($item->referer_topups), true);
+                    $item->topup_comm = array_column($item->topup_comm, 'topup_comm');
+
+                    // // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
+                    $item->inv_comm_sum = 0;
+                    foreach ($item->inv_comm as $key => $value) {
+                        $item->inv_comm_sum += $value * 6;
+                    }
+
+                    // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
+                    $item->topup_comm_sum = 0;
+                    foreach ($item->topup_comm as $key => $value) {
+                        $item->topup_comm_sum += $value * 6;
+                    }
+
+                    $item->tot_comm = $item->inv_comm_sum + $item->topup_comm_sum;
+                    $item->to_be_paid = $this->getNextPayment($item->user_id) + $item->tot_comm;
+                } elseif ($item->inv_type == 3) {
+                    if ($item->next_pay_date <=  $item->paymentsss_dates[5]) {
+                        $item->inv_comm = json_decode(json_encode($item->referer), true);
+                        $item->inv_comm = array_column($item->inv_comm, 'inv_comm');
+
+                        $item->topup_comm = json_decode(json_encode($item->referer_topups), true);
+                        $item->topup_comm = array_column($item->topup_comm, 'topup_comm');
+
+                        // // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
+                        $item->inv_comm_sum = 0;
+                        foreach ($item->inv_comm as $key => $value) {
+                            $item->inv_comm_sum += $value;
+                        }
+
+                        // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
+                        $item->topup_comm_sum = 0;
+                        foreach ($item->topup_comm as $key => $value) {
+                            $item->topup_comm_sum += $value;
+                        }
+
+                        $item->tot_comm = $item->inv_comm_sum + $item->topup_comm_sum;
+
+                        $item->to_be_paid = $this->getNextPayment($item->user_id) + $item->tot_comm;
+                    } elseif ($item->next_pay_date[0] > $item->paymentsss_dates[5]) {
+                        $item->tot_comm = 0;
+                        $item->to_be_paid = $this->getNextPayment($item->user_id) + $item->tot_comm;
+                    }
+                }
+
+                // $item->to_be_paid = $this->getNextPayment($item->user_id) + $item->tot_comm;
+
+                return $item;
+            });
+
+            // echo "<pre>";
+            // print_r($data['due_payments_report']);
+            // exit;
+
+            $data['today_due_payment_report'] = $data['due_payments_report']
+                ->where('pay_mode_id', '=', $pay_mode_id)
+                ->where('bank_id', '=', $bank_id)
+                ->whereBetween(
+                    'next_pay_date',
+                    array($data['start_date'], $data['end_date'])
+                );
+
+            // echo "<pre>";
+            // print_r($data['today_due_payment_report']);
+            // exit;
+
+            $data['pay_bank'] = $data['banks']->where('bank_id', '=', $bank_id)->pluck('bank_name')->first();
+
+            $user = \Auth::user();
+
+            logger($data['pay_bank'] . ' due payments report from ' . $data['start_date'] . ' to ' . $data['end_date'] .  ' run by ' . $user->name);
+
+            $data['meta'] = ['Payment Date' => $data['start_date'] . ' To ' . $data['end_date']];
+
+            $data['columns'] = [
+                'Account No' => 'account_no', 'Name' => 'name', 'ID Number' => 'id_no', 'Phone Number' => 'telephone',
+                'Mode of Payment' => 'method_name', 'Bank' => 'bank_name', 'Bank Account' => 'pay_bank_acc',
+                'Amount' => 'to_be_paid', 'Payment Date' => 'next_pay_date', 'Remarks' => 'remarks'
+            ];
+
+            $data['title'] = "Due Payments Report";
+            $download_excel = ExcelReport::of($data['title'], $data['meta'],  $data['today_due_payment_report'], $data['columns'])
+                // ->limit(20)
+                ->download('interweb_due_payments_report' . '_' . $data['start_date'] . ' to ' . $data['end_date']);
+
+            return $download_excel;
+        }
+
+        return view('reports.view')->with($data);
+    }
+
+    public function downloadExcel(Request $request)
+    {
+        if (!auth()->user()->can('reports.manage')) {
+            abort(401, 'Unauthorized action.');
+        }
+        $data['clients'] = User::getClients();
+        $data['payment_modes'] = PaymentMethod::getPaymentMethods();
+        $data['banks'] = Bank::getBanks();
+
+        $date_range = $request->input('rep_date');
+        $date_range = (array) $date_range;
+        $date_range = str_replace(' - ', ',', $date_range);
+
+        // print_r($date_range);
+        // exit;
+
+        foreach ($date_range as $key => $value) {
+            $date_range = $value;
+        }
+
+        $date_range = explode(',', $date_range);
+        $data['start_date'] = date('Y-m-d', strtotime($date_range[0]));
+        $data['end_date'] = date('Y-m-d', strtotime($date_range[1]));
+
 
         $today = Carbon::now()->toDateString();
         $pay_mode_id = $request->input('pay_mode_id');
@@ -276,12 +836,14 @@ class ReportController extends Controller
 
             $data['title'] = "Due Payments Report";
             $download_excel = ExcelReport::of($data['title'], $data['meta'],  $data['today_due_payment_report'], $data['columns'])
-                ->limit(20)
-                ->download('payments');
+                // ->limit(20)
+                ->download('interweb_due_payments_report' . '_' . $data['start_date'] . ' to ' . $data['end_date']);
 
             return $download_excel;
-        } elseif (($date_range != '') && ($pay_mode_id != '') && ($bank_id == '')) {
+        } elseif (($date_range != '') && ($pay_mode_id != '') && ($bank_id == 'NO SELECTION')) {
 
+            echo "yesssssss";
+            exit;
             $data['type'] = 2;
 
             $data['due_payments_report'] = Report::duePaymentsReport();
@@ -307,7 +869,7 @@ class ReportController extends Controller
             );
 
             $data['pay_mode'] = 'NO SELECTION';
-            $data['pay_bank'] = 'NO COLLECTION';
+            $data['pay_bank'] = 'NO SELECTION';
             $data['pay_mode_id'] = $pay_mode_id;
 
             $data['pay_mode'] = $data['payment_modes']->where('method_id', '=', $pay_mode_id)->pluck('method_name')->first();
@@ -333,8 +895,8 @@ class ReportController extends Controller
 
             $data['title'] = "Due Payments Report";
             $download_excel = ExcelReport::of($data['title'], $data['meta'],  $data['today_due_payment_report'], $data['columns'])
-                ->limit(20)
-                ->download('payments');
+                // ->limit(20)
+                ->download('interweb_due_payments_report' . '_' . $data['start_date'] . ' to ' . $data['end_date']);
 
             return $download_excel;
         }
@@ -380,38 +942,13 @@ class ReportController extends Controller
 
             $data['title'] = "Due Payments Report";
             $download_excel = ExcelReport::of($data['title'], $data['meta'],  $data['today_due_payment_report'], $data['columns'])
-                ->limit(20)
-                ->download('payments');
+                // ->limit(20)
+                ->download('interweb_due_payments_report' . '_' . $data['start_date'] . ' to ' . $data['end_date']);
 
             return $download_excel;
         }
 
         return view('reports.view')->with($data);
-    }
-
-    public function downloadExcel()
-    {
-        // $queryBuilder = $this->showDuePaymentsReports($title, $meta,  $data['today_due_payment_report'], $columns);
-
-        // $download_excel = ExcelReport::of($title, $meta,  $data['today_due_payment_report'], $columns)
-        //     ->limit(20)
-        //     ->download('payments');
-
-        // return $download_excel;
-        // $title = "Due Payments Report";
-        // $meta = ['Payment Date' => '2019-01-02' . ' To ' . '2019-12-01'];
-        // $queryBuilder = User::getClients();
-
-        // $columns = [
-        //     'Name' => 'name',
-        //     'Email' => 'email',
-        //     'Registered At' => 'created_at'
-        // ];
-        // $download_excel = ExcelReport::of($title, $meta, $queryBuilder, $columns)
-        //     ->limit(20)
-        //     ->download('payments');
-
-        // return $download_excel;
     }
 
     /**

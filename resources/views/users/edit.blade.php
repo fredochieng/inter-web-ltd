@@ -112,6 +112,14 @@
                     <td style=""><strong> COMPOUND PAYMENT DATE :</strong>N/A</td>
                     @endif
                 </tr>
+                <tr>
+                    @if($tot_comm !='')
+                    <td style=""><strong> COMMISSION AMOUNT :</strong>Kshs {{ number_format($tot_comm,2,'.',',')}}
+                    </td>
+                    @else
+                    <td style=""><strong> COMMISSION AMOUNT :</strong>Kshs 0.00
+                        @endif
+                </tr>
             </tbody>
         </table>
     </div>
@@ -126,12 +134,19 @@
                     UPS</strong></a></li>
         <li class=""><a href="#payments" data-toggle="tab" aria-expanded="false"><strong><i class="fa fa-dollar"></i>
                     PAYMENTS</strong></a></li>
+        <li class=""><a href="#referals" data-toggle="tab" aria-expanded="false"><strong><i class="fa fa-users"></i>
+                    REFERRED CLIENTS</strong></a></li>
     </ul>
     <div class="tab-content">
         <div class="tab-pane active" id="basic_details">
             <div class="box-body">
                 {{-- {!! Form::open(['url' => action('UserController@update'), 'method' => 'post', 'id' => 'AddClientForm'
                 ]) !!} --}}
+
+                {!!
+                Form::open(['action'=>['UserController@update',$customer_data->user_id],'method'=>'PATCH','class'=>'form','enctype'=>'multipart/form-data'])
+                !!}
+
                 <div class="tab-content">
                     <div class="tab-pane active" id="info-tab">
                         <div class="col-md-12">
@@ -181,7 +196,7 @@
                                         <div class="form-group">
                                             {!! Form::label(' Account Number') !!}
                                             {!! Form::text('account_no', $customer_data->account_no, ['class' =>
-                                            'form-control' ]); !!}
+                                            'form-control', 'readonly' ]); !!}
                                         </div>
                                     </div>
                                     <div class="col-md-3">
@@ -214,6 +229,7 @@
                                             'form-control', 'required']); !!}
                                         </div>
                                     </div>
+                                    <input type="hidden" name="referee_id" value="{{$customer_data->refered_by}}">
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             {{Form::label('Refered By')}}
@@ -226,7 +242,7 @@
                                         <div class="form-group">
                                             {{Form::label('Payment Mode')}}
                                             <div class="form-group">
-                                                {{Form::text('referer_name',  $customer_data->method_name,['class'=>'form-control', 'readonly', 'id' => 'referer_name'])}}
+                                                {{Form::text('pay_mode_id',  $customer_data->method_name,['class'=>'form-control', 'readonly', 'id' => 'referer_name'])}}
                                             </div>
                                         </div>
                                     </div>
@@ -239,7 +255,7 @@
                                         <div class="form-group">
                                             {{Form::label('MPESA Number')}}
                                             <div class="form-group">
-                                                {{Form::text('pay_mpesa_no', $customer_data->pay_mpesa_no,['class'=>'form-control', 'id' => 'mpesa_number'])}}
+                                                {{Form::text('pay_mpesa_no', $customer_data->pay_mpesa_no,['class'=>'form-control', 'id' => 'mpesa_number','readonly'])}}
                                             </div>
                                         </div>
                                     </div>
@@ -248,7 +264,7 @@
                                         <div class="form-group">
                                             {{Form::label('Bank Name')}}
                                             <div class="form-group">
-                                                {{Form::text('pay_bank_acc', $customer_data->bank_name,['class'=>'form-control'])}}
+                                                {{Form::text('pay_bank_acc', $customer_data->bank_name,['class'=>'form-control','readonly'])}}
                                             </div>
                                         </div>
                                     </div>
@@ -256,7 +272,7 @@
                                         <div class="form-group">
                                             {{Form::label('Bank Account')}}
                                             <div class="form-group">
-                                                {{Form::text('pay_bank_acc', $customer_data->pay_bank_acc,['class'=>'form-control'])}}
+                                                {{Form::text('pay_bank_acc', $customer_data->pay_bank_acc,['class'=>'form-control','readonly'])}}
                                             </div>
                                         </div>
                                     </div>
@@ -266,13 +282,13 @@
                         </div>
                     </div>
                 </div>
-                {{--  <div class="col-md-12">
-                <div class="form-group"> <br>
-                    <input type="hidden" name="subs_id" value="900004">
-                    <button type="submit" class="btn btn-info btn-flat add_sub_part_1"><strong>UPDATE BASIC
-                            DETAILS</strong></button>
+                <div class="col-md-12">
+                    <div class="form-group"> <br>
+                        <input type="hidden" name="subs_id" value="900004">
+                        <button type="submit" class="btn btn-info btn-flat add_sub_part_1"><strong>UPDATE BASIC
+                                DETAILS</strong></button>
+                    </div>
                 </div>
-            </div>  --}}
 
                 {!! Form::close() !!}
                 <div style="clear:both"></div>
@@ -284,6 +300,7 @@
         <!-- /.tab-pane -->
         <div class="tab-pane" id="investments">
             <div class="box-body">
+
                 <br>
                 <h4>All investments related to this client &nbsp;
                     <div style="clear:both"></div>
@@ -335,8 +352,7 @@
                     </table>
                 </div>
             </div>
-
-
+            {!! Form::close() !!}
         </div>
         <div class="tab-pane" id="topups">
             <div class="box-body">
@@ -364,7 +380,7 @@
                                 <td>Ksh {{$row->topup_amount }}</td>
                                 <td>{{$row->inv_mode }}</td>
                                 <td>{{$row->served_by_name }}</td>
-                                <td>{{$row->topped_date}}</td>
+                                <td>{{$row->topped_at}}</td>
                                 <td><a class="viewModal btn btn-info btn-sm" title="View Topup" href="#"
                                         data-toggle="modal" data-target="#modal-view-topup_{{$row->topup_id}}"
                                         data-backdrop="static" data-keyboard="false"><i class="fa fa-eye"></i> View
@@ -422,6 +438,40 @@
                             </tr>
                             @include('modals.payments.modal-view-payment')
                             @include('modals.payments.modal-show-payment-comments')
+                            @endforeach
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane" id="referals">
+            <div class="box-body">
+                <br>
+                <h4>All clients refered &nbsp;
+                    <div style="clear:both"></div>
+                </h4>
+                <div style="clear:both"></div>
+                <div class="table-responsive">
+                    <table id="example1" class="table table-no-margin" style="font-size:12px">
+                        <thead>
+                            <tr>
+                                <th>S/N</td>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>ID Number</th>
+                                <th>Phone Number</th>
+                                <th>Account #</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($referer as $count=> $row)
+                            <tr>
+                                <td>{{ $count + 1 }}</td>
+                                <td><b>{{$row->name}}</b></td>
+                                <td>{{ $row->email}}</td>
+                                <td><b>{{$row->id_no }}</b></td>
+                                <td>{{ $row->telephone}}</td>
+                                <td>{{ $row->account_no}}</td>
+                            </tr>
                             @endforeach
                     </table>
                 </div>
@@ -512,6 +562,14 @@
                 $("#cheq_bank_div").addClass("hide");
                 $("#cheq_no_div").addClass("hide");
             }
+
+});
+
+$('input').keyup(function(){
+    var totalInvestment  = Number($('#total_inv_amount').val());
+   var monthlyInvestment = Number($('#monthly_inv_amount').val());
+  var compoundedInvestment = totalInvestment - monthlyInvestment;
+ document.getElementById('compounded_inv_amount').value = compoundedInvestment;
 });
     })
 </script>
@@ -536,6 +594,16 @@
             }
 
           });
+
+          $('.topup_date').datepicker( {
+            format: 'yyyy-mm-dd',
+           orientation: "bottom",
+           autoclose: true,
+            showDropdowns: true,
+            todayHighlight: true,
+            toggleActive: true,
+            clearBtn: true,
+        })
     });
 </script>
 

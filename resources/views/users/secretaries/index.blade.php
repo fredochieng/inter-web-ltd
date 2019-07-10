@@ -1,7 +1,7 @@
 @extends('adminlte::page')
 @section('title', 'Secretaries - Inter Web Ltd')
 @section('content_header')
-<h1>Manage Secreatries</h1>
+<h1>Manage Secretaries</h1>
 
 @stop
 @section('content')

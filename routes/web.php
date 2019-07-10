@@ -34,6 +34,7 @@ Route::any('update-profile/{user}', 'UserController@updateUserProfile');
 Route::resource('/users/secretaries', 'SecretaryController');
 
 Route::resource('/users/blacklist', 'BlacklistController');
+Route::resource('/users/restrict', 'ReferalsController');
 
 Route::any('/accounts/get_accounts', 'AccountController@get_accounts');
 

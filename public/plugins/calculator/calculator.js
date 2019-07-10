@@ -19,5 +19,5 @@ function calculate() {
 }
 
 $(document).ready(function () {
-    $('#btnCalculator').popover();
+    // $('#btnCalculator').popover();
 });

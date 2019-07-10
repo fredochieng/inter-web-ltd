@@ -16,6 +16,7 @@ class InvestmentApproved extends Mailable
      *
      * @return void
      */
+    public $email;
     public function __construct($email)
     {
         $this->email = $email;

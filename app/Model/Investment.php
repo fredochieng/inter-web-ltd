@@ -18,6 +18,7 @@ class Investment extends Model
                 DB::raw('investments.*'),
                 DB::raw('investments.initiated_by'),
                 DB::raw('accounts.*'),
+                DB::raw('accounts.id as acc_id'),
                 DB::raw('payment_schedule.*'),
                 DB::raw('users.*'),
                 DB::raw('inv_types.*'),

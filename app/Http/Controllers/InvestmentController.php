@@ -169,38 +169,229 @@ class InvestmentController extends Controller
         $inv_id = $request->input('investment_id');
         $trans_id = $request->input('trans_id');
 
-        $status = 1;
+        if (isset($_POST['approve_inv'])) {
+            $status = 1;
 
-         DB::table('investments')->where('investment_id', $inv_id)
-            ->update([
-                'inv_status_id' => $status
-            ]);
-        //$approved_inv = Investment::getInvestments()->where('investments.investment_id', '=', $inv_id)->first();
+            DB::table('investments')->where('investment_id', $inv_id)
+                ->update([
+                    'inv_status_id' => $status
+                ]);
+            $approved_inv = Investment::getInvestments()->where('investment_id', '=', $inv_id)->first();
 
-        // echo "<pre>";
-        // print_r($approved_inv);
-        // exit;
+            $objDemo = new \stdClass();
+            $objDemo->subject = 'Investment Approval';
+            $company = "Inter-Web Global Fortune";
+            $objDemo->company = $company;
 
-        // $objDemo = new \stdClass();
-        // $objDemo->subject = 'Successful Registration';
-        // $company = "Inter-Web Global Fortune";
-        // $objDemo->company = $company;
+            // //1. Send to the user
+            $message = "Your investment has been approved successfully";
+            $objDemo->email = $approved_inv->email;
+            $objDemo->name = $approved_inv->name;
+            $objDemo->amount = $approved_inv->initial_inv;
+            $objDemo->inv_date = $approved_inv->inv_date;
+            $objDemo->duration = $approved_inv->investment_duration;
+            $objDemo->inv_type = $approved_inv->inv_type;
+            $objDemo->message = $message;
 
-        // //1. Send to the user
-        // $message = "You have been successfully registered as a client at Inter-Web Global Fortune";
-        // $objDemo->email = $user->email;
-        // $objDemo->name = $user->name;
-        // $objDemo->account_no = $user->account_no;
-        // $objDemo->amount = $user->investment_amount;
-        // $objDemo->inv_date = $inv_date;
-        // $objDemo->duration = $inv_duration;
-        // $objDemo->inv_type = $inv_type_name;
-        // $objDemo->message = $message;
+            Mail::to($approved_inv->email)->send(new InvestmentApproved($objDemo));
 
-        // Mail::to($objDemo->email)->send(new InvestmentApproved($objDemo));
+            toast('Investment ' . '-' . $trans_id . ' approved successfully', 'success', 'top-right');
+            return back();
+        } elseif (isset($_POST['update_inv'])) {
+            $inv_id = $request->input('investment_id');
+            $inv_duration =  $request->input('inv_duration');
+            $inv_date =  $request->input('inv_date');
 
-        toast('Investment ' . '-' . $trans_id . ' approved successfully', 'success', 'top-right');
-        return back();
+            $investment = Investment::getInvestments()->where('investment_id', $inv_id)->first();
+
+            // echo "<pre>";
+            // print_r($investment);
+            // exit;
+            $inv_type = $investment->inv_type_id;
+            $account_no_id = $investment->acc_id;
+            $user_id = $investment->user_id;
+
+
+            $investment_amount = $request->input('inv_amount');
+            $investment_amount = (array) $investment_amount;
+            $investment_amount = str_replace('Kshs', '', $investment_amount);
+            $investment_amount = str_replace(',', '', $investment_amount);
+            $investment_amount = str_replace('.00', '', $investment_amount);
+            $investment_amount = implode('', $investment_amount);
+
+            $inv_comm_per = 0.05;
+            $inv_comm = $inv_comm_per * $investment_amount;
+
+            // GET PAYMENT DATES
+            if ($inv_type == 1) {
+                $inv_duration = (array) $inv_duration;
+                $inv_duration = str_replace(' Months', '', $inv_duration);
+                $inv_duration = implode('', $inv_duration);
+
+                $investment_date = Carbon::parse($inv_date)->toDateString();
+                $last_pay_date = Carbon::parse($inv_date)->addMonths($inv_duration)->format('Y-m-d');
+
+                // GET ALL THE PAYMENT DATES FOR A USER (MONTHLY INVESTMENT TYPE)
+                $inv_date = Carbon::parse($inv_date);
+
+                for ($i = 0; $i < $inv_duration; $i++) {
+                    $pay_dates[] = $inv_date->addMonth()->format('Y-m-d');
+                }
+                $pay_dates = json_encode($pay_dates);
+            } elseif ($inv_type == 2) {
+
+                $inv_duration = (array) $inv_duration;
+                $inv_duration = str_replace(' Months', '', $inv_duration);
+                $inv_duration = implode('', $inv_duration);
+
+                $investment_date = Carbon::parse($inv_date)->toDateString();
+                $last_pay_date = Carbon::parse($inv_date)->addMonths($inv_duration)->format('Y-m-d');
+
+                // GET ALL THE PAYMENT DATES FOR A USER (MONTHLY INVESTMENT TYPE)
+                $inv_date = Carbon::parse($inv_date);
+
+                for ($i = 0; $i < $inv_duration; $i++) {
+                    $pay_dates[] = $inv_date->addMonth()->format('Y-m-d');
+                }
+                $pay_dates = json_encode($pay_dates);
+            } elseif ($inv_type == 3) {
+                $monthly_inv_duration = $request->input('monthly_inv_duration');
+                $monthly_inv_duration = (array) $monthly_inv_duration;
+                $monthly_inv_duration = str_replace(' Months', '', $monthly_inv_duration);
+                $monthly_inv_duration = implode('', $monthly_inv_duration);
+
+                $compounded_inv_duration = $request->input('compounded_inv_duration');
+                $compounded_inv_duration = (array) $compounded_inv_duration;
+                $compounded_inv_duration = str_replace(' Months', '', $compounded_inv_duration);
+                $compounded_inv_duration = implode('', $compounded_inv_duration);
+
+                $investment_date = Carbon::parse($inv_date)->toDateString();
+                $last_pay_date = Carbon::parse($inv_date)->addMonths($compounded_inv_duration)->format('Y-m-d');
+
+                // GET ALL THE PAYMENT DATES FOR A USER (MONTHLY INVESTMENT TYPE)
+                $inv_date = Carbon::parse($inv_date);
+
+                for ($i = 0; $i < $monthly_inv_duration; $i++) {
+                    $pay_dates[] = $inv_date->addMonth()->format('Y-m-d');
+                }
+                $pay_dates = json_encode($pay_dates);
+            }
+
+            // END PAYMENT DATES
+
+            if ($inv_type == 1) {
+                $monthly_pay = 0.2 * $investment_amount;
+                $total_pay = $monthly_pay * $inv_duration;
+
+                $accu_interest_array = array();
+                for ($i = 0; $i < $inv_duration; $i++) {
+                    $monthly_pay = 0.2 * $investment_amount;
+                    $accu_interest_array[] = (int) $monthly_pay;
+                }
+
+                $save_account_data = DB::table('accounts')->where('id', $account_no_id)->update(['total_due_payments' => $total_pay]);
+
+                $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                    ->update(['tot_payable_amnt' => $total_pay, 'monthly_amount' => $monthly_pay]);
+
+                $save_investment_data = DB::table('investments')->where('investment_id', $inv_id)
+                    ->update([
+                        'investment_amount' => $investment_amount, 'initial_inv' => $investment_amount,
+                        'inv_comm' => $inv_comm, 'inv_date' => $investment_date, 'last_pay_date' => date('Y-m-d', strtotime($last_pay_date))
+                    ]);
+
+                $update_payment_dates = DB::table('user_pay_modes')->where('user_id', $user_id)->update(['pay_dates' => $pay_dates]);
+            } elseif ($inv_type == 2) {
+                $principal = $investment_amount;
+                $interestRate = 0.2;
+                $term = $inv_duration - 1;
+
+                $accu_interest_array = array();
+                for ($i = 0; $i < $term; $i++) {
+                    $total = $principal * $interestRate;
+                    $principal += $total;
+                    $accu_interest_array[] = (int) $total;
+                }
+                $monthly_payment = json_encode($accu_interest_array);
+                $total_comp_int = json_encode(array_sum($accu_interest_array));
+
+                $save_account_data = DB::table('accounts')->where('id', $account_no_id)->update(['total_due_payments' => $total_comp_int]);
+
+                $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                    ->update(['tot_payable_amnt' => $total_comp_int, 'comp_monthly_pay' => $monthly_payment]);
+
+                $save_investment_data = DB::table('investments')->where('investment_id', $inv_id)
+                    ->update([
+                        'investment_amount' => $investment_amount, 'initial_inv' => $investment_amount,
+                        'inv_comm' => $inv_comm, 'inv_date' => $investment_date, 'last_pay_date' => date('Y-m-d', strtotime($last_pay_date))
+                    ]);
+
+                $update_payment_dates = DB::table('user_pay_modes')->where('user_id', $user_id)
+                    ->update(['pay_dates' => date('Y-m-d', strtotime($last_pay_date))]);
+
+                // echo $monthly_payment;
+                // exit;
+            } elseif ($inv_type == 3) {
+
+                $monthly_inv_amount = $request->input('monthly_inv_amount');
+                $monthly_inv_amount = (array) $monthly_inv_amount;
+                $monthly_inv_amount = str_replace('Kshs', '', $monthly_inv_amount);
+                $monthly_inv_amount = str_replace(',', '', $monthly_inv_amount);
+                $monthly_inv_amount = str_replace('.00', '', $monthly_inv_amount);
+                $monthly_inv_amount = implode('', $monthly_inv_amount);
+
+                $compounded_inv_amount =  $investment_amount -  $monthly_inv_amount;
+
+                $monthly_inv_duration = $request->input('monthly_inv_duration');
+                $monthly_inv_duration = (array) $monthly_inv_duration;
+                $monthly_inv_duration = str_replace(' Months', '', $monthly_inv_duration);
+                $monthly_inv_duration = implode('', $monthly_inv_duration);
+
+                $compounded_inv_duration = $request->input('compounded_inv_duration');
+                $compounded_inv_duration = (array) $compounded_inv_duration;
+                $compounded_inv_duration = str_replace(' Months', '', $compounded_inv_duration);
+                $compounded_inv_duration = implode('', $compounded_inv_duration);
+
+                // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT
+                $monthly_inv_pay = 0.2 * $monthly_inv_amount;
+                $total_monthly_pay = $monthly_inv_pay * $monthly_inv_duration;
+
+                $principal = $compounded_inv_amount;
+                $interestRate = 0.2;
+                $term = $compounded_inv_duration - 1;
+
+                $accu_interest_array = array();
+                for ($i = 0; $i < $term; $i++) {
+                    $total = $principal * $interestRate;
+                    $principal += $total;
+                    $accu_interest_array[] = (int) $total;
+                }
+                $monthly_payment = json_encode($accu_interest_array);
+                $total_comp_int = json_encode(array_sum($accu_interest_array));
+
+                $total_due_pay = $total_comp_int + $total_monthly_pay;
+
+                $save_account_data = DB::table('accounts')->where('id', $account_no_id)->update(['total_due_payments' => $total_due_pay]);
+
+                $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                    ->update([
+                        'tot_payable_amnt' => $total_due_pay, 'monthly_amount' => $monthly_inv_pay,
+                        'comp_monthly_pay' => $monthly_payment, 'tot_comp_amount' => $total_comp_int
+                    ]);
+
+                $save_investment_data = DB::table('investments')->where('investment_id', $inv_id)
+                    ->update([
+                        'investment_amount' => $investment_amount, 'initial_inv' => $investment_amount,
+                        'inv_comm' => $inv_comm,  'monthly_inv' => $monthly_inv_amount, 'compounded_inv' => $compounded_inv_amount,
+                        'inv_date' => $investment_date, 'last_pay_date' => date('Y-m-d', strtotime($last_pay_date))
+                    ]);
+
+                $update_payment_dates = DB::table('user_pay_modes')->where('user_id', $user_id)
+                    ->update(['pay_dates' => $pay_dates]);
+            }
+            toast('Investment updated successfullty', 'success', 'top-right');
+            return back();
+        }
     }
 
     // Fetch issue subcategories
@@ -242,7 +433,14 @@ class InvestmentController extends Controller
      */
     public function update(Request $request, Investment $investment)
     {
-        //
+        // $inv_id = $request->input('investment_id');
+
+        // if (isset($_POST['update_inv'])) {
+        //     $inv_id = $request->input('investment_id');
+        //     echo $investment;
+        //     echo "Update";
+        // }
+        // exit;
     }
 
     /**

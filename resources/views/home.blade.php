@@ -127,7 +127,7 @@
                     <div class="progress-bar" style="width: 50%"></div>
                 </div>
                 <span class="progress-description">
-                    50% Increase in 30 Days
+
                 </span>
             </div>
             <!-- /.info-box-content -->
@@ -145,7 +145,7 @@
                     <div class="progress-bar" style="width: 20%"></div>
                 </div>
                 <span class="progress-description">
-                    20% Increase in 30 Days
+
                 </span>
             </div>
             <!-- /.info-box-content -->
@@ -163,7 +163,7 @@
                     <div class="progress-bar" style="width: 70%"></div>
                 </div>
                 <span class="progress-description">
-                    70% Increase in 30 Days
+
                 </span>
             </div>
             <!-- /.info-box-content -->
@@ -173,8 +173,8 @@
             <span class="info-box-icon"><i class="ion ion-ios-people-outline"></i></span>
 
             <div class="info-box-content">
-                <span class="info-box-text">Total Clients</span>
-                <div class="pull-right" style="margin-top:-20px;"><span class="info-box-text">Total Secretaries</span>
+                <span class="info-box-text">Clients</span>
+                <div class="pull-right" style="margin-top:-20px;"><span class="info-box-text">Secretaries</span>
                 </div>
                 <span class="info-box-number">{{$total_customers}}</span>
                 <div class="pull-right" style="margin-top:-20px;"> <span
@@ -184,7 +184,7 @@
                     <div class="progress-bar" style="width: 40%"></div>
                 </div>
                 <span class="progress-description">
-                    40% Increase in 30 Days
+
                 </span>
             </div>
             <!-- /.info-box-content -->

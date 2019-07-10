@@ -20,25 +20,27 @@
                     <div class="col-md-4">
                         {{Form::label('Payment Mode ')}}
                         <div class="form-group">
-                            {!! Form::text('telephone', $pay_mode, ['class' =>
+                            {!! Form::text('pay_mode_idss', $pay_mode, ['class' =>
                             'form-control', 'readonly']); !!}
                         </div>
                     </div>
+
                     <div class="col-md-4">
                         {{Form::label('Payment Bank ')}}
                         <div class="form-group">
-                            {!! Form::text('telephone', $pay_bank, ['class' =>
+                            {!! Form::text('bank_id', $pay_bank, ['class' =>
                             'form-control', 'readonly']); !!}
                         </div>
                     </div>
+                    <input type="hidden" name="bank_id" value="{{$bank_idd}}">
                     <div class="col-md-3">
                         <div class="form-group">
                             {!! Form::label('Payment Date') !!}
                             {!! Form::text('date_range', $start_date .' - '. $end_date, ['placeholder' => '',
-                            'class' =>
-                            'form-control', 'id' => 'daterange-btn', 'readonly']); !!}
+                            'class' => 'form-control', 'id' => 'daterange-btn', 'readonly']); !!}
                         </div>
                     </div>
+                    <input type="hidden" id="report_date" value="{{$start_date .' - '. $end_date}}" name="dates">
                     <div class="col-md-1">
                         <a href="/reports/due-payments" style="margin-top:25px;" class="btn bg-purple"><strong><i
                                     class="fa fa-arrow-left"></i> BACK</strong></a>
@@ -68,6 +70,7 @@
                             {{$start_date}} - {{$end_date}}</h3>
                     </div>
                     <table class="table table-no-margin">
+
                         <div class="btn-group  btn-sm" style="margin-left:930px;">
                             <button type="button" class="btn btn-info btn-flat"><i class="fa fa-align-justify"></i>
                                 Action</button>
@@ -77,10 +80,12 @@
                                 <span class="sr-only">Toggle Dropdown</span>
                             </button>
                             <ul class="dropdown-menu" role="menu">
-                                <li><a href="/report/excel/generate"><i class="fa fa-file-o"></i> Export to CSV</a></li>
+                                <li><a href="/report/excel/generate?date_range={{$start_date}} - {{$end_date}}"
+                                        id='csv'><i class="fa fa-file-o"></i> Export to CSV</a></li>
                                 <li><a href="#"><i class="fa fa-file-excel-o"></i> Export to Excel</a></li>
                                 <li><a href="#"><i class="fa fa-file-pdf-o"></i> Export to PDF</a></li>
                             </ul>
+
                         </div>
 
                         @if($type==1)
@@ -154,13 +159,7 @@
                                 @else
                                 <td>N/A</td>
                                 @endif
-                                @if($item->inv_type_id ==1)
                                 <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
-                                @elseif ($item->inv_type_id ==2)
-                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
-                                @elseif ($item->inv_type_id ==3)
-                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
-                                @endif
                                 <td>{{$item->next_pay_date}}</td>
                             </tr>
                             @endforeach
@@ -231,18 +230,35 @@
 <script src="/plugins/moment/min/moment.min.js"></script>
 <script src="/plugins/bootstrap-daterangepicker/daterangepicker.js"></script>
 <script src="/js/select2.full.min.js"></script>
-{{-- <script src="/js/report.js"></script> --}}
+
 <script>
-    $(function () {
-              $(".select2").select2()
-             // $('#example1').DataTable()
-     })
+    $(document).ready(function() {
+
+    //var date_range =  $('#daterange-btn').val();
+    //alert(date_range)
+   /// var rep_date =  $('#report_date').val();
+   // alert(rep_date)
+
+   // url: "/report/excel/generate",
+      //  $.ajax({
+         //   type: "POST",
+          //  data: {
+           //     date_range:date_range
+           // },
+           // dataType: 'json',  //Missed a comma over here
+           // success: function (data) {
+
+           // }  //placed an unncessary comma over here
+       // });
+
+
+  });
 </script>
 <script>
     $(function () {
 
      //Initialize Select2 Elements
-     $('#example1').DataTable()
+   //  $('#example1').DataTable()
      $('.select2').select2()
      //Date range as a button
      $('#daterange-btn').daterangepicker(

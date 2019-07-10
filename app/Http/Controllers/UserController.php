@@ -153,6 +153,15 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        $blacklists = Blacklist::getBlacklists();
+
+        $blacklists = json_decode(json_encode($blacklists), true);
+        $id_nos = array_column($blacklists, 'id_no');
+        $phone_nos = array_column($blacklists, 'phone');
+
+        $refered_by = $request->input('referer_id');
+        $telephone = $request->input('telephone');
+        $id_no = $request->input('id_no');
         $validator = Validator::make($request->all(), [
             // // "name" => 'required|string|min:5|max:50',
             //  'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
@@ -201,14 +210,23 @@ class UserController extends Controller
         //     // alert()->info('Info', 'Alert')->showConfirmButton('Button Text','#3085d6');
         //     return back();
         // }
-        else {
+
+        elseif ((!empty($refered_by)) && (in_array($id_no, $id_nos))) {
+            DB::rollBack();
+            toast('This client cannot be referred again', 'error', 'top-right');
+            return back();
+        } elseif ((!empty($refered_by)) && (in_array($telephone, $phone_nos))) {
+            DB::rollBack();
+            toast('This client cannot be referred again', 'error', 'top-right');
+            return back();
+        } else {
 
             //CREATE NEW USER AND SAVE IN users TABLE
             $user = new User();
             $user->name = strtoupper($request->input('name'));
             $user->email = $request->input('email');
             $user->refered_by = $request->input('referer_id');
-            $password = "12345678";
+            $password = "FSHS$%@gdjd.//]]\[...>>><<<<<<<";
             $user->password = Hash::make($password);
 
             $user->save();
@@ -284,7 +302,7 @@ class UserController extends Controller
                 $accu_interest_array = array();
                 for ($i = 0; $i < $inv_duration; $i++) {
                     $monthly_pay = 0.2 * $inv_amount;
-                    $accu_interest_array[] = (int)$monthly_pay;
+                    $accu_interest_array[] = (int) $monthly_pay;
                 }
 
                 // SAVE USER UNIQUE ACCOUNT (GENERATED ACCOUNT DATA)
@@ -335,7 +353,7 @@ class UserController extends Controller
                 for ($i = 0; $i < $term; $i++) {
                     $total = $principal * $interestRate;
                     $principal += $total;
-                    $accu_interest_array[] = (int)$total;
+                    $accu_interest_array[] = (int) $total;
                 }
                 $monthly_payment = json_encode($accu_interest_array);
                 $total_comp_int = json_encode(array_sum($accu_interest_array));
@@ -397,7 +415,7 @@ class UserController extends Controller
                 for ($i = 0; $i < $term; $i++) {
                     $total = $principal * $interestRate;
                     $principal += $total;
-                    $accu_interest_array[] = (int)$total;
+                    $accu_interest_array[] = (int) $total;
                 }
                 $monthly_payment = json_encode($accu_interest_array);
                 $total_comp_int = json_encode(array_sum($accu_interest_array));
@@ -514,8 +532,32 @@ class UserController extends Controller
                 'role_id' => $role_id,
                 'model_id' => $saved_user_id
             );
-
             $save_user_role_data = DB::table('model_has_roles')->insert($client_role_data);
+
+            if (!empty($user->refered_by)) {
+                $referee_data = DB::table('accounts')
+                    ->select(
+                        DB::raw('accounts.*'),
+                        DB::raw('users.id as referee_id')
+                    )
+                    ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+                    ->where('users.id', '=', $user->refered_by)
+                    ->first();
+
+                $account_id = $referee_data->id;
+                $due_pay = $referee_data->total_due_payments;
+                $new_due_pay = $due_pay + $inv_comm;
+
+
+                $acc_bal = array(
+
+                    'total_due_payments' => $new_due_pay
+                );
+                $acc_balances = DB::table('accounts')->where('id', $account_id)
+                    ->update($acc_bal);
+            }
+
+
             DB::commit();
 
             $inv_type = InvestmentType::getInvTypes()->where('inv_id', '=', $user->inv_type_id)->first();
@@ -592,9 +634,13 @@ class UserController extends Controller
             ->where('users.id', '=', $id)
             ->first();
 
+        // echo "<pre>";
+        // print_r($data['customer_data']);
+        // exit;
+
         // GET CLIENT REFERALS AND ALL THE RELATED DATA (INVESTMENTS, TOPUPS)
         // FETCH CLIENTS DETAILS AND INVESTMENTS
-        $referer = DB::table('users')
+        $data['referer'] = DB::table('users')
             ->select(
                 DB::raw('users.*'),
                 DB::raw('users.id as referee_id'),
@@ -622,6 +668,11 @@ class UserController extends Controller
             ->where('users.refered_by', '=', $id)
             ->where('investments.inv_status_id', '=', 1)
             ->get();
+
+        // echo "<pre>";
+        // print_r($data['referer']);
+        // exit;
+
 
         // GET CLIENT TOPUP HISTORY FOR REFEREE
 
@@ -696,22 +747,26 @@ class UserController extends Controller
 
         $pay_dates = explode(',', $pay_dates);
 
+        // echo "<pre>";
+        // print_r($pay_dates);
+        // exit;
+
         // GET ALL REFERED CLIENTS INVETSMENT and TOPUP DATES EG FOR CLIENT 2, CLIENT3, CLIENT 4 ETC... CLIENTS REFERED BY EG CLIENT 1
 
-        $last_pay_record = DB::table('payments')
-            ->select(
-                DB::raw('payments.account_no_id'),
-                DB::raw('payments.user_pay_date'),
-                DB::raw('accounts.id'),
-                DB::raw('users.id')
-            )
-            ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
-            ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
-            ->orderBy('payment_id', 'DESC')
-            ->where('users.id', '=', $id)
-            ->first();
+        // $last_pay_record = DB::table('payments')
+        //     ->select(
+        //         DB::raw('payments.account_no_id'),
+        //         DB::raw('payments.user_pay_date'),
+        //         DB::raw('accounts.id'),
+        //         DB::raw('users.id')
+        //     )
+        //     ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+        //     ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+        //     ->orderBy('payment_id', 'DESC')
+        //     ->where('users.id', '=', $id)
+        //     ->first();
 
-        $inv_dates = json_decode(json_encode($referer), true);
+        $inv_dates = json_decode(json_encode($data['referer']), true);
         $inv_dates = array_column($inv_dates, 'inv_date');
 
         // ELIMINATE DATES LESS THAN THE PREVIOUS PAYMENT DATE
@@ -722,77 +777,127 @@ class UserController extends Controller
         // GET REFEREE CLIENT NEXT PAYMENT DATE AND CONVERT TO AN ARRAY
         $data['next_pay_date'] = min(array_diff($pay_dates, $user_pay_dates));
         $data['next_pay_date'] = json_decode(json_encode($data['next_pay_date'], true));
-        $data['next_pay_date'] = (array)$data['next_pay_date'];
+        $data['next_pay_date'] = (array) $data['next_pay_date'];
+
+        // echo "<pre>";
+        // print_r($pay_dates[5]);
+        // echo "<pre>";
+        // print_r($data['next_pay_date'][0]);
+        //exit;
 
         // COMBINE ARRAYS TO GET THE OUTPUT ARRAY
-        $fred = array("505");
-        $data['next_pay_date'] = array_combine($data['next_pay_date'], $fred);
+        // $fred = array("505");
+        // $data['next_pay_date'] = array_combine($data['next_pay_date'], $fred);
 
         // GET INVETSMENT AND TOPUP COMMISSIONS FOR ALL REFERED CLIENTS
-        $inv_comm = json_decode(json_encode($referer), true);
-        $inv_comm = array_column($inv_comm, 'inv_comm');
+        if ($data['customer_data']->inv_type == 1) {
 
-        $topup_comm = json_decode(json_encode($referer_topups), true);
-        $topup_comm = array_column($topup_comm, 'topup_comm');
+            if ($data['next_pay_date'][0] <= $pay_dates[5]) {
+                $inv_comm = json_decode(json_encode($data['referer']), true);
+                $inv_comm = array_column($inv_comm, 'inv_comm');
 
-        //COMBINE INVESTMENT AND TOPUP DATES ARRAY AND COMMISSIONS ARRAY TO GET KEY VALUE PAIRS
-        $inv_comm_array = array_combine($inv_dates,  $inv_comm);
-        $topup_comm_array = array_combine($topup_dates,  $topup_comm);
+                $topup_comm = json_decode(json_encode($referer_topups), true);
+                $topup_comm = array_column($topup_comm, 'topup_comm');
 
-        if ($last_pay_record) {
-
-            $prev_pay_date = $last_pay_record->user_pay_date;
-            $final_inv_comm_array = array();
-            $final_topup_comm_array = array();
-
-            foreach ($inv_comm_array as $key => $value) {
-                if ($key >= $prev_pay_date) {
-                    $final_inv_comm_array[$key] = $value;
+                // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
+                $inv_comm_sum = 0;
+                foreach ($inv_comm as $key => $item) {
+                    $inv_comm_sum += $item;
                 }
+
+                // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
+                $topup_comm_sum = 0;
+                foreach ($topup_comm as $key => $item) {
+                    $topup_comm_sum += $item;
+                }
+
+                $tot_comm = $inv_comm_sum + $topup_comm_sum;
+            } elseif ($data['next_pay_date'][0] > $pay_dates[5]) {
+                $tot_comm = 0;
+            }
+        } elseif ($data['customer_data']->inv_type == 2) {
+            $inv_comm = json_decode(json_encode($data['referer']), true);
+            $inv_comm = array_column($inv_comm, 'inv_comm');
+
+            $topup_comm = json_decode(json_encode($referer_topups), true);
+            $topup_comm = array_column($topup_comm, 'topup_comm');
+
+            // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
+            $inv_comm_sum = 0;
+            foreach ($inv_comm as $key => $item) {
+                $inv_comm_sum += $item * 6;
             }
 
-            foreach ($topup_comm_array as $key => $value) {
-                if ($key >= $prev_pay_date) {
-                    $final_topup_comm_array[$key] = $value;
-                }
+            // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
+            $topup_comm_sum = 0;
+            foreach ($topup_comm as $key => $item) {
+                $topup_comm_sum += $item * 6;
             }
+
+            $tot_comm = $inv_comm_sum + $topup_comm_sum;
         } else {
-            $final_inv_comm_array = $inv_comm_array;
-            $final_topup_comm_array = $topup_comm_array;
+            if ($data['next_pay_date'][0] <= $pay_dates[5]) {
+                $inv_comm = json_decode(json_encode($data['referer']), true);
+                $inv_comm = array_column($inv_comm, 'inv_comm');
+
+                $topup_comm = json_decode(json_encode($referer_topups), true);
+                $topup_comm = array_column($topup_comm, 'topup_comm');
+
+                // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
+                $inv_comm_sum = 0;
+                foreach ($inv_comm as $key => $item) {
+                    $inv_comm_sum += $item;
+                }
+
+                // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
+                $topup_comm_sum = 0;
+                foreach ($topup_comm as $key => $item) {
+                    $topup_comm_sum += $item;
+                }
+
+                $tot_comm = $inv_comm_sum + $topup_comm_sum;
+            } elseif ($data['next_pay_date'][0] > $pay_dates[5]) {
+                $tot_comm = 0;
+            }
         }
 
+
+        //echo $tot_comm;
+
+
+        // if ($last_pay_record) {
+
+        //     $prev_pay_date = $last_pay_record->user_pay_date;
+        //     $final_inv_comm_array = array();
+        //     $final_topup_comm_array = array();
+
+        //     foreach ($inv_comm_array as $key => $value) {
+        //         if ($key >= $prev_pay_date) {
+        //             $final_inv_comm_array[$key] = $value;
+        //         }
+        //     }
+
+        //     foreach ($topup_comm_array as $key => $value) {
+        //         if ($key >= $prev_pay_date) {
+        //             $final_topup_comm_array[$key] = $value;
+        //         }
+        //     }
+        // } else {
+        //     $final_inv_comm_array = $inv_comm_array;
+        //     $final_topup_comm_array = $topup_comm_array;
+        // }
 
         // ELIMINATE DATE AND COMMISSIONS TO BE PAID ON THE DATE SIMILAR TO REFEREE NEXT PAYMENT DATE
-        $inv_comm = array_diff_key($final_inv_comm_array, $data['next_pay_date']);
-        $topup_comm = array_diff_key($final_topup_comm_array, $data['next_pay_date']);
+        // if ($data['customer_data']->inv_type_id == 2) {
+        //     $inv_comm = $final_inv_comm_array;
+        //     $topup_comm = $final_topup_comm_array;
+        // } else {
 
-        // echo "<pre>";
-        // echo "********************";
-        // echo "<pre>";
-        // print_r($topup_comm);
-        // echo "<pre>";
-        // echo "********************";
-        // echo "<pre>";
-        // exit;
+        //     $inv_comm = array_diff_key($final_inv_comm_array, $data['next_pay_date']);
+        //     $topup_comm = array_diff_key($final_topup_comm_array, $data['next_pay_date']);
+        // }
 
-        // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
-        $inv_comm_sum = 0;
-        foreach ($inv_comm as $key => $item) {
-            $inv_comm_sum += $item;
-        }
-        //  echo $inv_comm_sum;
-        // echo "<pre>";
 
-        // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
-        $topup_comm_sum = 0;
-        foreach ($topup_comm as $key => $item) {
-            $topup_comm_sum += $item;
-        }
-        // echo 'Coo' . $topup_comm_sum;
-        $tot_comm = $inv_comm_sum + $topup_comm_sum;
-        // echo 'tOT' . $tot_comm;
-        // echo "<pre>";
-        // exit;
 
         if (empty($data['next_pay_date'])) {
             $data['next_pay_date'] = "FULLY PAID";
@@ -858,7 +963,7 @@ class UserController extends Controller
             // ADD THE EXPECTED PAYMENT AMOUNT PLUS THE COMMISSION
             $data['next_amount'] =  $data['tot_payable']->monthly_amount + $tot_comm;
         } else {
-            $data['updated_next_pay'] =  $data['tot_payable']->updated_next_pay;
+            $data['updated_next_pay'] =  $data['tot_payable']->updated_next_pay + $tot_comm;
 
             // CHECK IF THE UPDATED NEXT PAY HAS BEEN PAID
             $data['client_payments'] = DB::table('payments')
@@ -879,6 +984,8 @@ class UserController extends Controller
                 $data['next_amount'] =  $data['tot_payable']->updated_next_pay + $tot_comm;
             }
         }
+
+        $data['tot_comm'] = $tot_comm;
 
         //echo 'Referee Next Payment Amount: ' . ' KSHS ' . $data['next_amount'];
         //exit;
@@ -956,7 +1063,8 @@ class UserController extends Controller
             $data['c_tot_topups'] = $data['tot_topups']->c_tot_topups;
         }
 
-        $data['real_tot_inv'] =  $data['c_tot_inv'] - $data['c_tot_topups'];
+        $data['real_tot_inv'] =  $data['c_tot_inv'];
+        // $data['real_tot_inv'] =  $data['c_tot_inv'] - $data['c_tot_topups'];
 
         // GET CLIENT PAYMENTS COMPOUNDED
 
@@ -1088,6 +1196,14 @@ class UserController extends Controller
             $data['fully_paid'] = 'N';
         }
 
+        $today = Carbon::parse('Africa/Nairobi')->now()->toDateString();
+        $today = '2019-08-06';
+        if ($today == $data['next_pay_date']) {
+            $data['pay_day'] = 'Y';
+        } else {
+            $data['pay_day'] = 'N';
+        }
+
         // FETCH CLIENT PERSONAL INVESTMENTS
         $data['customer_trans'] = DB::table('investments')
             ->select(
@@ -1177,11 +1293,20 @@ class UserController extends Controller
      */
     public function update(Request $request,  $id)
     {
+        echo "Stephany";
+        exit;
         try {
             $user = User::find($id);
             $user->name = strtoupper($request->input('name'));
-            // $user->email = $request->input('email');
+            $user->email = $request->input('email');
+
+            // echo $user;
+            // exit;
             $user->save();
+
+            // echo "<pre>";
+            // print_r($user);
+            // exit;
             DB::beginTransaction();
 
             $updated_user_id = $user->id;
@@ -1213,22 +1338,27 @@ class UserController extends Controller
 
             $save_user_details = DB::table('users_details')->where('user_id', $updated_user_id)->update($users_details_data);
 
-            $user_payment_mode = array(
-                'user_id' => $updated_user_id,
-                'pay_mode_id' => $user->pay_mode_id,
-                'pay_mpesa_no' => $user->pay_mpesa_no,
-                'pay_bank_id' => $user->pay_bank_id,
-                'pay_bank_acc' => $user->pay_bank_acc
-            );
-            $save_user_payment_data = DB::table('user_pay_modes')->insertGetId($user_payment_mode);
+            // $user_payment_mode = array(
+            //     'user_id' => $updated_user_id,
+            //     // 'pay_mpesa_no' => $user->pay_mpesa_no,
+            //     // 'pay_bank_id' => $user->pay_bank_id,
+            //     'pay_bank_acc' => $user->pay_bank_acc
+            // );
+
+            // // echo "<pre>";
+            // // print_r($user_payment_mode);
+            // // exit;
+            // $save_user_payment_data = DB::table('user_pay_modes')->insertGetId($user_payment_mode);
+
 
             DB::commit();
-            Alert::success('Update lient', 'Client updated successfully');
+            toast('Client details updated successfully', 'success', 'top-right');
             return back();
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
-            Alert::error('Update User', 'Oops!!! An error ocurred while updating client details');
+
+            toast('Oops!!! An error ocurred while updating client details', 'error', 'top-right');
             return back();
         }
     }

@@ -18,7 +18,7 @@
                 <div class="box-body">
                     {!!
                     Form::open(['action'=>['ReportController@showDuePaymentsReports'],
-                    'method'=>'GET','class'=>'form','enctype'=>'multipart/form-data', 'target'=>'blank'])
+                    'method'=>'GET','class'=>'form','enctype'=>'multipart/form-data'])
                     !!}
                     <div class="col-md-12">
                         <div class="col-md-3">
@@ -56,7 +56,7 @@
 
                         <div class="col-md-2">
                             <button type="submit" style="margin-top:25px;" class="btn btn-block btn-info"><strong><i
-                                        class="fa fa-fw fa-search"></i>Generate Report</strong></button>
+                                        class="fa fa-file-excel-o"></i> Export To Excel</strong></button>
                         </div>
                     </div>
                     {!! Form::close() !!}
@@ -66,7 +66,7 @@
     </div>
 </div>
 
-<div class="row">
+{{--  <div class="row">
     <div class="col-md-12">
         <div class="box box-info">
             <div class="box-body">
@@ -90,37 +90,37 @@
                             @foreach ($due_payments_report as $item)
                             <tr>
                                 <td>{{$item->account_no}}</td>
-                                <td><a href="/client/{{$item->client_id}}/edit">{{$item->name}}</a></td>
-                                <td>{{$item->id_no}}</td>
-                                <td>{{$item->telephone}}</td>
-                                <td>{{$item->method_name}}</td>
-                                @if($item->bank_name !='')
-                                <td>{{$item->bank_name}}</td>
-                                @else
-                                <td>N/A</td>
-                                @endif
-                                @if($item->pay_bank_acc !='')
-                                <td>{{$item->pay_bank_acc}}</td>
-                                @else
-                                <td>N/A</td>
-                                @endif
-                                @if($item->pay_mpesa_no !='')
-                                <td>{{$item->pay_mpesa_no}}</td>
-                                @else
-                                <td>N/A</td>
-                                @endif
-                                @if($item->inv_type_id ==1)
-                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
-                                @elseif ($item->inv_type_id ==2)
-                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
-                                @elseif ($item->inv_type_id ==3)
-                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
-                                @endif
-                                <td>{{$item->next_pay_date}}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                        {{-- <tfoot>
+<td><a href="/client/{{$item->client_id}}/edit">{{$item->name}}</a></td>
+<td>{{$item->id_no}}</td>
+<td>{{$item->telephone}}</td>
+<td>{{$item->method_name}}</td>
+@if($item->bank_name !='')
+<td>{{$item->bank_name}}</td>
+@else
+<td>N/A</td>
+@endif
+@if($item->pay_bank_acc !='')
+<td>{{$item->pay_bank_acc}}</td>
+@else
+<td>N/A</td>
+@endif
+@if($item->pay_mpesa_no !='')
+<td>{{$item->pay_mpesa_no}}</td>
+@else
+<td>N/A</td>
+@endif
+@if($item->inv_type_id ==1)
+<td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
+@elseif ($item->inv_type_id ==2)
+<td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
+@elseif ($item->inv_type_id ==3)
+<td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
+@endif
+<td>{{$item->next_pay_date}}</td>
+</tr>
+@endforeach
+</tbody>
+{{-- <tfoot>
                             <tr class="bg-gray font-17 footer-total text-center">
                                 <td colspan="7"><strong>Total:</strong></td>
                                 <td><span class="display_currency" id="footer_total_amount"
@@ -128,12 +128,12 @@
                                 <td colspan="4"></td>
                             </tr>
                         </tfoot> --}}
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+</table>
 </div>
+</div>
+</div>
+</div>
+{{--  </div>  --}}
 @stop
 @section('css')
 <link rel="stylesheet" href="/plugins/bootstrap-daterangepicker/daterangepicker.css">
@@ -154,11 +154,11 @@
        {
          ranges   : {
            'Today'       : [moment(), moment()],
-           'Yesterday'   : [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-           'Last 7 Days' : [moment().subtract(6, 'days'), moment()],
-           'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+           'Tomorrow'   : [moment().add(1, 'days'), moment().add(1, 'days')],
+           'Next 7 Days' : [moment(),moment().add(6, 'days')],
+           'Next 30 Days': [moment(),moment().add(49, 'days')],
            'This Month'  : [moment().startOf('month'), moment().endOf('month')],
-           'Last Month'  : [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+           'Next Month'  : [moment().add(1, 'month').startOf('month'), moment().add(1, 'month').endOf('month')]
          },
          startDate: moment().subtract(29, 'days'),
          endDate  : moment()

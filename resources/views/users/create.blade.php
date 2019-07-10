@@ -10,10 +10,14 @@
 
 <div class="box box-info">
     <div class="box-header with-border">
-        <h3 class="box-title">ADD NEW CLIENT</h3>
+        {{--  <h3 class="box-title">ADD NEW CLIENT</h3>  --}}
+        <div class="pull-left">
+            <a href="#" data-target="#modal_restrict_referal" data-toggle="modal" class="btn btn-primary"
+                data-backdrop="static" data-keyboard="false"><i class="fa fa-plus"></i> Restrict Referal </a>
+        </div>
         <div class="box-tools">
             <a href="#" data-target="#modal_blacklist_client" data-toggle="modal" class="btn btn-block btn-primary"
-                data-backdrop="static" data-keyboard="false"><i class="fa fa-plus"></i> BLACKLIST PHONE/ID NUMBER </a>
+                data-backdrop="static" data-keyboard="false"><i class="fa fa-plus"></i> Blacklist Phone/ID Number </a>
         </div>
     </div>
     <div class="box-body">
@@ -317,6 +321,7 @@
     </div>
 </div>
 @include('modals.users.modal_blacklist_client')
+@include('modals.users.modal_restrict_referal')
 
 @stop
 @section('css')
@@ -401,7 +406,7 @@ fields: {
     message: 'The ID number must be 7 or 8 characters long'
 },
     regexp: {
-     regexp: /^[1-9][1-9]{1,15}$/,
+     regexp: /^[0-9][0-9]{0,15}$/,
     message: 'ID number can only consist of numbers'
 }
 }

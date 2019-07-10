@@ -48,7 +48,7 @@ class SecretaryController extends Controller
         $user->email = $request->input('email');
         $id_no = $request->input('id_no');
         $telephone = $request->input('telephone');
-        $password = "12345678";
+        $password = "1234.abc";
         $user->password = Hash::make($password);
 
         $user->save();
@@ -109,8 +109,7 @@ class SecretaryController extends Controller
     public function update(Request $request, $id)
     {
         $user = User::find($id);
-        // print_r($user);
-        // exit;
+
         $user->name = strtoupper($request->input('name'));
         // $user->email = $request->input('email');
         $id_no = $request->input('id_no');
