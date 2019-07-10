@@ -11,6 +11,10 @@
     <div class="box-header with-border">
         <h3 class="box-title">MANAGE CLIENT</h3>
         <p class="pull-right">
+            <button data-toggle="modal" data-target="#modal_terminate_investment_{{$customer_data->investment_id}}"
+                data-backdrop="static" data-keyboard="false" class="btn bg-red margin"><i class="fa fa-close"></i>
+                TERMINATE
+                INVESTMENT</button>
             @if($approved =='Y' && $fully_paid == 'N')
             <button data-toggle="modal" data-target="#modal_new_topup" data-backdrop="static" data-keyboard="false"
                 class="btn bg-aqua margin"><i class="fa fa-plus"></i> NEW TOPUP</button>
@@ -102,11 +106,16 @@
                     @endif
                 </tr>
                 <tr>
-                    @if($customer_data->inv_type_id == 3 && $approved == 'Y')
-                    <td style=""><strong> COMPOUND AMOUNT :</strong>Kshs {{ number_format($tot_comp_amount,2,'.',',')}}
+                    @if($customer_data->inv_type_id == 3 && $approved == 'Y' && $customer_data->tot_comp_amount != 0)
+                    <td style=""><strong> COMPOUND AMOUNT :</strong>Kshs
+                        {{ number_format($customer_data->tot_comp_amount,2,'.',',')}}
                     </td>
                     <td style=""><strong> COMPOUND PAYMENT DATE :</strong>{{$customer_investments->last_pay_date}}</td>
                     @elseif ($customer_data->inv_type_id == 3 && $approved == 'N')
+                    <td style=""><strong> COMPOUND AMOUNT :</strong>N/A
+                    </td>tot_comp_amount
+                    @elseif ($customer_data->inv_type_id == 3 && $approved == 'Y' && $customer_data->tot_comp_amount ==
+                    0)
                     <td style=""><strong> COMPOUND AMOUNT :</strong>N/A
                     </td>
                     <td style=""><strong> COMPOUND PAYMENT DATE :</strong>N/A</td>
@@ -140,8 +149,6 @@
     <div class="tab-content">
         <div class="tab-pane active" id="basic_details">
             <div class="box-body">
-                {{-- {!! Form::open(['url' => action('UserController@update'), 'method' => 'post', 'id' => 'AddClientForm'
-                ]) !!} --}}
 
                 {!!
                 Form::open(['action'=>['UserController@update',$customer_data->user_id],'method'=>'PATCH','class'=>'form','enctype'=>'multipart/form-data'])
@@ -324,7 +331,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {{--  {{ $client_payment_modes}} --}}
+
                             @foreach ($customer_trans as $count=> $row)
                             <tr>
                                 <td>{{ $count + 1 }}</td>
@@ -483,6 +490,7 @@
 @include('modals.topups.modal_new_topup')
 @include('modals.payments.modal_add_payment')
 @include('modals.payments.modal_view_payment_mode')
+@include('modals.investments.modal-terminate-investment')
 </div>
 
 @stop
@@ -570,6 +578,16 @@ $('input').keyup(function(){
    var monthlyInvestment = Number($('#monthly_inv_amount').val());
   var compoundedInvestment = totalInvestment - monthlyInvestment;
  document.getElementById('compounded_inv_amount').value = compoundedInvestment;
+});
+
+$("#termination_type").change(function() {
+    var val = $(this).val();
+    if (val == 1 ) {
+    $("#amount_after_ter_div").removeClass("hide");
+    }else{
+    $("#amount_after_ter_div").addClass("hide");
+    }
+
 });
     })
 </script>

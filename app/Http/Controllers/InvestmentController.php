@@ -394,7 +394,72 @@ class InvestmentController extends Controller
         }
     }
 
-    // Fetch issue subcategories
+    public function terminateInvestment(Request $request)
+    {
+        $inv_id = $request->input('investment_id');
+
+        $investment = Investment::getInvestments()->where('investment_id', '=', $inv_id)->first();
+
+        $total_investments = $investment->investment_amount;
+        $inv_type = $investment->inv_type_id;
+        $account_no_id = $investment->acc_id;
+        $user_id = $investment->user_id;
+
+        $termination_type = $request->input('termination_type');
+        $amount_terminated = $request->input('amount_terminated');
+        $amount_after_ter = $request->input('amount_after_ter');
+
+        if ($termination_type == 2) {
+
+            if ($inv_type == 1) {
+                $save_account_data = DB::table('accounts')->where('id', $account_no_id)
+                    ->update(['total_due_payments' => $total_investments]);
+
+                $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                    ->update([
+                        'tot_payable_amnt' => $total_investments, 'termination_pay' => $total_investments, 'fully_paid' => 1,
+                        'monthly_amount' => $total_investments, 'updated_next_pay' => $total_investments, 'updated_monthly_pay' => $total_investments
+                    ]);
+
+                $save_investment_data = DB::table('investments')->where('investment_id', $inv_id)
+                    ->update([
+                        'termination_type' => $termination_type, 'terminated_at' => Carbon::now('Africa/Nairobi')->toDateString()
+                    ]);
+            } elseif ($inv_type == 2) {
+
+                $save_account_data = DB::table('accounts')->where('id', $account_no_id)
+                    ->update(['total_due_payments' => $total_investments]);
+
+                $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                    ->update([
+                        'tot_payable_amnt' => $total_investments, 'termination_pay' => $total_investments, 'fully_paid' => 1,
+                    ]);
+
+                $save_investment_data = DB::table('investments')->where('investment_id', $inv_id)
+                    ->update([
+                        'termination_type' => $termination_type, 'terminated_at' => Carbon::now('Africa/Nairobi')->toDateString()
+                    ]);
+            } elseif ($inv_type == 3) {
+
+                $save_account_data = DB::table('accounts')->where('id', $account_no_id)
+                    ->update(['total_due_payments' => $total_investments]);
+
+                $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                    ->update([
+                        'tot_payable_amnt' => $total_investments, 'termination_pay' => $total_investments, 'tot_comp_amount' => 0, 'fully_paid' => 1,
+                        'monthly_amount' => $total_investments, 'updated_next_pay' => $total_investments, 'updated_monthly_pay' => $total_investments
+                    ]);
+
+                $save_investment_data = DB::table('investments')->where('investment_id', $inv_id)
+                    ->update([
+                        'termination_type' => $termination_type, 'terminated_at' => Carbon::now('Africa/Nairobi')->toDateString()
+                    ]);
+            }
+        }
+        toast('Investment terminated successfullty', 'success', 'top-right');
+        return back();
+    }
+
     public function getUser()
     {
         $account_no_id = Input::get('account_no_id');
@@ -432,16 +497,7 @@ class InvestmentController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Investment $investment)
-    {
-        // $inv_id = $request->input('investment_id');
-
-        // if (isset($_POST['update_inv'])) {
-        //     $inv_id = $request->input('investment_id');
-        //     echo $investment;
-        //     echo "Update";
-        // }
-        // exit;
-    }
+    { }
 
     /**
      * Remove the specified resource from storage.

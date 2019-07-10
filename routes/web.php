@@ -40,6 +40,7 @@ Route::any('/accounts/get_accounts', 'AccountController@get_accounts');
 
 Route::resource('/investments', 'InvestmentController');
 Route::any('/investment/approve', 'InvestmentController@approve');
+Route::any('/investment/terminate', 'InvestmentController@terminateInvestment');
 
 Route::resource('/payment_modes', 'PaymentModeController');
 Route::resource('/payments', 'PaymentController');

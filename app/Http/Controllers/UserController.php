@@ -747,25 +747,6 @@ class UserController extends Controller
 
         $pay_dates = explode(',', $pay_dates);
 
-        // echo "<pre>";
-        // print_r($pay_dates);
-        // exit;
-
-        // GET ALL REFERED CLIENTS INVETSMENT and TOPUP DATES EG FOR CLIENT 2, CLIENT3, CLIENT 4 ETC... CLIENTS REFERED BY EG CLIENT 1
-
-        // $last_pay_record = DB::table('payments')
-        //     ->select(
-        //         DB::raw('payments.account_no_id'),
-        //         DB::raw('payments.user_pay_date'),
-        //         DB::raw('accounts.id'),
-        //         DB::raw('users.id')
-        //     )
-        //     ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
-        //     ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
-        //     ->orderBy('payment_id', 'DESC')
-        //     ->where('users.id', '=', $id)
-        //     ->first();
-
         $inv_dates = json_decode(json_encode($data['referer']), true);
         $inv_dates = array_column($inv_dates, 'inv_date');
 
