@@ -11,10 +11,18 @@
     <div class="box-header with-border">
         <h3 class="box-title">MANAGE CLIENT</h3>
         <p class="pull-right">
+            @if($approved =='Y' && $fully_paid == 'N')
             <button data-toggle="modal" data-target="#modal_terminate_investment_{{$customer_data->investment_id}}"
                 data-backdrop="static" data-keyboard="false" class="btn bg-red margin"><i class="fa fa-close"></i>
                 TERMINATE
                 INVESTMENT</button>
+            @elseif($fully_paid == 'Y')
+            <button data-toggle="modal" disabled
+                data-target="#modal_terminate_investment_{{$customer_data->investment_id}}" data-backdrop="static"
+                data-keyboard="false" class="btn bg-red margin"><i class="fa fa-close"></i>
+                TERMINATE
+                INVESTMENT</button>
+            @endif
             @if($approved =='Y' && $fully_paid == 'N')
             <button data-toggle="modal" data-target="#modal_new_topup" data-backdrop="static" data-keyboard="false"
                 class="btn bg-aqua margin"><i class="fa fa-plus"></i> NEW TOPUP</button>
@@ -573,22 +581,50 @@
 
 });
 
-$('input').keyup(function(){
-    var totalInvestment  = Number($('#total_inv_amount').val());
-   var monthlyInvestment = Number($('#monthly_inv_amount').val());
-  var compoundedInvestment = totalInvestment - monthlyInvestment;
- document.getElementById('compounded_inv_amount').value = compoundedInvestment;
-});
-
 $("#termination_type").change(function() {
     var val = $(this).val();
-    if (val == 1 ) {
-    $("#amount_after_ter_div").removeClass("hide");
-    }else{
-    $("#amount_after_ter_div").addClass("hide");
+   // alert(val);
+   if(val == 1){
+      var invesment_type = $('#inv_type').val();
+      var val1;
+      $("#inv_subtype").change(function() {
+        val1 = $(this).val();
+        //alert(val1);
+      });
+        $('input').keyup(function(){
+            if(invesment_type == 3){
+                var local = val1;
+               //alert(local);
+                if(local == 1){
+                    var totalInvestment31  = Number($('#total_investments31').val());
+                    var terminated31 = Number($('#amount_terminated').val());
+                    var after_termination31 = totalInvestment31 - terminated31;
+                    document.getElementById('amount_after_ter').value = after_termination31;
+                }else{
+                    var totalInvestment32  = Number($('#total_investments32').val());
+                    var terminated32 = Number($('#amount_terminated').val());
+                    var after_termination32 = totalInvestment32 - terminated32;
+                    document.getElementById('amount_after_ter').value = after_termination32;
+                }
+
+            }else{
+                var totalInvestment  = Number($('#total_investments').val());
+                var terminated = Number($('#amount_terminated').val());
+                var after_termination = totalInvestment - terminated;
+                document.getElementById('amount_after_ter').value = after_termination;
+            }
+        });
+
+   }
+    if (val == 2 ) {
+         var totalInvestment  = Number($('#total_investments').val());
+         var after_ter = totalInvestment - totalInvestment;
+         document.getElementById('amount_terminated').value = totalInvestment;
+         document.getElementById('amount_after_ter').value = after_ter;
     }
 
 });
+
     })
 </script>
 <script>

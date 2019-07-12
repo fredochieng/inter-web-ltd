@@ -67,7 +67,7 @@
                     <div class="col-md-3">
                         <label for="franch" class="col-sm-12 control-label label-left">Investment Duration</label>
                         <div class="col-sm-12">
-                            <input id="franch" class="form-control" name="inv_duration" type="text" readonly
+                            <input id="franch" class="form-control" name="inv_duration" type="text"
                                 value="{{$row->investment_duration}} Months">
 
                         </div>

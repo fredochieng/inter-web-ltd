@@ -600,6 +600,8 @@ class UserController extends Controller
      */
     public function edit($id = null)
     {
+        // echo (min(1, 2) . "<br>");
+        // exit;
         // GET PAYMENT METHODS AND BANKS
         $data['payment_mode'] = PaymentMethod::getPaymentMethods();
         $data['banks'] = Bank::getBanks();
@@ -756,19 +758,21 @@ class UserController extends Controller
         $topup_dates = array_column($topup_dates, 'topped_at');
 
         // GET REFEREE CLIENT NEXT PAYMENT DATE AND CONVERT TO AN ARRAY
-        $data['next_pay_date'] = min(array_diff($pay_dates, $user_pay_dates));
-        $data['next_pay_date'] = json_decode(json_encode($data['next_pay_date'], true));
-        $data['next_pay_date'] = (array) $data['next_pay_date'];
 
         // echo "<pre>";
-        // print_r($pay_dates[5]);
+        // print_r($pay_dates);
         // echo "<pre>";
-        // print_r($data['next_pay_date'][0]);
-        //exit;
+        // print_r($user_pay_dates);
+        // exit;
+        $next_pay = array_diff($pay_dates, $user_pay_dates);
+        if (empty($next_pay)) {
+            $data['next_pay_date'] = 'FULLY PAID';
+        } else {
+            $data['next_pay_date'] = min(array_diff($pay_dates, $user_pay_dates));
+            $data['next_pay_date'] = json_decode(json_encode($data['next_pay_date'], true));
+            $data['next_pay_date'] = (array) $data['next_pay_date'];
+        }
 
-        // COMBINE ARRAYS TO GET THE OUTPUT ARRAY
-        // $fred = array("505");
-        // $data['next_pay_date'] = array_combine($data['next_pay_date'], $fred);
 
         // GET INVETSMENT AND TOPUP COMMISSIONS FOR ALL REFERED CLIENTS
         if ($data['customer_data']->inv_type == 1) {
@@ -842,52 +846,13 @@ class UserController extends Controller
             }
         }
 
-
-        //echo $tot_comm;
-
-
-        // if ($last_pay_record) {
-
-        //     $prev_pay_date = $last_pay_record->user_pay_date;
-        //     $final_inv_comm_array = array();
-        //     $final_topup_comm_array = array();
-
-        //     foreach ($inv_comm_array as $key => $value) {
-        //         if ($key >= $prev_pay_date) {
-        //             $final_inv_comm_array[$key] = $value;
-        //         }
-        //     }
-
-        //     foreach ($topup_comm_array as $key => $value) {
-        //         if ($key >= $prev_pay_date) {
-        //             $final_topup_comm_array[$key] = $value;
-        //         }
-        //     }
-        // } else {
-        //     $final_inv_comm_array = $inv_comm_array;
-        //     $final_topup_comm_array = $topup_comm_array;
-        // }
-
-        // ELIMINATE DATE AND COMMISSIONS TO BE PAID ON THE DATE SIMILAR TO REFEREE NEXT PAYMENT DATE
-        // if ($data['customer_data']->inv_type_id == 2) {
-        //     $inv_comm = $final_inv_comm_array;
-        //     $topup_comm = $final_topup_comm_array;
-        // } else {
-
-        //     $inv_comm = array_diff_key($final_inv_comm_array, $data['next_pay_date']);
-        //     $topup_comm = array_diff_key($final_topup_comm_array, $data['next_pay_date']);
-        // }
-
-
-
+        $next_pay = array_diff($pay_dates, $user_pay_dates);
         if (empty($data['next_pay_date'])) {
             $data['next_pay_date'] = "FULLY PAID";
-        } else {
+        } elseif (!empty($next_pay)) {
 
             $data['next_pay_date'] = min(array_diff($pay_dates, $user_pay_dates));
         }
-        // echo 'next payment date: ' . $data['next_pay_date'];
-        // echo "<pre>";
 
         Session::put('next_pay_day', $data['next_pay_date']);
 
@@ -1274,8 +1239,7 @@ class UserController extends Controller
      */
     public function update(Request $request,  $id)
     {
-        echo "Stephany";
-        exit;
+
         try {
             $user = User::find($id);
             $user->name = strtoupper($request->input('name'));

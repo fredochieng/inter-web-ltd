@@ -352,7 +352,7 @@ class ReportController extends Controller
 
             $data['type'] = 1;
 
-            $data['due_payments_report'] = Report::duePaymentsReport();
+            $data['due_payments_report'] = Report::duePaymentsReport()->where('total_due_payments', '!=', 0);
 
             $data['due_payments_report']->map(function ($item) {
 
@@ -470,7 +470,7 @@ class ReportController extends Controller
             $data['pay_id'] = $pay_mode_id;
             $data['bank_idd'] = $bank_id;
 
-            $data['due_payments_report'] = Report::duePaymentsReport();
+            $data['due_payments_report'] = Report::duePaymentsReport()->where('total_due_payments', '!=', 0);
 
             $data['due_payments_report']->map(function ($item) {
 
@@ -635,7 +635,7 @@ class ReportController extends Controller
             $data['type'] = 3;
             $data['bank_idd'] = $bank_id;
 
-            $data['due_payments_report'] = Report::duePaymentsReport();
+            $data['due_payments_report'] = Report::duePaymentsReport()->where('total_due_payments', '!=', 0);
 
             $data['due_payments_report']->map(function ($item) {
 

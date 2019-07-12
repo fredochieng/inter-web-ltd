@@ -66,9 +66,7 @@ class InvestmentController extends Controller
             $item->number_of_topups = $topups;
             return $item;
         });
-        // echo "<pre>";
-        // print_r($data['investments']);
-        // exit;
+
         return view('investments.index')->with($data);
     }
 
@@ -204,9 +202,6 @@ class InvestmentController extends Controller
 
             $investment = Investment::getInvestments()->where('investment_id', $inv_id)->first();
 
-            // echo "<pre>";
-            // print_r($investment);
-            // exit;
             $inv_type = $investment->inv_type_id;
             $account_no_id = $investment->acc_id;
             $user_id = $investment->user_id;
@@ -328,9 +323,6 @@ class InvestmentController extends Controller
 
                 $update_payment_dates = DB::table('user_pay_modes')->where('user_id', $user_id)
                     ->update(['pay_dates' => date('Y-m-d', strtotime($last_pay_date))]);
-
-                // echo $monthly_payment;
-                // exit;
             } elseif ($inv_type == 3) {
 
                 $monthly_inv_amount = $request->input('monthly_inv_amount');
@@ -401,7 +393,9 @@ class InvestmentController extends Controller
         $investment = Investment::getInvestments()->where('investment_id', '=', $inv_id)->first();
 
         $total_investments = $investment->investment_amount;
+
         $inv_type = $investment->inv_type_id;
+        $invest_dur = $investment->investment_duration;
         $account_no_id = $investment->acc_id;
         $user_id = $investment->user_id;
 
@@ -417,14 +411,25 @@ class InvestmentController extends Controller
 
                 $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
                     ->update([
-                        'tot_payable_amnt' => $total_investments, 'termination_pay' => $total_investments, 'fully_paid' => 1,
+                        'tot_payable_amnt' => $total_investments, 'termination_pay' => $total_investments,
                         'monthly_amount' => $total_investments, 'updated_next_pay' => $total_investments, 'updated_monthly_pay' => $total_investments
                     ]);
 
                 $save_investment_data = DB::table('investments')->where('investment_id', $inv_id)
                     ->update([
-                        'termination_type' => $termination_type, 'terminated_at' => Carbon::now('Africa/Nairobi')->toDateString()
+                        'termination_type' => $termination_type, 'terminated_at' => Carbon::now('Africa/Nairobi')->toDateString(),
+                        'initial_inv' => 0, 'investment_amount' => 0
                     ]);
+
+                $save_ter_inv = array(
+                    'ter_inv_id' => $inv_id,
+                    'user_id' => $user_id,
+                    'before_ter' => $total_investments,
+                    'amount_ter' => $amount_terminated,
+                    'after_ter' => 0,
+                    'termination_type' => $termination_type
+                );
+                $save_ter = DB::table('terminations')->insertGetId($save_ter_inv);
             } elseif ($inv_type == 2) {
 
                 $save_account_data = DB::table('accounts')->where('id', $account_no_id)
@@ -432,13 +437,24 @@ class InvestmentController extends Controller
 
                 $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
                     ->update([
-                        'tot_payable_amnt' => $total_investments, 'termination_pay' => $total_investments, 'fully_paid' => 1,
+                        'tot_payable_amnt' => $total_investments, 'termination_pay' => $total_investments,
                     ]);
 
                 $save_investment_data = DB::table('investments')->where('investment_id', $inv_id)
                     ->update([
-                        'termination_type' => $termination_type, 'terminated_at' => Carbon::now('Africa/Nairobi')->toDateString()
+                        'termination_type' => $termination_type, 'terminated_at' => Carbon::now('Africa/Nairobi')->toDateString(),
+                        'initial_inv' => 0, 'investment_amount' => 0
                     ]);
+
+                $save_ter_inv = array(
+                    'ter_inv_id' => $inv_id,
+                    'user_id' => $user_id,
+                    'before_ter' => $total_investments,
+                    'amount_ter' => $amount_terminated,
+                    'after_ter' => 0,
+                    'termination_type' => $termination_type
+                );
+                $save_ter = DB::table('terminations')->insertGetId($save_ter_inv);
             } elseif ($inv_type == 3) {
 
                 $save_account_data = DB::table('accounts')->where('id', $account_no_id)
@@ -446,20 +462,201 @@ class InvestmentController extends Controller
 
                 $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
                     ->update([
-                        'tot_payable_amnt' => $total_investments, 'termination_pay' => $total_investments, 'tot_comp_amount' => 0, 'fully_paid' => 1,
+                        'tot_payable_amnt' => $total_investments, 'termination_pay' => $total_investments, 'tot_comp_amount' => 0,
                         'monthly_amount' => $total_investments, 'updated_next_pay' => $total_investments, 'updated_monthly_pay' => $total_investments
                     ]);
 
                 $save_investment_data = DB::table('investments')->where('investment_id', $inv_id)
                     ->update([
-                        'termination_type' => $termination_type, 'terminated_at' => Carbon::now('Africa/Nairobi')->toDateString()
+                        'termination_type' => $termination_type, 'terminated_at' => Carbon::now('Africa/Nairobi')->toDateString(),
+                        'initial_inv' => 0, 'investment_amount' => 0
                     ]);
+
+                $save_ter_inv = array(
+                    'ter_inv_id' => $inv_id,
+                    'user_id' => $user_id,
+                    'before_ter' => $total_investments,
+                    'amount_ter' => $amount_terminated,
+                    'after_ter' => 0,
+                    'termination_type' => $termination_type
+                );
+                $save_ter = DB::table('terminations')->insertGetId($save_ter_inv);
+            }
+        } elseif ($termination_type == 1) {
+
+            if ($inv_type == 1) {
+
+                $monthly_pay = 0.2 * $amount_after_ter;
+                $total_pay = $monthly_pay * $invest_dur;
+
+                $accu_interest_array = array();
+                for ($i = 0; $i < $invest_dur; $i++) {
+                    $monthly_pay = 0.2 * $amount_after_ter;
+                    $accu_interest_array[] = (int) $monthly_pay;
+                }
+
+                $save_account_data = DB::table('accounts')->where('id', $account_no_id)->update(['total_due_payments' => $total_pay]);
+
+                $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                    ->update(['tot_payable_amnt' => $total_pay, 'monthly_amount' => $monthly_pay]);
+
+                $save_investment_data = DB::table('investments')->where('investment_id', $inv_id)
+                    ->update([
+                        'termination_type' => $termination_type, 'terminated_at' => Carbon::now('Africa/Nairobi')->toDateString(),
+                        'initial_inv' => $amount_after_ter, 'investment_amount' => $amount_after_ter
+                    ]);
+
+                $save_ter_inv = array(
+                    'ter_inv_id' => $inv_id,
+                    'user_id' => $user_id,
+                    'before_ter' => $total_investments,
+                    'amount_ter' => $amount_terminated,
+                    'after_ter' => $amount_after_ter,
+                    'termination_type' => $termination_type
+                );
+                $save_ter = DB::table('terminations')->insertGetId($save_ter_inv);
+            } elseif ($inv_type == 2) {
+
+                $principal = $amount_after_ter;
+                $interestRate = 0.2;
+                $term = $invest_dur - 1;
+
+                $accu_interest_array = array();
+                for ($i = 0; $i < $term; $i++) {
+                    $total = $principal * $interestRate;
+                    $principal += $total;
+                    $accu_interest_array[] = (int) $total;
+                }
+                $monthly_payment = json_encode($accu_interest_array);
+                $total_comp_int = json_encode(array_sum($accu_interest_array));
+
+                $save_account_data = DB::table('accounts')->where('id', $account_no_id)
+                    ->update(['total_due_payments' => $total_comp_int]);
+
+                $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                    ->update([
+                        'tot_payable_amnt' => $total_comp_int, 'comp_monthly_pay' => $monthly_payment
+                    ]);
+
+                $save_investment_data = DB::table('investments')->where('investment_id', $inv_id)
+                    ->update([
+                        'termination_type' => $termination_type, 'terminated_at' => Carbon::now('Africa/Nairobi')->toDateString(),
+                        'initial_inv' => $amount_after_ter, 'investment_amount' => $amount_after_ter
+                    ]);
+
+                $save_ter_inv = array(
+                    'ter_inv_id' => $inv_id,
+                    'user_id' => $user_id,
+                    'before_ter' => $total_investments,
+                    'amount_ter' => $amount_terminated,
+                    'after_ter' => $amount_after_ter,
+                    'termination_type' => $termination_type
+                );
+                $save_ter = DB::table('terminations')->insertGetId($save_ter_inv);
+            } elseif ($inv_type == 3) {
+
+                $inv_subtype_id = $request->input('inv_subtype');
+                $tot_inv_amount = $investment->investment_amount;
+                $comp_inv = $investment->compounded_inv;
+                $monthly_inv = $investment->monthly_inv;
+                $monthly_dur = $investment->monthly_duration;
+                $comp_dur = $investment->comp_duration;
+                $monthly_amount = $investment->monthly_amount;
+                $comp_due_pay = $investment->tot_comp_amount;
+                $tot_due_pay = $investment->tot_payable_amnt;
+
+                if ($inv_subtype_id == 1) {
+
+                    $monthly_pay = 0.2 * $amount_after_ter;
+                    $total_pay = $monthly_pay * $monthly_dur;
+
+                    $accu_interest_array = array();
+                    for ($i = 0; $i < $monthly_dur; $i++) {
+                        $monthly_pay = 0.2 * $amount_after_ter;
+                        $accu_interest_array[] = (int) $monthly_pay;
+                    }
+
+                    $new_due_pay = $total_pay + $comp_due_pay;
+                    $new_tot_investment = $tot_inv_amount - $amount_terminated;
+                    $new_monthly_inv = $monthly_inv - $amount_terminated;
+                    $updated_next_pay = $amount_terminated + $monthly_amount;
+                    echo $updated_next_pay;
+                    exit;
+
+                    $save_account_data = DB::table('accounts')->where('id', $account_no_id)->update(['total_due_payments' => $new_due_pay]);
+
+                    $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                        ->update([
+                            'tot_payable_amnt' => $new_due_pay, 'monthly_amount' => $monthly_pay, 'monthly_amount' => $total_investments,
+                            'updated_next_pay' => $total_investments, 'updated_monthly_pay' => $total_investments
+                        ]);
+
+                    $save_investment_data = DB::table('investments')->where('investment_id', $inv_id)
+                        ->update([
+                            'termination_type' => $termination_type, 'terminated_at' => Carbon::now('Africa/Nairobi')->toDateString(),
+                            'initial_inv' => $new_tot_investment, 'investment_amount' => $new_tot_investment, 'monthly_inv' => $new_monthly_inv
+                        ]);
+
+                    $save_ter_inv = array(
+                        'ter_inv_id' => $inv_id,
+                        'user_id' => $user_id,
+                        'before_ter' => $total_investments,
+                        'amount_ter' => $amount_terminated,
+                        'after_ter' => $new_tot_investment,
+                        'termination_type' => $termination_type
+                    );
+                    $save_ter = DB::table('terminations')->insertGetId($save_ter_inv);
+                } elseif ($inv_subtype_id == 2) {
+                    $principal = $amount_after_ter;
+                    $interestRate = 0.2;
+                    $term = $comp_dur - 1;
+
+                    $accu_interest_array = array();
+                    for ($i = 0; $i < $term; $i++) {
+                        $total = $principal * $interestRate;
+                        $principal += $total;
+                        $accu_interest_array[] = (int) $total;
+                    }
+                    $monthly_payment = json_encode($accu_interest_array);
+                    $total_comp_int = json_encode(array_sum($accu_interest_array));
+
+                    $tot_monthly_due = $tot_due_pay - $comp_due_pay;
+                    $new_due_pay = $total_comp_int + $tot_monthly_due;
+                    $new_tot_investment = $tot_inv_amount - $amount_terminated;
+                    $new_comp_inv = $comp_inv - $amount_terminated;
+
+                    $save_account_data = DB::table('accounts')->where('id', $account_no_id)
+                        ->update(['total_due_payments' => $new_due_pay]);
+
+                    $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                        ->update([
+                            'tot_payable_amnt' => $new_due_pay, 'tot_comp_amount' => $total_comp_int, 'comp_monthly_pay' => $monthly_payment
+                        ]);
+
+                    $save_investment_data = DB::table('investments')->where('investment_id', $inv_id)
+                        ->update([
+                            'termination_type' => $termination_type, 'terminated_at' => Carbon::now('Africa/Nairobi')->toDateString(),
+                            'initial_inv' => $new_tot_investment, 'investment_amount' => $new_tot_investment, 'compounded_inv' => $new_comp_inv
+                        ]);
+
+                    // STORE THE INVESTMENT TERMINATION DETAILS
+
+                    $save_ter_inv = array(
+                        'ter_inv_id' => $inv_id,
+                        'user_id' => $user_id,
+                        'before_ter' => $total_investments,
+                        'amount_ter' => $amount_terminated,
+                        'after_ter' => $new_tot_investment,
+                        'termination_type' => $termination_type
+                    );
+
+                    $save_ter = DB::table('terminations')->insertGetId($save_ter_inv);
+                }
+                toast('Investment terminated successfullty', 'success', 'top-right');
+                return back();
             }
         }
-        toast('Investment terminated successfullty', 'success', 'top-right');
-        return back();
     }
-
     public function getUser()
     {
         $account_no_id = Input::get('account_no_id');

@@ -36,7 +36,7 @@ class Investment extends Model
             ->leftJoin('banks', 'investments.inv_bank_id', '=', 'banks.bank_id')
             ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
             ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
-            ->orderBy('investments.investment_id', 'asc')->get();
+            ->orderBy('investments.investment_id', 'desc')->get();
         return $data['investments'];
     }
 
