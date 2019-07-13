@@ -35,6 +35,7 @@ Route::resource('/users/secretaries', 'SecretaryController');
 
 Route::resource('/users/blacklist', 'BlacklistController');
 Route::resource('/users/restrict', 'ReferalsController');
+Route::any('/users/commission_restrictions', 'ReferalsController@getRestrictions');
 
 Route::any('/accounts/get_accounts', 'AccountController@get_accounts');
 

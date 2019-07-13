@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Model\Referals;
 use Illuminate\Http\Request;
+use DB;
 
 class ReferalsController extends Controller
 {
@@ -14,6 +15,15 @@ class ReferalsController extends Controller
      */
     public function index()
     { }
+
+    public function getRestrictions()
+    {
+        $data['clients'] = Referals::getRestrictedClients();
+        // echo "<pre>";
+        // print_r($data['clients']);
+        // exit;
+        return view('users.commission_restrictions')->with($data);
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -107,7 +117,20 @@ class ReferalsController extends Controller
      */
     public function update(Request $request, Referals $referals)
     {
-        //
+        $rest_id = $request->input('rest');
+        $id_no = $request->input('id_no');
+        $phone = $request->input('phone_no');
+        $comm_times = $request->input('comm_times');
+
+        $rest_data = array(
+            'id_no' => $id_no,
+            'phone' => $phone,
+            'comm_times' => $comm_times
+        );
+        $save_rest_data = DB::table('referal_restrictions')->where('rest_id', $rest_id)->update($rest_data);
+
+        toast('Referal restriction updated successfully', 'success', 'top-right');
+        return back();
     }
 
     /**

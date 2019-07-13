@@ -14,6 +14,7 @@ use DB;
 use Illuminate\Support\Facades\Validator;
 use RealRashid\SweetAlert\Facades\Alert;
 use Carbon\Carbon;
+use Session;
 use App\Model\UserDetails;
 
 use Illuminate\Support\Facades\Mail;
@@ -398,10 +399,15 @@ class InvestmentController extends Controller
         $invest_dur = $investment->investment_duration;
         $account_no_id = $investment->acc_id;
         $user_id = $investment->user_id;
+        $topped = $investment->topped_up;
+        $terminated = $investment->termination_type;
 
         $termination_type = $request->input('termination_type');
         $amount_terminated = $request->input('amount_terminated');
         $amount_after_ter = $request->input('amount_after_ter');
+
+        $next_pay_date = new Carbon(Session::get('next_pay_day'));
+        $next_pay_date = $next_pay_date->toDateString();
 
         if ($termination_type == 2) {
 
@@ -412,7 +418,7 @@ class InvestmentController extends Controller
                 $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
                     ->update([
                         'tot_payable_amnt' => $total_investments, 'termination_pay' => $total_investments,
-                        'monthly_amount' => $total_investments, 'updated_next_pay' => $total_investments, 'updated_monthly_pay' => $total_investments
+                        'monthly_amount' => $total_investments, 'updated_next_pay' => $total_investments, 'updated_monthly_pay' => $total_investments, 'updated_monthly_pay_ter' => $total_investments
                     ]);
 
                 $save_investment_data = DB::table('investments')->where('investment_id', $inv_id)
@@ -430,6 +436,17 @@ class InvestmentController extends Controller
                     'termination_type' => $termination_type
                 );
                 $save_ter = DB::table('terminations')->insertGetId($save_ter_inv);
+
+                $save_ter_pay_info = array(
+                    'user_id' => $user_id,
+                    'pay_amount' => $total_investments,
+                    'pay_date' => $next_pay_date
+                );
+
+                $save_ter_pay = DB::table('termination_payments')->insertGetId($save_ter_pay_info);
+
+                toast('Investment terminated successfullty', 'success', 'top-right');
+                return back();
             } elseif ($inv_type == 2) {
 
                 $save_account_data = DB::table('accounts')->where('id', $account_no_id)
@@ -455,6 +472,8 @@ class InvestmentController extends Controller
                     'termination_type' => $termination_type
                 );
                 $save_ter = DB::table('terminations')->insertGetId($save_ter_inv);
+                toast('Investment terminated successfullty', 'success', 'top-right');
+                return back();
             } elseif ($inv_type == 3) {
 
                 $save_account_data = DB::table('accounts')->where('id', $account_no_id)
@@ -481,10 +500,26 @@ class InvestmentController extends Controller
                     'termination_type' => $termination_type
                 );
                 $save_ter = DB::table('terminations')->insertGetId($save_ter_inv);
+                toast('Investment terminated successfullty', 'success', 'top-right');
+                return back();
             }
         } elseif ($termination_type == 1) {
-
+            $next_pay_date = new Carbon(Session::get('next_pay_day'));
+            $next_pay_date = $next_pay_date->toDateString();
             if ($inv_type == 1) {
+
+                $inv_subtype_id = $request->input('inv_subtype');
+                $tot_inv_amount = $investment->investment_amount;
+                $comp_inv = $investment->compounded_inv;
+                $monthly_inv = $investment->monthly_inv;
+                $monthly_dur = $investment->monthly_duration;
+                $comp_dur = $investment->comp_duration;
+                $monthly_amount = $investment->monthly_amount;
+                $updated_next_pay = $investment->updated_next_pay;
+                $updated_monthly_pay = $investment->updated_monthly_pay;
+                $updated_monthly_pay_ter = $investment->updated_monthly_pay_ter;
+                $comp_due_pay = $investment->tot_comp_amount;
+                $tot_due_pay = $investment->tot_payable_amnt;
 
                 $monthly_pay = 0.2 * $amount_after_ter;
                 $total_pay = $monthly_pay * $invest_dur;
@@ -495,10 +530,28 @@ class InvestmentController extends Controller
                     $accu_interest_array[] = (int) $monthly_pay;
                 }
 
+                $new_due_pay = $total_pay + $comp_due_pay;
+                $new_tot_investment = $tot_inv_amount - $amount_terminated;
+                $new_monthly_inv = $monthly_inv - $amount_terminated;
+
+                // if ($topped == 0 && $terminated == '') {
+                //     $updated_pay = $amount_terminated + $monthly_amount;
+                // } elseif ($topped == 1 && $terminated == '') {
+                //     $updated_pay = $amount_terminated + $updated_monthly_pay;
+                // } elseif ($topped == '' && $terminated != '') {
+                //     $updated_pay = $amount_terminated + $monthly_amount;
+                // } elseif ($topped == 1 && $terminated != '') {
+                //     $updated_pay = $amount_terminated + $updated_monthly_pay_ter;
+                // }
+                $updated_pay = $amount_terminated + $monthly_pay;
+                // echo $updated_pay;
+                // exit;
+
+
                 $save_account_data = DB::table('accounts')->where('id', $account_no_id)->update(['total_due_payments' => $total_pay]);
 
                 $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
-                    ->update(['tot_payable_amnt' => $total_pay, 'monthly_amount' => $monthly_pay]);
+                    ->update(['tot_payable_amnt' => $total_pay, 'monthly_amount' => $monthly_pay, 'updated_monthly_pay_ter' => $updated_pay]);
 
                 $save_investment_data = DB::table('investments')->where('investment_id', $inv_id)
                     ->update([
@@ -515,6 +568,16 @@ class InvestmentController extends Controller
                     'termination_type' => $termination_type
                 );
                 $save_ter = DB::table('terminations')->insertGetId($save_ter_inv);
+
+                $save_ter_pay_info = array(
+                    'user_id' => $user_id,
+                    'pay_amount' => $updated_pay,
+                    'pay_date' => $next_pay_date
+                );
+
+                $save_ter_pay = DB::table('termination_payments')->insertGetId($save_ter_pay_info);
+                toast('Investment terminated successfullty', 'success', 'top-right');
+                return back();
             } elseif ($inv_type == 2) {
 
                 $principal = $amount_after_ter;
@@ -562,8 +625,12 @@ class InvestmentController extends Controller
                 $monthly_dur = $investment->monthly_duration;
                 $comp_dur = $investment->comp_duration;
                 $monthly_amount = $investment->monthly_amount;
+                $updated_next_pay = $investment->updated_next_pay;
+                $updated_monthly_pay = $investment->updated_monthly_pay;
+                $updated_monthly_pay_ter = $investment->updated_monthly_pay_ter;
                 $comp_due_pay = $investment->tot_comp_amount;
                 $tot_due_pay = $investment->tot_payable_amnt;
+
 
                 if ($inv_subtype_id == 1) {
 
@@ -579,16 +646,22 @@ class InvestmentController extends Controller
                     $new_due_pay = $total_pay + $comp_due_pay;
                     $new_tot_investment = $tot_inv_amount - $amount_terminated;
                     $new_monthly_inv = $monthly_inv - $amount_terminated;
-                    $updated_next_pay = $amount_terminated + $monthly_amount;
-                    echo $updated_next_pay;
-                    exit;
+
+                    if ($topped == 0 && $terminated == '') {
+                        $updated_pay = $amount_terminated + $monthly_amount;
+                    } elseif ($topped == 1 && $terminated == '') {
+                        $updated_pay = $amount_terminated + $updated_monthly_pay;
+                    } elseif ($topped == '' && $terminated != '') {
+                        $updated_pay = $amount_terminated + $monthly_amount;
+                    } elseif ($topped == 1 && $terminated != '') {
+                        $updated_pay = $amount_terminated + $updated_monthly_pay_ter;
+                    }
 
                     $save_account_data = DB::table('accounts')->where('id', $account_no_id)->update(['total_due_payments' => $new_due_pay]);
 
                     $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
                         ->update([
-                            'tot_payable_amnt' => $new_due_pay, 'monthly_amount' => $monthly_pay, 'monthly_amount' => $total_investments,
-                            'updated_next_pay' => $total_investments, 'updated_monthly_pay' => $total_investments
+                            'tot_payable_amnt' => $new_due_pay, 'monthly_amount' => $monthly_pay, 'updated_monthly_pay_ter' => $updated_pay
                         ]);
 
                     $save_investment_data = DB::table('investments')->where('investment_id', $inv_id)
@@ -606,6 +679,21 @@ class InvestmentController extends Controller
                         'termination_type' => $termination_type
                     );
                     $save_ter = DB::table('terminations')->insertGetId($save_ter_inv);
+                    // $next_pay_date = $next_pay_date->toDateString();
+                    // $next_pay_date = (array) $next_pay_date;
+                    // $updated_pay = (array) $updated_pay;
+
+                    // $output = array_combine($next_pay_date, $updated_pay);
+                    // $output = json_encode($output);
+
+                    $save_ter_pay_info = array(
+                        'user_id' => $user_id,
+                        'pay_amount' => $updated_pay,
+                        'pay_date' => $next_pay_date
+                    );
+
+
+                    $save_ter_pay = DB::table('termination_payments')->insertGetId($save_ter_pay_info);
                 } elseif ($inv_subtype_id == 2) {
                     $principal = $amount_after_ter;
                     $interestRate = 0.2;

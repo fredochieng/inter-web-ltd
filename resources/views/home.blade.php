@@ -243,7 +243,9 @@
 </div>
 @endif
 @stop
-@section('css') @stop @section('js') <script>
+@section('css')
+@stop @section('js')
+<script>
     Chart.defaults.doughnutLabels = Chart.helpers.clone(Chart.defaults.doughnut);
 
 var helpers = Chart.helpers;

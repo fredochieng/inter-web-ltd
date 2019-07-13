@@ -217,25 +217,67 @@ class ReportController extends Controller
     {
         $data['tot_payable'] = DB::table('payment_schedule')
             ->select(
-                DB::raw('sum(tot_payable_amnt) as user_tot_payable, account_no_id '),
+                DB::raw('sum(tot_payable_amnt) as user_tot_payable '),
                 DB::raw('payment_schedule.*'),
                 DB::raw('accounts.*'),
+                DB::raw('investments.account_no_id AS inv_account_no_id'),
+                DB::raw('investments.termination_type'),
                 DB::raw('user_pay_modes.*'),
                 DB::raw('users.*')
             )
 
             ->leftJoin('accounts', 'payment_schedule.account_no_id', 'accounts.id')
+            ->leftJoin('investments', 'payment_schedule.account_no_id', 'investments.account_no_id')
             ->leftJoin('user_pay_modes', 'accounts.user_id', 'user_pay_modes.user_id')
             ->leftJoin('users', 'accounts.user_id', 'users.id')
             ->groupBy('payment_schedule.account_no_id')
             ->where('users.id', '=', $id)
             ->first();
 
-        if ($data['tot_payable']->topped_up == 0) {
+
+        $terminated = $data['tot_payable']->termination_type;
+
+
+        if ($data['tot_payable']->topped_up == 0 && $terminated == '') {
 
             $data['next_amount'] =  $data['tot_payable']->monthly_amount;
             $data['to_be_paid'] =  $data['next_amount'];
-        } else {
+        } elseif ($data['tot_payable']->topped_up == 0 && $terminated != '') {
+            // $data['next_amount'] =  $data['tot_payable']->updated_monthly_pay_ter + $tot_comm;
+            $termination_payments =  DB::table('termination_payments')
+                ->select(
+                    DB::raw('termination_payments.*'),
+                    DB::raw('users.*')
+                )
+                ->leftJoin('users', 'termination_payments.user_id', '=', 'users.id')
+                ->where('users.id', '=', $id)
+                ->orderBy('termination_payments.ter_pay_id', 'desc')->first();
+
+            if ($termination_payments) {
+
+                $payment_amount =  $termination_payments->pay_amount;
+                $payment_date =  $termination_payments->pay_date;
+
+                $ter_payments = DB::table('payments')
+                    ->select(
+                        DB::raw('payments.*'),
+                        DB::raw('accounts.*'),
+                        DB::raw('users.*')
+                    )
+                    ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+                    ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+                    ->where('users.id', '=', $id)
+                    ->where('payments.payment_amount', '=', $payment_amount)
+                    ->where('payments.user_pay_date', '=', $payment_date)
+                    ->orderBy('payments.payment_id', 'desc')->first();
+
+                if ($ter_payments) {
+                    $data['to_be_paid'] =  $data['tot_payable']->monthly_amount;
+                } else {
+                    $data['to_be_paid'] =  $data['tot_payable']->updated_monthly_pay_ter;
+                }
+            }
+        } elseif ($data['tot_payable']->topped_up == 1 && $terminated == '') {
             $data['updated_next_pay'] =  $data['tot_payable']->updated_next_pay;
             // CHECK IF THE UPDATED NEXT PAY HAS BEEN PAID
             $data['client_payments'] = DB::table('payments')
@@ -257,11 +299,43 @@ class ReportController extends Controller
                 $data['to_be_paid'] =  $data['tot_payable']->updated_next_pay;
                 // $data['next_amount'] =  $data['tot_payable']->updated_next_pay;
             }
+        } elseif ($data['tot_payable']->topped_up == 1 && $terminated != '') {
+            $termination_payments =  DB::table('termination_payments')
+                ->select(
+                    DB::raw('termination_payments.*'),
+                    DB::raw('users.*')
+                )
+                ->leftJoin('users', 'termination_payments.user_id', '=', 'users.id')
+                ->where('users.id', '=', $id)
+                ->orderBy('termination_payments.ter_pay_id', 'desc')->first();
+
+            $payment_amount =  $termination_payments->pay_amount;
+            $payment_date =  $termination_payments->pay_date;
+
+            $ter_payments = DB::table('payments')
+                ->select(
+                    DB::raw('payments.*'),
+                    DB::raw('accounts.*'),
+                    DB::raw('users.*')
+                )
+                ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+                ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+                ->where('users.id', '=', $id)
+                ->where('payments.payment_amount', '=', $payment_amount)
+                ->where('payments.user_pay_date', '=', $payment_date)
+                ->orderBy('payments.payment_id', 'desc')->first();
+
+            if ($ter_payments) {
+                $data['to_be_paid'] =  $data['tot_payable']->monthly_amount;
+            } else {
+                $data['to_be_paid'] =  $data['tot_payable']->updated_monthly_pay_ter;
+            }
         }
+
 
         if ($data['tot_payable']->comp_monthly_pay == '') {
 
-            $data['to_be_paid'] = $data['to_be_paid'];
+            //  $data['to_be_paid'] = $data['to_be_paid'];
             // $data['to_be_paid'] = $data['tot_payable']->monthly_amount;
             $data['updated_monthly_amnt'] = $data['tot_payable']->updated_next_pay;
 

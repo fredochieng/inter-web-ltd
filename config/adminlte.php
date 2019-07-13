@@ -132,6 +132,11 @@ return [
                     'url'     => '/customers',
                     'icon' => 'search'
                 ],
+                [
+                    'text'    => 'Restricted Clients',
+                    'url'     => '/users/commission_restrictions',
+                    'icon' => 'search'
+                ],
             ],
         ],
         [

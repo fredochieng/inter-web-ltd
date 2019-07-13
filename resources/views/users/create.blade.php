@@ -11,10 +11,10 @@
 <div class="box box-info">
     <div class="box-header with-border">
         {{--  <h3 class="box-title">ADD NEW CLIENT</h3>  --}}
-        <div class="pull-left">
+        {{-- <div class="pull-left">
             <a href="#" data-target="#modal_restrict_referal" data-toggle="modal" class="btn btn-primary"
                 data-backdrop="static" data-keyboard="false"><i class="fa fa-plus"></i> Restrict Referal </a>
-        </div>
+        </div> --}}
         <div class="box-tools">
             <a href="#" data-target="#modal_blacklist_client" data-toggle="modal" class="btn btn-block btn-primary"
                 data-backdrop="static" data-keyboard="false"><i class="fa fa-plus"></i> Blacklist Phone/ID Number </a>

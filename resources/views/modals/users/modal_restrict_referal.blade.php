@@ -8,7 +8,7 @@
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                         aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title">
-                    Blacklistdtd client from being referred again
+                    Restrict the number of times a client should earn a commission
                 </h4>
             </div>
             <div class="modal-body">
@@ -43,8 +43,8 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-default btn-flat" aria-label="Close" data-dismiss="modal"><i
                         class="fa fa-times"></i>Cancel</button>
-                <button type="submit" class="btn btn-primary btn-flat"><i class="fa fa-check"></i> Blacklist
-                    Client</button>
+                <button type="submit" class="btn btn-primary btn-flat"><i class="fa fa-check"></i> Restrict
+                    Referal</button>
             </div>
             {!! Form::close() !!}
 

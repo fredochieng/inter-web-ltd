@@ -600,8 +600,7 @@ class UserController extends Controller
      */
     public function edit($id = null)
     {
-        // echo (min(1, 2) . "<br>");
-        // exit;
+
         // GET PAYMENT METHODS AND BANKS
         $data['payment_mode'] = PaymentMethod::getPaymentMethods();
         $data['banks'] = Bank::getBanks();
@@ -636,10 +635,6 @@ class UserController extends Controller
             ->where('users.id', '=', $id)
             ->first();
 
-        // echo "<pre>";
-        // print_r($data['customer_data']);
-        // exit;
-
         // GET CLIENT REFERALS AND ALL THE RELATED DATA (INVESTMENTS, TOPUPS)
         // FETCH CLIENTS DETAILS AND INVESTMENTS
         $data['referer'] = DB::table('users')
@@ -670,11 +665,6 @@ class UserController extends Controller
             ->where('users.refered_by', '=', $id)
             ->where('investments.inv_status_id', '=', 1)
             ->get();
-
-        // echo "<pre>";
-        // print_r($data['referer']);
-        // exit;
-
 
         // GET CLIENT TOPUP HISTORY FOR REFEREE
 
@@ -757,13 +747,6 @@ class UserController extends Controller
         $topup_dates = json_decode(json_encode($referer_topups), true);
         $topup_dates = array_column($topup_dates, 'topped_at');
 
-        // GET REFEREE CLIENT NEXT PAYMENT DATE AND CONVERT TO AN ARRAY
-
-        // echo "<pre>";
-        // print_r($pay_dates);
-        // echo "<pre>";
-        // print_r($user_pay_dates);
-        // exit;
         $next_pay = array_diff($pay_dates, $user_pay_dates);
         if (empty($next_pay)) {
             $data['next_pay_date'] = 'FULLY PAID';
@@ -904,11 +887,66 @@ class UserController extends Controller
             ->where('users.id', '=', $id)
             ->first();
 
-        if ($data['tot_payable']->topped_up == 0) {
 
+        $terminated = $data['customer_investments']->termination_type;
+        // echo "<pre>";
+        // print_r($terminated);
+        // exit;
+        if ($data['tot_payable']->topped_up == 0 && $terminated == '') {
             // ADD THE EXPECTED PAYMENT AMOUNT PLUS THE COMMISSION
             $data['next_amount'] =  $data['tot_payable']->monthly_amount + $tot_comm;
-        } else {
+        } elseif ($data['tot_payable']->topped_up == 0 && $terminated != '') {
+            // $data['next_amount'] =  $data['tot_payable']->updated_monthly_pay_ter + $tot_comm;
+            //  echo "fred";
+            $termination_payments =  DB::table('termination_payments')
+                ->select(
+                    DB::raw('termination_payments.*'),
+                    DB::raw('users.*')
+                )
+                ->leftJoin('users', 'termination_payments.user_id', '=', 'users.id')
+                ->where('users.id', '=', $id)
+                ->orderBy('termination_payments.ter_pay_id', 'desc')->first();
+
+            // echo "<pre>";
+            // print_r($termination_payments);
+            // exit;
+
+            $payment_amount =  $termination_payments->pay_amount;
+            $payment_date =  $termination_payments->pay_date;
+
+            $ter_payments = DB::table('payments')
+                ->select(
+                    DB::raw('payments.*'),
+                    DB::raw('accounts.*'),
+                    DB::raw('users.*')
+                )
+                ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+                ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+                ->where('users.id', '=', $id)
+                ->where('payments.payment_amount', '=', $payment_amount)
+                ->where('payments.user_pay_date', '=', $payment_date)
+                ->orderBy('payments.payment_id', 'desc')->first();
+
+            // echo "<pre>";
+            // print_r($ter_payments);
+            // exit;
+
+            if ($ter_payments) {
+                $data['next_amount'] =  $data['tot_payable']->monthly_amount + $tot_comm;
+                // echo "<pre>";
+                // print_r($data['next_amount']);
+                // exit;
+            } else {
+                $data['next_amount'] =  $data['tot_payable']->updated_monthly_pay_ter + $tot_comm;
+                // echo "<pre>";
+                // print_r($data['next_amount']);
+                // exit;
+            }
+            // echo "Steph";
+            // echo "<pre>";
+            // print_r($ter_payments);
+            // exit;
+        } elseif ($data['tot_payable']->topped_up == 1 && $terminated == '') {
             $data['updated_next_pay'] =  $data['tot_payable']->updated_next_pay + $tot_comm;
 
             // CHECK IF THE UPDATED NEXT PAY HAS BEEN PAID
@@ -929,11 +967,42 @@ class UserController extends Controller
             } else {
                 $data['next_amount'] =  $data['tot_payable']->updated_next_pay + $tot_comm;
             }
+        } elseif ($data['tot_payable']->topped_up == 1 && $terminated != '') {
+            $termination_payments =  DB::table('termination_payments')
+                ->select(
+                    DB::raw('termination_payments.*'),
+                    DB::raw('users.*')
+                )
+                ->leftJoin('users', 'termination_payments.user_id', '=', 'users.id')
+                ->where('users.id', '=', $id)
+                ->orderBy('termination_payments.ter_pay_id', 'desc')->first();
+
+            $payment_amount =  $termination_payments->pay_amount;
+            $payment_date =  $termination_payments->pay_date;
+
+            $ter_payments = DB::table('payments')
+                ->select(
+                    DB::raw('payments.*'),
+                    DB::raw('accounts.*'),
+                    DB::raw('users.*')
+                )
+                ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+                ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+                ->where('users.id', '=', $id)
+                ->where('payments.payment_amount', '=', $payment_amount)
+                ->where('payments.user_pay_date', '=', $payment_date)
+                ->orderBy('payments.payment_id', 'desc')->first();
+
+            if ($ter_payments) {
+                $data['next_amount'] =  $data['tot_payable']->monthly_amount + $tot_comm;
+            } else {
+                $data['next_amount'] =  $data['tot_payable']->updated_monthly_pay_ter + $tot_comm;
+            }
         }
 
         $data['tot_comm'] = $tot_comm;
 
-        //echo 'Referee Next Payment Amount: ' . ' KSHS ' . $data['next_amount'];
+        //  echo 'Referee Next Payment Amount: ' . ' KSHS ' . $data['next_amount'];
         //exit;
 
         // GET CLIENT PAYMENT HISTORY FOR BOTH MONTHLY AND COMPOUNDED
