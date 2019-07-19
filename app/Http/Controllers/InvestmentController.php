@@ -647,15 +647,8 @@ class InvestmentController extends Controller
                     $new_tot_investment = $tot_inv_amount - $amount_terminated;
                     $new_monthly_inv = $monthly_inv - $amount_terminated;
 
-                    if ($topped == 0 && $terminated == '') {
-                        $updated_pay = $amount_terminated + $monthly_amount;
-                    } elseif ($topped == 1 && $terminated == '') {
-                        $updated_pay = $amount_terminated + $updated_monthly_pay;
-                    } elseif ($topped == '' && $terminated != '') {
-                        $updated_pay = $amount_terminated + $monthly_amount;
-                    } elseif ($topped == 1 && $terminated != '') {
-                        $updated_pay = $amount_terminated + $updated_monthly_pay_ter;
-                    }
+
+                    $updated_pay = $amount_terminated + $monthly_pay;
 
                     $save_account_data = DB::table('accounts')->where('id', $account_no_id)->update(['total_due_payments' => $new_due_pay]);
 
