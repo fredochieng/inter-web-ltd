@@ -121,7 +121,7 @@
                     <td style=""><strong> COMPOUND PAYMENT DATE :</strong>{{$customer_investments->last_pay_date}}</td>
                     @elseif ($customer_data->inv_type_id == 3 && $approved == 'N')
                     <td style=""><strong> COMPOUND AMOUNT :</strong>N/A
-                    </td>tot_comp_amount
+                    </td>
                     @elseif ($customer_data->inv_type_id == 3 && $approved == 'Y' && $customer_data->tot_comp_amount ==
                     0)
                     <td style=""><strong> COMPOUND AMOUNT :</strong>N/A

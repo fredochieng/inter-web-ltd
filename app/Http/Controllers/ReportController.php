@@ -220,6 +220,8 @@ class ReportController extends Controller
                 DB::raw('sum(tot_payable_amnt) as user_tot_payable '),
                 DB::raw('payment_schedule.*'),
                 DB::raw('accounts.*'),
+                DB::raw('investments.inv_type_id'),
+                DB::raw('investments.last_pay_date'),
                 DB::raw('investments.account_no_id AS inv_account_no_id'),
                 DB::raw('investments.termination_type'),
                 DB::raw('user_pay_modes.*'),
@@ -342,8 +344,106 @@ class ReportController extends Controller
             return $data['to_be_paid'];
         } elseif ($data['tot_payable']->monthly_amount == '' && $data['tot_payable']->comp_monthly_pay != '') {
 
-            $data['to_be_paid1'] = $data['tot_payable']->total_due_payments;
-            // $data['to_be_paid1'] = $data['tot_payable']->tot_payable_amnt;
+            $client_monthly_com = DB::table('payment_schedule')
+                ->select(
+                    DB::raw('payment_schedule.*'),
+                    DB::raw('accounts.id as acc_id'),
+                    DB::raw('users.id as user_idd')
+                )
+
+                ->leftJoin('accounts', 'payment_schedule.account_no_id', 'accounts.id')
+                ->leftJoin('users', 'accounts.user_id', 'users.id')
+                ->where('users.id', '=', $id)
+                ->first();
+
+            $comp_pay_date = $data['tot_payable']->last_pay_date;
+
+            $comp_payment_amount = $client_monthly_com->tot_payable_amnt;
+
+            $payment_exist = DB::table('payments')
+                ->select(
+                    DB::raw('payments.*'),
+                    DB::raw('accounts.*'),
+                    DB::raw('users.*')
+                )
+                ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+                ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+                ->where('users.id', '=', $id)
+                ->where('payments.payment_amount', '=', $comp_payment_amount)
+                ->where('payments.user_pay_date', '=', $comp_pay_date)
+                ->orderBy('payments.payment_id', 'desc')->first();
+
+            if (empty($payment_exist)) {
+                $data['comp_paid'] = 'N';
+            } else {
+                $data['comp_paid'] = 'Y';
+            }
+
+            $today = Carbon::now('Africa/Nairobi')->toDateString();
+            $today = '2020-03-19';
+
+            if ($data['comp_paid'] = 'N' && $comp_pay_date != $today) {
+
+                // $data['to_be_paid1'] = 0;
+
+                // if ($terminated) {
+                //     $data['to_be_paid1'] = $data['tot_payable']->total_due_payments;
+                // } else {
+                //     $data['to_be_paid1'] = 0;
+                // }
+
+
+                if ($terminated) {
+
+                    $termination_payments =  DB::table('termination_payments')
+                        ->select(
+                            DB::raw('termination_payments.*'),
+                            DB::raw('users.*')
+                        )
+                        ->leftJoin('users', 'termination_payments.user_id', '=', 'users.id')
+                        ->where('users.id', '=', 7)
+                        ->orderBy('termination_payments.ter_pay_id', 'desc')->first();
+
+                    $payment_amount =  $termination_payments->pay_amount;
+                    $payment_date =  $termination_payments->pay_date;
+
+                    $ter_payments = DB::table('payments')
+                        ->select(
+                            DB::raw('payments.*'),
+                            DB::raw('accounts.*'),
+                            DB::raw('users.*')
+                        )
+                        ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+                        ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+                        ->where('users.id', '=', 7)
+                        ->where('payments.payment_amount', '=', $payment_amount)
+                        ->where('payments.user_pay_date', '=', $payment_date)
+                        ->orderBy('payments.payment_id', 'desc')->first();
+
+                    // echo "<pre>";
+                    // print_r($ter_payments);
+                    // exit;
+
+                    if ($ter_payments) {
+
+                        if ($comp_pay_date == $today) {
+
+                            $data['to_be_paid1'] = $data['tot_payable']->total_due_payments;
+                        } else {
+                            $data['to_be_paid1'] = 0;
+                        }
+                    } else {
+                        // echo "Unpaid";
+                        $data['to_be_paid1'] = $payment_amount;
+                    }
+                    //  $data['comp_payable_amout'] = $data['customer_data']->total_due_payments  + $tot_comm;
+                } else {
+
+                    $data['to_be_paid1'] = $data['tot_payable']->total_due_payments;
+                }
+            } elseif ($data['comp_paid'] = 'N' && $comp_pay_date == $today) {
+                $data['to_be_paid1'] = $data['tot_payable']->total_due_payments;
+            }
 
             return $data['to_be_paid1'];
         } elseif ($data['tot_payable']->comp_monthly_pay != '' && $data['tot_payable']->monthly_amount != '') {

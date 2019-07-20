@@ -177,7 +177,13 @@ class PaymentController extends Controller
                 if ($inv_type == 3) {
                     $client_due_payaments = $client_tot_payable - $payment->total_paid;
                 } elseif ($inv_type == 2) {
-                    $client_due_payaments = $client_tot_payable - $comp_payment_amount;
+                    if ($client_tot_payable < $comp_payment_amount) {
+
+                        $client_due_payaments = $client_tot_payable;
+                    } else {
+
+                        $client_due_payaments = $client_tot_payable - $comp_payment_amount;
+                    }
                 }
 
                 $pay_times = $request->input('pay_times');
@@ -204,11 +210,32 @@ class PaymentController extends Controller
                 $acc_balances = DB::table('accounts')->where('id',  $just_saved_account_id)
                     ->update($data['account_balance_array']);
 
-                DB::table('payment_schedule')->where('account_no_id', $just_saved_account_id)->update(
-                    [
-                        'payment_times' => $new_pay_times
-                    ]
-                );
+                if ($inv_type == 3) {
+
+                    if ($client_tot_payable == $payment->total_paid) {
+
+                        $save_user_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $just_saved_account_id)
+                            ->update([
+                                'tot_payable_amnt' => 0, 'monthly_amount' => 0, 'updated_next_pay' => 0, 'updated_monthly_pay' => 0
+                            ]);
+
+                        $save_investment_data = DB::table('investments')->where('account_no_id', $just_saved_account_id);
+                    } else {
+                        DB::table('payment_schedule')->where('account_no_id', $just_saved_account_id)->update(
+                            [
+                                'payment_times' => $new_pay_times
+                            ]
+                        );
+                    }
+                } else {
+
+                    DB::table('payment_schedule')->where('account_no_id', $just_saved_account_id)->update(
+                        [
+                            'payment_times' => $new_pay_times
+                        ]
+                    );
+                }
+
                 DB::commit();
 
                 toast('New payment added successfully', 'success', 'top-right');
@@ -414,7 +441,7 @@ class PaymentController extends Controller
 
         $per_page = $request->input('length', 10);
         $start = $request->input('start', 1);
-        $page = (int)($start / $per_page);
+        $page = (int) ($start / $per_page);
         $query = User::query();
         $query->join('users_details AS UD', 'UD.user_id', 'users.id');
         $query->join('accounts AS AC', 'AC.user_id', 'users.id');

@@ -499,7 +499,8 @@ class UserController extends Controller
                     'pay_mpesa_no' => $user->pay_mpesa_no,
                     'pay_bank_id' => $user->pay_bank_id,
                     'pay_bank_acc' => $user->pay_bank_acc,
-                    'pay_dates' => date('Y-m-d', strtotime($last_pay_date))
+                    // 'pay_dates' => date('Y-m-d', strtotime($last_pay_date))
+                    'pay_dates' => $pay_dates
                 );
                 $save_user_payment_data = DB::table('user_pay_modes')->insertGetId($user_payment_mode);
             } else {
@@ -896,8 +897,7 @@ class UserController extends Controller
             // ADD THE EXPECTED PAYMENT AMOUNT PLUS THE COMMISSION
             $data['next_amount'] =  $data['tot_payable']->monthly_amount + $tot_comm;
         } elseif ($data['tot_payable']->topped_up == 0 && $terminated != '') {
-            // $data['next_amount'] =  $data['tot_payable']->updated_monthly_pay_ter + $tot_comm;
-            //  echo "fred";
+            // echo "Chris";
             $termination_payments =  DB::table('termination_payments')
                 ->select(
                     DB::raw('termination_payments.*'),
@@ -906,10 +906,6 @@ class UserController extends Controller
                 ->leftJoin('users', 'termination_payments.user_id', '=', 'users.id')
                 ->where('users.id', '=', $id)
                 ->orderBy('termination_payments.ter_pay_id', 'desc')->first();
-
-            // echo "<pre>";
-            // print_r($termination_payments);
-            // exit;
 
             $payment_amount =  $termination_payments->pay_amount;
             $payment_date =  $termination_payments->pay_date;
@@ -927,26 +923,18 @@ class UserController extends Controller
                 ->where('payments.user_pay_date', '=', $payment_date)
                 ->orderBy('payments.payment_id', 'desc')->first();
 
-            // echo "<pre>";
-            // print_r($ter_payments);
-            // exit;
-
             if ($ter_payments) {
+
                 $data['next_amount'] =  $data['tot_payable']->monthly_amount + $tot_comm;
-                // echo "<pre>";
-                // print_r($data['next_amount']);
-                // exit;
             } else {
+
+                // $data['next_amount'] =  $data['tot_payable']->updated_monthly_pay + $tot_comm;
                 $data['next_amount'] =  $data['tot_payable']->updated_monthly_pay_ter + $tot_comm;
-                // echo "<pre>";
-                // print_r($data['next_amount']);
-                // exit;
             }
-            // echo "Steph";
-            // echo "<pre>";
-            // print_r($ter_payments);
-            // exit;
+
+            //  echo   $data['next_amount'];
         } elseif ($data['tot_payable']->topped_up == 1 && $terminated == '') {
+
             $data['updated_next_pay'] =  $data['tot_payable']->updated_next_pay + $tot_comm;
 
             // CHECK IF THE UPDATED NEXT PAY HAS BEEN PAID
@@ -968,6 +956,7 @@ class UserController extends Controller
                 $data['next_amount'] =  $data['tot_payable']->updated_next_pay + $tot_comm;
             }
         } elseif ($data['tot_payable']->topped_up == 1 && $terminated != '') {
+
             $termination_payments =  DB::table('termination_payments')
                 ->select(
                     DB::raw('termination_payments.*'),
@@ -1000,10 +989,11 @@ class UserController extends Controller
             }
         }
 
-        $data['tot_comm'] = $tot_comm;
+        $data['next_amount'] =  $data['next_amount'];
 
-        //  echo 'Referee Next Payment Amount: ' . ' KSHS ' . $data['next_amount'];
-        //exit;
+        Session::put('next_amount', $data['next_amount']);
+
+        $data['tot_comm'] = $tot_comm;
 
         // GET CLIENT PAYMENT HISTORY FOR BOTH MONTHLY AND COMPOUNDED
 
@@ -1081,6 +1071,13 @@ class UserController extends Controller
         $data['real_tot_inv'] =  $data['c_tot_inv'];
         // $data['real_tot_inv'] =  $data['c_tot_inv'] - $data['c_tot_topups'];
 
+
+        if ($data['customer_data']->inv_status_id == 0) {
+
+            $data['approved'] = "N";
+        } else {
+            $data['approved'] = "Y";
+        }
         // GET CLIENT PAYMENTS COMPOUNDED
 
         $client_payments_comp = DB::table('payments')
@@ -1113,15 +1110,98 @@ class UserController extends Controller
             ->where('users.id', '=', $id)
             ->first();
 
-        if ($data['customer_data']->inv_status_id == 0) {
+        if ($data['customer_data']->inv_type == 2) {
+            $comp_payment_amount = $client_monthly_com->tot_payable_amnt;
 
-            $data['approved'] = "N";
-            $data['comp_payable_amout'] = $data['customer_data']->total_due_payments = 0;
-        } else {
-            $data['approved'] = "Y";
-            $data['comp_payable_amout'] = $data['customer_data']->total_due_payments + $tot_comm;
+            $payment_exist = DB::table('payments')
+                ->select(
+                    DB::raw('payments.*'),
+                    DB::raw('accounts.*'),
+                    DB::raw('users.*')
+                )
+                ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+                ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+                ->where('users.id', '=', $id)
+                ->where('payments.payment_amount', '=', $comp_payment_amount)
+                ->where('payments.user_pay_date', '=', $comp_pay_date)
+                ->orderBy('payments.payment_id', 'desc')->first();
+
+            if (empty($payment_exist)) {
+
+                $data['comp_paid'] = 'N';
+            } else {
+
+                $data['comp_paid'] = 'Y';
+            }
         }
 
+        $today = Carbon::now('Africa/Nairobi')->toDateString();
+        $today = '2020-03-19';
+
+        if ($data['customer_data']->inv_type == 2) {
+            if ($data['customer_data']->inv_status_id == 0) {
+
+                $data['approved'] = "N";
+                $data['comp_payable_amout'] = $data['customer_data']->total_due_payments = 0;
+            } elseif ($data['customer_data']->inv_status_id == 1 &&  $data['comp_paid'] = 'N' && $comp_pay_date != $today) {
+                //echo "Christine";
+                $data['approved'] = "Y";
+                if ($terminated) {
+
+                    $termination_payments =  DB::table('termination_payments')
+                        ->select(
+                            DB::raw('termination_payments.*'),
+                            DB::raw('users.*')
+                        )
+                        ->leftJoin('users', 'termination_payments.user_id', '=', 'users.id')
+                        ->where('users.id', '=', $id)
+                        ->orderBy('termination_payments.ter_pay_id', 'desc')->first();
+
+                    $payment_amount =  $termination_payments->pay_amount;
+                    $payment_date =  $termination_payments->pay_date;
+
+                    $ter_payments = DB::table('payments')
+                        ->select(
+                            DB::raw('payments.*'),
+                            DB::raw('accounts.*'),
+                            DB::raw('users.*')
+                        )
+                        ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
+                        ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+                        ->where('users.id', '=', 7)
+                        ->where('payments.payment_amount', '=', $payment_amount)
+                        ->where('payments.user_pay_date', '=', $payment_date)
+                        ->orderBy('payments.payment_id', 'desc')->first();
+
+                    // echo "<pre>";
+                    // print_r($ter_payments);
+                    // exit;
+
+                    if ($ter_payments) {
+                        // echo "PAid";
+                        if ($comp_pay_date == $today) {
+                            $data['comp_payable_amout'] = $data['customer_data']->total_due_payments  + $tot_comm;
+                        } else {
+                            $data['comp_payable_amout'] = 0;
+                            $data['comp_payable_amout'] = $data['comp_payable_amout'] + $tot_comm;
+                        }
+                    } else {
+                        // echo "Unpaid";
+                        $data['comp_payable_amout'] = $payment_amount  + $tot_comm;
+                    }
+                    //  $data['comp_payable_amout'] = $data['customer_data']->total_due_payments  + $tot_comm;
+                } else {
+
+                    $data['comp_payable_amout'] = $data['customer_data']->total_due_payments  + $tot_comm;
+                }
+            } elseif ($data['customer_data']->inv_status_id == 1 &&  $data['comp_paid'] = 'N' && $comp_pay_date == $today) {
+
+                $data['approved'] = "Y";
+                $data['comp_payable_amout'] = $data['customer_data']->total_due_payments  + $tot_comm;
+            }
+            // echo $data['comp_payable_amout'];
+            // exit;
+        }
         // GET CLIENT PAYMENTS COMPOUNDED
 
         $next_pay_comp = DB::table('payments')
@@ -1212,7 +1292,7 @@ class UserController extends Controller
         }
 
         $today = Carbon::parse('Africa/Nairobi')->now()->toDateString();
-        $today = '2019-08-06';
+        // $today = '2019-08-06';
         if ($today == $data['next_pay_date']) {
             $data['pay_day'] = 'Y';
         } else {
