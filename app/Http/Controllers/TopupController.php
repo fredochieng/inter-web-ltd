@@ -51,18 +51,12 @@ class TopupController extends Controller
             $topup = new Topup();
             $inv_id = $request->input('inv_id');
             $data['investments'] = Topup::getInvestments($inv_id);
-            // echo "<pre>";
-            // print_r($data['investments']->investment_amount);
-            // exit;
+
             $next_pay_date = new Carbon(Session::get('next_pay_day'));
             $pay_times = $data['investments']->payment_times;
 
             $topup_date = $request->input('topup_date');
             $number_of_days = $next_pay_date->diffInDays($topup_date);
-
-            // $number_of_days = 4;
-            // echo $number_of_days;
-            // exit;
 
             $inv_type = $request->input('inv_type_id');
             $user_id = $request->input('user_id');
@@ -78,22 +72,16 @@ class TopupController extends Controller
             $topup->topped_at = $request->input('topup_date');
             $referee_id = $request->input('referee_id');
 
-            // echo $request->input('inv_bank_id');
-            // exit;
-
-
             $interest_rate = 0.2;
             $days = 30;
             $interest = $interest_rate * $topup->topup_amount;
             $top_int = floor(($interest * $number_of_days) / $days);
 
-            // echo $top_int;
-            // exit;
-
             $topup_comm_per = 0.05;
             $topup_comm = $topup_comm_per *  $topup->topup_amount;
+            $tot_topup_comm = $topup_comm * 6;
             $topup->topup_comm = $topup_comm;
-
+            $topup->tot_topup_comm = $tot_topup_comm;
 
             if (!empty($referee_id)) {
                 $referee_data = DB::table('accounts')

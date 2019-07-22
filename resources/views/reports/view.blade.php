@@ -25,6 +25,7 @@
                         </div>
                     </div>
 
+                    <input type="hidden" name="pay_mode_id" value="{{$pay_id}}">
                     <div class="col-md-4">
                         {{Form::label('Payment Bank ')}}
                         <div class="form-group">
@@ -70,21 +71,11 @@
                             {{$start_date}} - {{$end_date}}</h3>
                     </div>
                     <table class="table table-no-margin">
-
                         <div class="btn-group  btn-sm" style="margin-left:930px;">
-                            <button type="button" class="btn btn-info btn-flat"><i class="fa fa-align-justify"></i>
-                                Action</button>
-                            <button type="button" class="btn btn-info btn-flat dropdown-toggle" data-toggle="dropdown"
-                                aria-expanded="false">
-                                <span class="caret"></span>
-                                <span class="sr-only">Toggle Dropdown</span>
-                            </button>
-                            <ul class="dropdown-menu" role="menu">
-                                <li><a href="/report/excel/generate?date_range={{$start_date}} - {{$end_date}}"
-                                        id='csv'><i class="fa fa-file-o"></i> Export to CSV</a></li>
-                                <li><a href="#"><i class="fa fa-file-excel-o"></i> Export to Excel</a></li>
-                                <li><a href="#"><i class="fa fa-file-pdf-o"></i> Export to PDF</a></li>
-                            </ul>
+                            <a href="/report/excel/generate?date_range=<?php echo $start_date .' - '. $end_date ?>&pay_mode_id=<?php echo $pay_id ?>"
+                                class="btn btn-info btn-flat"><strong>EXPORT
+                                    TO EXCEL</strong></a>
+
 
                         </div>
 
@@ -200,6 +191,8 @@
                                 @if($item->inv_type_id ==1)
                                 <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
                                 @elseif ($item->inv_type_id ==2)
+                                <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
+                                @elseif ($item->inv_type_id ==3)
                                 <td>Kshs {{ number_format($item->to_be_paid, 2, '.', ',')}}</td>
                                 @endif
                                 <td>{{$item->next_pay_date}}</td>

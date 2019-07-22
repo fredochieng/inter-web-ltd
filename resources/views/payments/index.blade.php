@@ -48,9 +48,6 @@
                             <a class="viewModal btn btn-info btn-sm" title="View Payment" href="#" data-toggle="modal"
                                 data-target="#modal-view-payment_{{$row->payment_id}}" data-backdrop="static"
                                 data-keyboard="false"><i class="fa fa-eye"></i></a> <a
-                                class="btn btn-primary btn-sm editTrans" title="Approve Investment" href="#"><i
-                                    class="fa fa-pencil"></i></a> <a class="btn btn-danger btn-sm"
-                                title="Delete Transaction" href=""><i class="fa fa-trash"></i></a> <a
                                 class="btn bg-olive btn-sm subsPopup" title="View Client"
                                 href="/client/{{$row->user_id}}/edit" data-href="/customer/{{$row->id}}"><i
                                     class="fa fa-user"></i></a></td>

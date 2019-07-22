@@ -12,6 +12,9 @@
                 <input type="hidden" name="account_id" value="{{$customer_data->accnt_id}}">
                 <input type="hidden" name="inv_type" value="{{$customer_data->inv_type_id}}">
                 <input type="hidden" name="pay_times" value="{{$customer_data->payment_times}}">
+                <input type="hidden" name="inv_type" value="{{$customer_data->inv_type_id}}">
+                <input type="hidden" name="user_id" value="{{$customer_data->user_id}}">
+                <input type="hidden" name="comm_paid" value="{{$tot_comm}}">
                 {{--  First row  --}}
                 <div class="row">
                     {{--  // row 1  --}}

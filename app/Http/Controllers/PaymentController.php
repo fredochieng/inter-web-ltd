@@ -79,6 +79,7 @@ class PaymentController extends Controller
         } else {
 
             try {
+
                 $payment = new Payment();
                 $payment->account_no_id = $request->input('account_id');
                 $payment_amount = $request->input('monthly_pay');
@@ -110,6 +111,147 @@ class PaymentController extends Controller
                 $tot_comp_amount = str_replace('Kshs', '',  $tot_comp_amount);
                 $tot_comp_amount = str_replace(',', '',  $tot_comp_amount);
                 $tot_comp_amount = str_replace('.00', '',  $tot_comp_amount);
+
+                $user_id = $request->input('user_id');
+
+                // FETCH CLIENTS DETAILS AND INVESTMENTS
+                $referees = DB::table('users')
+                    ->select(
+                        DB::raw('users.*'),
+                        DB::raw('users.id as referee_id'),
+                        DB::raw('users_details.*'),
+                        DB::raw('accounts.*'),
+                        DB::raw('accounts.id AS accnt_id'),
+                        DB::raw('investments.*'),
+                        DB::raw('investments.account_no_id as inv_acc_id'),
+                        DB::raw('investments.created_at as inv_created_at'),
+                        DB::raw('investments.updated_at as inv_updated_at'),
+                        DB::raw('user_pay_modes.*'),
+                        DB::raw('inv_types.*'),
+                        DB::raw('payment_schedule.*'),
+                        DB::raw('payment_schedule.monthly_amount'),
+                        DB::raw('payments.*'),
+                        DB::raw('payment_methods.*'),
+                        DB::raw('banks.*')
+                    )
+                    ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
+                    ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')
+                    ->leftJoin('investments', 'accounts.id', '=', 'investments.account_no_id')
+                    ->leftJoin('inv_types', 'investments.inv_type_id', '=', 'inv_types.inv_id')
+                    ->leftJoin('user_pay_modes', 'users.id', '=', 'user_pay_modes.user_id')
+                    ->leftJoin('payment_schedule', 'accounts.id', '=', 'payment_schedule.account_no_id')
+                    ->leftJoin('payments', 'accounts.id', '=', 'payments.account_no_id')
+                    ->leftJoin('payment_methods', 'user_pay_modes.pay_mode_id', '=', 'payment_methods.method_id')
+                    ->leftJoin('banks', 'user_pay_modes.pay_bank_id', '=', 'banks.bank_id')
+                    ->where('users.refered_by', '=', $user_id)
+                    ->where('investments.inv_status_id', '=', 1)
+                    ->where('tot_inv_comm', '>', 0)
+                    ->get();
+
+                $referees->map(function ($item) {
+                    $item->tot_inv_comms = $item->tot_inv_comm;
+                    $item->inv_comms = $item->inv_comm;
+                    $item->updated_tot_inv_comm =  $item->tot_inv_comms -  $item->inv_comms;
+                    return $item;
+                });
+
+                $investment_ids = array();
+
+                foreach ($referees as $key => $invs) {
+
+                    $investment_ids[] = $invs->investment_id;
+                }
+
+                $referees_invs = DB::table('investments')
+                    ->select(
+                        DB::raw('investments.*')
+                    )
+                    ->whereIn('investment_id', $investment_ids)
+                    ->get();
+
+                $referees_invs->map(function ($item) {
+                    $item->tot_inv_comms = $item->tot_inv_comm;
+                    $item->inv_comms = $item->inv_comm;
+                    $item->updated_tot_inv_comm =  $item->tot_inv_comms -  $item->inv_comms;
+                    return $item;
+                });
+
+                foreach ($referees_invs as $key => $value) {
+
+                    $save = DB::table('investments')->upsert(
+                        [
+                            'investment_id' => $value->investment_id,
+                            'inv_status_id' => $value->inv_status_id, 'inv_date' => $value->inv_date,
+                            'trans_id' => $value->trans_id, 'account_no_id' => $value->account_no_id,
+                            'termination_type' => $value->termination_type, 'terminated_at' => $value->terminated_at,
+                            'initial_inv' => $value->initial_inv, 'inv_comm' => $value->inv_comm,
+                            'tot_inv_comm' => $value->updated_tot_inv_comm, 'investment_amount' => $value->investment_amount,
+                            'investment_duration' => $value->investment_duration, 'inv_type_id' => $value->inv_type_id,
+                            'inv_mode_id' => $value->inv_mode_id, 'monthly_inv' => $value->monthly_inv,
+
+                            'compounded_inv' => $value->compounded_inv, 'monthly_duration' => $value->monthly_duration,
+                            'comp_duration' => $value->comp_duration, 'mpesa_trans_code' => $value->mpesa_trans_code,
+                            'inv_bank_id' => $value->inv_bank_id, 'bank_trans_code' => $value->bank_trans_code,
+                            'inv_bank_cheq_id' => $value->inv_bank_cheq_id, 'cheque_no' => $value->cheque_no,
+                            'last_pay_date' => $value->last_pay_date, 'initiated_by' => $value->initiated_by,
+                            'created_at' => $value->created_at
+                        ],
+                        ['investment_id'],
+                        ['tot_inv_comm', 'updated_at']
+                    );
+                }
+
+                $referee_topups = DB::table('topups')
+                    ->select(
+                        DB::raw('topups.*'),
+                        DB::raw('topups.created_at AS topped_date'),
+                        DB::raw('accounts.id'),
+                        DB::raw('users.id')
+                    )
+                    ->leftJoin('accounts', 'topups.account_id', '=', 'accounts.id')
+                    ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+                    ->where('users.refered_by', '=', $user_id)
+                    ->orderBy('topups.topup_id', 'desc')
+                    ->where('tot_topup_comm', '>', 0)
+                    ->get();
+
+                $topups_ids = array();
+
+                foreach ($referee_topups as $key => $topups) {
+
+                    $topups_ids[] = $topups->topup_id;
+                }
+
+                $referees_topups = DB::table('topups')
+                    ->select(
+                        DB::raw('topups.*')
+                    )
+                    ->whereIn('topup_id', $topups_ids)
+                    ->get();
+
+                $referees_topups->map(function ($item) {
+                    $item->tot_topup_comms = $item->tot_topup_comm;
+                    $item->topup_comms = $item->topup_comm;
+                    $item->updated_tot_topup_comm =  $item->tot_topup_comms -  $item->topup_comm;
+                    return $item;
+                });
+
+                foreach ($referees_topups as $key => $value) {
+
+                    $save = DB::table('topups')->upsert(
+                        [
+                            'topup_id' => $value->topup_id, 'created_at' => $value->created_at,
+                            'account_id' => $value->account_id, 'topup_amount' => $value->topup_amount,
+                            'topup_comm' => $value->topup_comm, 'tot_topup_comm' => $value->updated_tot_topup_comm,
+                            'inv_mode_id' => $value->inv_mode_id, 'mpesa_trans_code' => $value->mpesa_trans_code,
+                            'inv_bank_id' => $value->inv_bank_id, 'bank_trans_code' => $value->bank_trans_code,
+                            'inv_bank_cheq_id' => $value->inv_bank_cheq_id, 'cheque_no' => $value->cheque_no,
+                            'topped_at' => $value->topped_at, 'served_by' => $value->served_by
+                        ],
+                        ['topup_id'],
+                        ['tot_topup_comm', 'updated_at']
+                    );
+                }
 
                 if (empty($tot_comp_amount)) {
                     $tot_comp_amount = 0;

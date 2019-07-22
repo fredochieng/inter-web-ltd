@@ -29,6 +29,7 @@ class Payment extends Model
             ->leftJoin('banks', 'client_payment_modes.pay_bank_id', '=', 'banks.bank_id')
             ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
             ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
+            ->where('payments.payment_amount', '>', 0)
             ->orderBy('payments.payment_id', 'desc')->get();
         return $data['payments'];
     }

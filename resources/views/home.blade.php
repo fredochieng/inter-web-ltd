@@ -193,54 +193,33 @@
     </div>
     <!-- /.col (RIGHT) -->
 </div>
-{{-- <div class="row">
+<div class="row">
     <div class="col-md-12">
-        <div class="box">
+        <!-- AREA CHART -->
+        <div class="box box-info">
             <div class="box-header with-border">
-                <h3 class="box-title">Monthly Recap Report</h3>
-
-                <div class="box-tools pull-right">
-                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-                    </button>
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-box-tool dropdown-toggle" data-toggle="dropdown">
-                            <i class="fa fa-wrench"></i></button>
-                        <ul class="dropdown-menu" role="menu">
-                            <li><a href="#">Action</a></li>
-                            <li><a href="#">Another action</a></li>
-                            <li><a href="#">Something else here</a></li>
-                            <li class="divider"></li>
-                            <li><a href="#">Separated link</a></li>
-                        </ul>
+                <h3 class="box-title">
+                    Payments History
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i
+                                class="fa fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i
+                                class="fa fa-times"></i></button>
                     </div>
-                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i
-                            class="fa fa-times"></i></button>
-                </div>
             </div>
-            <!-- /.box-header -->
             <div class="box-body">
-                <div class="row">
-                    <div class="col-md-12">
-                        <p class="text-center">
-                            <strong>Sales: 1 Jan, 2014 - 30 Jul, 2014</strong>
-                        </p>
-
-                        <div class="chart">
-                            <!-- Sales Chart Canvas -->
-                            <canvas id="chartJSContainer" style="height:400px; width:600px"></canvas>
-                        </div>
-                        <!-- /.chart-responsive -->
-                    </div>
+                <div class="chart">
+                    <canvas id="chartJSContainer" height="300"></canvas>
                 </div>
-                <!-- /.row -->
             </div>
-            <!-- ./box-body -->
+            <!-- /.box-body -->
         </div>
         <!-- /.box -->
     </div>
-    <!-- /.col -->
-</div> --}}
 </div>
+</div>
+
 @endif
 @stop
 @section('css')
@@ -413,50 +392,71 @@ animateRotate: true
 var ctx = document.getElementById("myChart").getContext("2d");
 new Chart(ctx, config);
 
-var options = {
-    type: 'line',
-    data: {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-datasets: [
-{
-    label               : 'Electronics',
-    fillColor           : 'rgba(210, 214, 222, 1)',
-    strokeColor         : 'rgba(210, 214, 222, 1)',
-    pointColor          : 'rgba(210, 214, 222, 1)',
-    pointStrokeColor    : '#c1c7d1',
-    pointHighlightFill  : '#fff',
-    pointHighlightStroke: 'rgba(220,220,220,1)',
-    data                : [65, 59, 80, 81, 56, 55, 40]
-},
-{
-    label               : 'Digital Goods',
-    fillColor           : 'rgba(60,141,188,0.9)',
-    strokeColor         : 'rgba(60,141,188,0.8)',
-    pointColor          : '#3b8bba',
-    pointStrokeColor    : 'rgba(60,141,188,1)',
-    pointHighlightFill  : '#fff',
-    pointHighlightStroke: 'rgba(60,141,188,1)',
-    data                : [28, 48, 40, 19, 86, 27, 90]
-}
-]
-},
-    options: {
-        scaleGridLineColor      : 'rgba(red)',
-    scales: {
-    yAxes: [{
+</script>
+<script>
+    // LINE CAHRT
+    Chart.defaults.scale.gridLines.display = false;
+    var options = {
+        type: 'line',
+        data: {
+            labels  : ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+            datasets: [
+              {
+                label               : 'Sent',
+                borderColor         : '#00a65a',
+                fillColor           : 'red',
+                strokeColor         : 'rgb(218, 107, 222)',
+                gridLines:false,
+                pointColor          : 'rgb(218, 107, 222)',
+                pointStrokeColor    : '#c1c7d1',
+                pointHighlightFill  : '#fff',
+                pointHighlightStroke: 'rgba(220,220,220,1)',
+               data                : [20, 48, 85, 87, 73, 56, 43, 13, 25, 43, 37, 36, 36, 34, 12]
+              },
+              {
+                label               : 'Delivered',
+                borderColor         : '#00c0ef',
+                gridLines:false,
+                fillColor           : 'rgba(60,141,188,0.9)',
+                strokeColor         : 'rgba(60,141,188,0.8)',
+                pointColor          : '#3b8bba',
+                pointStrokeColor    : 'rgba(60,141,188,1)',
+                pointHighlightFill  : '#fff',
+                pointHighlightStroke: 'rgba(60,141,188,1)',
+                data                : [435,674,433,834,644,433,865,453,537,758,543,452,734,136,537]
+              },
+              {
+                label               : 'Failed',
+                borderColor         : '#bb2124',
+                gridLines:false,
+                fillColor           : 'rgba(60,141,188,0.9)',
+                strokeColor         : 'rgba(60,141,188,0.8)',
+                pointColor          : '#3b8bba',
+                pointStrokeColor    : 'rgba(60,141,188,1)',
+                pointHighlightFill  : '#fff',
+                pointHighlightStroke: 'rgba(60,141,188,1)',
+               data                : [435,645,645,688,547,234,188,435,536,452,523,534,637,745,454]
+              },
+              {
+                label               : 'Pending',
+                borderColor         : 'yellow',
+                gridLines:false,
+                fillColor           : 'rgba(60,141,188,0.9)',
+                strokeColor         : 'rgba(60,141,188,0.8)',
+                pointColor          : '#3b8bba',
+                pointStrokeColor    : 'rgba(60,141,188,1)',
+                pointHighlightFill  : '#fff',
+                pointHighlightStroke: 'rgba(60,141,188,1)',
+                data                : [435,645,645,688,547,234,188,435,536,452,523,534,637,745,454]
+              }
 
-        ticks: {
-        reverse: false,
-        display: false
-        }
-}]
+            ]
+        },
 
-}
-}
-}
+      }
 
-var ctx = document.getElementById('chartJSContainer').getContext('2d');
-new Chart(ctx, options);
+      var ctx = document.getElementById('chartJSContainer').getContext('2d');
+      new Chart(ctx, options);
 
 </script>
 @stop

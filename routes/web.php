@@ -63,3 +63,5 @@ Route::any('/system/logs', 'SystemController@getLogs');
 Route::any('/system/import', 'SystemController@getImport');
 
 Route::get('/users/export', 'InvestmentController@export');
+
+Route::any('/transactions/summary', 'HomeController@summaryJob');
