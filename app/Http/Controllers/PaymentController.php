@@ -82,10 +82,6 @@ class PaymentController extends Controller
 
                 $payment = new Payment();
                 $payment->account_no_id = $request->input('account_id');
-                $payment_amount = $request->input('monthly_pay');
-                $payment->payment_amount = str_replace('Kshs', '', $payment_amount);
-                $payment->payment_amount = str_replace(',', '', $payment->payment_amount);
-                $payment->payment_amount = str_replace('.00', '', $payment->payment_amount);
                 $payment->user_pay_date = $request->input('user_date');
                 $payment_mode_info_id = $request->input('select_pay_mode');
                 $generated_transaction_code = strtoupper(str_random(8));
@@ -96,21 +92,64 @@ class PaymentController extends Controller
 
                 $payment = new Payment();
                 $account_no_id = $request->input('account_id');
-                $payment_amount = $request->input('monthly_pay');
-                $payment_amount = str_replace('Kshs', '', $payment_amount);
-                $payment_amount = str_replace(',', '', $payment_amount);
-                $payment_amount = str_replace('.00', '', $payment_amount);
+                if ($inv_type == 1) {
 
-                $comp_payment_amount = $request->input('comp_pay_amount');
-                $comp_payment_amount = str_replace('Kshs', '',  $comp_payment_amount);
-                $comp_payment_amount = str_replace(',', '',  $comp_payment_amount);
-                $comp_payment_amount = str_replace('.00', '',  $comp_payment_amount);
+                    $payment_amount = $request->input('monthly_pay');
+                    $payment_amount = str_replace('Kshs', '', $payment_amount);
+                    $payment_amount = str_replace(',', '', $payment_amount);
+                    $payment_amount = str_replace('.00', '', $payment_amount);
+                }
 
-                // COMP AMOUNT FOR MONTHLY AND COMP
-                $tot_comp_amount = $request->input('tot_comp_amount');
-                $tot_comp_amount = str_replace('Kshs', '',  $tot_comp_amount);
-                $tot_comp_amount = str_replace(',', '',  $tot_comp_amount);
-                $tot_comp_amount = str_replace('.00', '',  $tot_comp_amount);
+                if ($inv_type == 3) {
+
+                    $payment_amount = $request->input('monthly_pay');
+                    $payment_amount = str_replace('Kshs', '', $payment_amount);
+                    $payment_amount = str_replace(',', '', $payment_amount);
+                    $payment_amount = str_replace('.00', '', $payment_amount);
+
+
+                    // COMP AMOUNT FOR MONTHLY AND COMP
+                    $tot_comp_amount = $request->input('tot_comp_amount');
+                    $tot_comp_amount = str_replace('Kshs', '',  $tot_comp_amount);
+                    $tot_comp_amount = str_replace(',', '',  $tot_comp_amount);
+                    $tot_comp_amount = str_replace('.00', '',  $tot_comp_amount);
+                }
+
+                $comm_paid = $request->input('comm_paid');
+                $comm_paid = str_replace('Kshs', '', $comm_paid);
+                $comm_paid = str_replace(',', '', $comm_paid);
+                $comm_paid = str_replace('.00', '', $comm_paid);
+
+                if ($inv_type == 1) {
+
+                    $payment_amount = $payment_amount - $comm_paid;
+                    $total_payment = $payment_amount + $comm_paid;
+                }
+
+                if ($inv_type == 3) {
+
+                    $payment_amount = $payment_amount - $comm_paid;
+                    $total_payment = $payment_amount + $comm_paid;
+                }
+
+                if ($inv_type == 2) {
+
+                    $comp_payment_amount = $request->input('comp_pay_amount');
+                    $comp_payment_amount = str_replace('Kshs', '',  $comp_payment_amount);
+                    $comp_payment_amount = str_replace(',', '',  $comp_payment_amount);
+                    $comp_payment_amount = str_replace('.00', '',  $comp_payment_amount);
+                }
+
+                $comm_paid = $request->input('comm_paid');
+                $comm_paid = str_replace('Kshs', '', $comm_paid);
+                $comm_paid = str_replace(',', '', $comm_paid);
+                $comm_paid = str_replace('.00', '', $comm_paid);
+
+                if ($inv_type == 2) {
+
+                    $comp_payment_amount = $comp_payment_amount - $comm_paid;
+                    $total_payment = $comp_payment_amount + $comm_paid;
+                }
 
                 $user_id = $request->input('user_id');
 
@@ -268,6 +307,8 @@ class PaymentController extends Controller
                 if ($inv_type == 1) {
                     $payment->account_no_id = $account_no_id;
                     $payment->payment_amount = $payment_amount;
+                    $payment->comm_paid = $comm_paid;
+                    $payment->total_payment = $total_payment;
                     $payment->trans_id = $trans_id;
                     $payment->user_pay_date = $user_pay_date;
                     $payment->payment_mode_info_id = $payment_mode_info_id;
@@ -280,6 +321,8 @@ class PaymentController extends Controller
 
                     $payment->account_no_id = $account_no_id;
                     $payment->payment_amount = $comp_payment_amount;
+                    $payment->comm_paid = $comm_paid;
+                    $payment->total_payment = $total_payment;
                     $payment->trans_id = $trans_id;
                     $payment->user_pay_date = $user_pay_date;
                     $payment->payment_mode_info_id = $payment_mode_info_id;
@@ -291,6 +334,8 @@ class PaymentController extends Controller
                 } elseif ($inv_type == 3) {
                     $payment->account_no_id = $account_no_id;
                     $payment->payment_amount = $payment_amount;
+                    $payment->comm_paid = $comm_paid;
+                    $payment->total_payment = $total_payment;
                     $payment->comp_amount_paid = $tot_comp_amount;
                     $payment->trans_id = $trans_id;
                     $payment->user_pay_date = $user_pay_date;

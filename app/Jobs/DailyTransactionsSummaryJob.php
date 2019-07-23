@@ -8,6 +8,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use DB;
 
 class DailyTransactionsSummaryJob implements ShouldQueue
@@ -31,7 +32,9 @@ class DailyTransactionsSummaryJob implements ShouldQueue
      */
     public function handle()
     {
-
+        Log::info('Handler invoked');
+        Log::info('Running Summary Queries.');
+        logger('Running Summary Queries');
         $investments = DB::table('investments')
             ->select(
                 DB::raw('investments.inv_status_id'),
@@ -76,6 +79,7 @@ class DailyTransactionsSummaryJob implements ShouldQueue
             ->orderBy('topups.topped_at')
             ->unionAll($investments)
             ->get();
+        Log::info('Summary Queries executed');
 
         $investments1 = (array) $investments1;
         $investments1 = json_encode($investments1);
@@ -127,11 +131,9 @@ class DailyTransactionsSummaryJob implements ShouldQueue
                 $tot_terminations = $tot_terminations;
             }
 
-
-
             DB::table('transactions_summary')->upsert(
                 [
-                    'date' => $date, 'tot_investments' => $tot_topups, 'tot_topups' => $tot_topups,
+                    'date' => $date, 'tot_investments' => $tot_investments, 'tot_topups' => $tot_topups,
                     'tot_payments' => $tot_payments, 'tot_terminations' => $tot_terminations
                 ],
                 ['date'],

@@ -241,7 +241,7 @@ class ReportController extends Controller
                 ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
                 ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
                 ->where('users.id', '=', $id)
-                ->where('payments.payment_amount', '=',  $data['updated_next_pay'])
+                ->where('payments.total_payment', '=',  $data['updated_next_pay'])
                 ->orderBy('payments.payment_id', 'desc')->first();
 
             if ($data['client_payments']) {
@@ -351,7 +351,7 @@ class ReportController extends Controller
                             DB::raw('users.*')
                         )
                         ->leftJoin('users', 'termination_payments.user_id', '=', 'users.id')
-                        ->where('users.id', '=', 7)
+                        ->where('users.id', '=', $id)
                         ->orderBy('termination_payments.ter_pay_id', 'desc')->first();
 
                     $payment_amount =  $termination_payments->pay_amount;
@@ -365,7 +365,7 @@ class ReportController extends Controller
                         )
                         ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
                         ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
-                        ->where('users.id', '=', 7)
+                        ->where('users.id', '=', $id)
                         ->where('payments.payment_amount', '=', $payment_amount)
                         ->where('payments.user_pay_date', '=', $payment_date)
                         ->orderBy('payments.payment_id', 'desc')->first();
@@ -527,9 +527,9 @@ class ReportController extends Controller
             $data['today_due_payment_report'] = $data['due_payments_report']->whereBetween('next_pay_date', array($data['start_date'], $data['end_date']))
                 ->where('to_be_paid', '>', 0);
 
-            echo "<pre>";
-            print_r($data['today_due_payment_report']);
-            exit;
+            // echo "<pre>";
+            // print_r($data['today_due_payment_report']);
+            // exit;
 
             $data['meta'] = ['Payment Date' => $data['start_date'] . ' To ' . $data['end_date']];
 

@@ -29,14 +29,14 @@ class Payment extends Model
             ->leftJoin('banks', 'client_payment_modes.pay_bank_id', '=', 'banks.bank_id')
             ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
             ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
-            ->where('payments.payment_amount', '>', 0)
+            ->where('payments.total_payment', '>', 0)
             ->orderBy('payments.payment_id', 'desc')->get();
         return $data['payments'];
     }
 
     public static function sumTotalPayments()
     {
-        $data['sum_tot_payments'] = number_format(DB::table('payments')->sum('payment_amount'), 2, '.', ',');
+        $data['sum_tot_payments'] = number_format(DB::table('payments')->sum('total_payment'), 2, '.', ',');
         return $data['sum_tot_payments'];
     }
 }

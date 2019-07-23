@@ -51,7 +51,7 @@ class HomeController extends Controller
 
         $data['sum_investments1'] = DB::table('investments')->sum('investment_amount');
         $data['sum_tot_due_payments1'] = DB::table('accounts')->sum('total_due_payments');
-        $data['sum_tot_payments1'] = DB::table('payments')->sum('payment_amount');
+        $data['sum_tot_payments1'] = DB::table('payments')->sum('total_payment');
         $data['sum_tot_topups1'] = DB::table('topups')->sum('topup_amount');
 
         $investments = Investment::getInvestments();
@@ -86,8 +86,8 @@ class HomeController extends Controller
                 DB::raw('topups.topup_amount'),
                 DB::raw('sum(topup_amount) as tot_topup_amount'),
                 DB::raw('payments.user_pay_date'),
-                DB::raw('payments.payment_amount'),
-                DB::raw('sum(payment_amount) as tot_payment_amount'),
+                DB::raw('payments.total_payment'),
+                DB::raw('sum(total_payment) as tot_payment_amount'),
                 DB::raw('terminations.ter_date'),
                 DB::raw('terminations.amount_ter'),
                 DB::raw('sum(amount_ter) as tot_ter_amount'),
@@ -107,8 +107,8 @@ class HomeController extends Controller
                 DB::raw('topups.topup_amount'),
                 DB::raw('sum(topup_amount) as tot_topup_amount'),
                 DB::raw('payments.user_pay_date'),
-                DB::raw('payments.payment_amount'),
-                DB::raw('sum(payment_amount) as tot_payment_amount'),
+                DB::raw('payments.total_payment'),
+                DB::raw('sum(total_payment) as tot_payment_amount'),
                 DB::raw('terminations.ter_date'),
                 DB::raw('terminations.amount_ter'),
                 DB::raw('sum(amount_ter) as tot_ter_amount'),

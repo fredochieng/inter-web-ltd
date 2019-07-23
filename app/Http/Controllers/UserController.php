@@ -837,6 +837,7 @@ class UserController extends Controller
         Session::put('inv_date', $data['inv_date']);
 
         $today = Carbon::now('Africa/Nairobi')->toDateString();
+        $today = '2020-03-22';
 
         $comp_pay_date = $data['customer_investments']->last_pay_date;
         Session::put('last_pay_date', $comp_pay_date);
@@ -923,7 +924,7 @@ class UserController extends Controller
                 ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
                 ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
                 ->where('users.id', '=', $id)
-                ->where('payments.payment_amount', '=',  $data['updated_next_pay'])
+                ->where('payments.total_payment', '=',  $data['updated_next_pay'])
                 ->orderBy('payments.payment_id', 'desc')->first();
 
             if ($data['client_payments']) {
@@ -1112,7 +1113,7 @@ class UserController extends Controller
         }
 
         $today = Carbon::now('Africa/Nairobi')->toDateString();
-        //$today = '2020-03-20';
+        // $today = '2020-03-22';
 
         if ($data['customer_data']->inv_type == 2) {
             if ($data['customer_data']->inv_status_id == 0) {
@@ -1144,7 +1145,7 @@ class UserController extends Controller
                         )
                         ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
                         ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
-                        ->where('users.id', '=', 7)
+                        ->where('users.id', '=', $id)
                         ->where('payments.payment_amount', '=', $payment_amount)
                         ->where('payments.user_pay_date', '=', $payment_date)
                         ->orderBy('payments.payment_id', 'desc')->first();
@@ -1154,7 +1155,7 @@ class UserController extends Controller
                     // exit;
 
                     if ($ter_payments) {
-                        // echo "PAid";
+                        //echo "PAid";
                         if ($comp_pay_date == $today) {
                             $data['comp_payable_amout'] = $data['customer_data']->total_due_payments  + $tot_comm;
                         } else {
@@ -1274,7 +1275,7 @@ class UserController extends Controller
         }
 
         $today = Carbon::parse('Africa/Nairobi')->now()->toDateString();
-        // $today = '2019-08-06';
+        //$today = '2020-03-22';
         if ($today == $data['next_pay_date']) {
             $data['pay_day'] = 'Y';
         } else {

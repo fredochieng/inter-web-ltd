@@ -123,7 +123,7 @@ class TopupController extends Controller
                         ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
                         ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
                         ->where('users.id', '=', $user_id)
-                        ->where('payments.payment_amount', '=', $updated_next_pay)
+                        ->where('payments.total_payment', '=', $updated_next_pay)
                         ->orderBy('payments.payment_id', 'desc')->first();
 
                     if ($data['client_payments']) {
@@ -232,7 +232,7 @@ class TopupController extends Controller
                             ->leftJoin('accounts', 'payments.account_no_id', '=', 'accounts.id')
                             ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
                             ->where('users.id', '=', $user_id)
-                            ->where('payments.payment_amount', '=', $updated_next_pay)
+                            ->where('payments.total_payment', '=', $updated_next_pay)
                             ->orderBy('payments.payment_id', 'desc')->first();
 
                         if ($data['client_payments']) {
