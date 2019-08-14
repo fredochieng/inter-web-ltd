@@ -36,7 +36,7 @@
                         <td>{{ date('Y-m-d', strtotime($row->inv_date))}}</td>
                         <!-- <td>{{ $row->investment_duration}} Months</td> -->
                         <td>{{$row->inv_type}}</td>
-                        <td><a href="/client/{{$row->user_id}}/edit">{{$row->name}}</a></td>
+                        <td>{{$row->name}}</td>
                         <td>{{$row->account_no}}</td>
                         <!-- <td>{{$row->created_by_name}}</td> -->
                         <td>Kshs {{ number_format($row->investment_amount, 2, '.', ',')}}</td>

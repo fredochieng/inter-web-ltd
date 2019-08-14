@@ -1,4 +1,4 @@
-<div class="modal fade" id="modal_terminate_investment_{{$customer_data->investment_id}}">
+<div class="modal fade" id="modal_terminate">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             {!!
@@ -99,3 +99,8 @@
                 </div>
                 <!-- /.modal-dialog -->
             </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>

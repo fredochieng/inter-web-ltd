@@ -11,8 +11,6 @@ use Illuminate\Http\Request;
 use DB;
 use Session;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\TopupReceived;
 
 class TopupController extends Controller
 {
@@ -100,43 +98,19 @@ class TopupController extends Controller
             $new_balance = DB::table('daily_trans_summary')->where('date', $real_topup_date)
                 ->update($new_tot_topup);
 
-            $user_id = $request->input('user_id');
-            $user = DB::table('users')->where('id', '=', $user_id)->first();
-            // dd($user_id);
-
-            $objDemo = new \stdClass();
-            $objDemo->subject = 'Topup Received';
-            $company = "Inter-Web Global Fortune Limited";
-            $objDemo->company = $company;
-
-            //1. Send to the user
-            $message = "We have received your topup amount.";
-            $objDemo->email = $user->email;
-            $objDemo->name = $user->name;
-            $objDemo->amount = $topup->topup_amount;
-            $objDemo->topup_date = $topup_date;
-            $objDemo->message = $message;
-
-            // dd($objDemo);
-
-            Mail::to($objDemo->email)->send(new TopupReceived($objDemo));
-
             if (!empty($referee_id)) {
                 $referee_data = DB::table('accounts')
                     ->select(
                         DB::raw('accounts.*'),
-                        DB::raw('users.id as referee_id'),
-                        DB::raw('payment_schedule.account_no_id'),
-                        DB::raw('payment_schedule.tot_payable_amnt')
+                        DB::raw('users.id as referee_id')
                     )
                     ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
-                    ->leftJoin('payment_schedule', 'accounts.id', '=', 'payment_schedule.account_no_id')
                     ->where('users.id', '=', $referee_id)
                     ->first();
 
                 $account_id = $referee_data->id;
                 $due_pay = $referee_data->total_due_payments;
-                $new_due_pay = $due_pay + $tot_topup_comm;
+                $new_due_pay = $due_pay + $topup_comm;
 
                 $acc_bal = array(
 
@@ -145,13 +119,6 @@ class TopupController extends Controller
 
                 $acc_balances = DB::table('accounts')->where('id', $account_id)
                     ->update($acc_bal);
-
-                $user_payment_schedule = array(
-                    'tot_payable_amnt' => $new_due_pay
-                );
-
-                $update_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_id)
-                    ->update($user_payment_schedule);
             }
 
             if ($inv_type == 1) {
@@ -343,11 +310,7 @@ class TopupController extends Controller
 
                     $interest_rate = 0.2;
                     $days = 30;
-
-                    //$topup_date = new Carbon(Carbon::now('Africa/Nairobi')->toDateString());
-
-                    $topup_date = $request->input('topup_date');
-
+                    $topup_date = new Carbon(Carbon::now('Africa/Nairobi')->toDateString());
                     $number_of_days = Carbon::parse($last_pay_date)->diffInDays($topup_date);
 
                     $interest = $interest_rate * $topup->topup_amount;
@@ -389,7 +352,6 @@ class TopupController extends Controller
                             'total_due_payments' => $new_overall_due_apyments
                         ]
                     );
-
                     toast('New topup added successfully', 'success', 'top-right');
                     return back();
                 }

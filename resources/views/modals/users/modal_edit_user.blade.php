@@ -30,22 +30,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            {{Form::label('ID Number')}}<br>
-                            <div class="form-group">
-                                {{Form::text('id_no', $row->id_no,['class'=>'form-control', 'placeholder'=>''])}}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            {{Form::label('Phone Number')}}<br>
-                            <div class="form-group">
-                                {{Form::text('telephone', $row->telephone,['class'=>'form-control', 'placeholder'=>''])}}
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
             </div>

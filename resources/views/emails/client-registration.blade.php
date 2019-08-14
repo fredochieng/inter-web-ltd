@@ -390,14 +390,10 @@
                                                                 Hello {{ $email->name }},<br /><br />
 
                                                                 {{ $email->message }}<br />
-                                                                Your account details are as follows: <br />
-                                                                Account Number:<b>{{ $email->account_no }}</b><br /><br />
-                                                                Invested Amount: <b>Kshs {{ $email->amount }}</b><br /><br />
-                                                                Investment Type: <b> {{ $email->inv_type }}</b><br /><br />
-                                                                Investment Date: <b> {{ $email->inv_date }}</b><br /><br />
-                                                                Investment Duration: <b>{{ $email->duration }} Months</b><br /><br />
-
-                                                                Continue trading online and earn exciting returns on your investments.<br /><br />
+                                                                Your account number
+                                                                is:<b>{{ $email->account_no }}</b><br /><br />
+                                                                Continue trading online and earn exciting returns on
+                                                                your investments.<br /><br />
 
                                                                 Best Regards,<br />
                                                                 <strong>{{ $email->company }}</strong>

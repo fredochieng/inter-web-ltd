@@ -7,7 +7,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-class SuccessfulRegistration extends Mailable
+class InvestmentReceived extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -32,6 +32,6 @@ class SuccessfulRegistration extends Mailable
     public function build()
     {
         return $this->from('info@interweblimited.com')
-            ->view('emails.client-registration');
+            ->view('emails.investment-received');
     }
 }

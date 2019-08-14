@@ -34,7 +34,7 @@
                     <tr>
                         {{-- <td><b>{{$count + 1 }}</b></td> --}}
                         <td>{{$row->account_no}}</td>
-                        <td><a href="/client/{{$row->id}}/edit">{{$row->name}}</a></td>
+                        <td>{{$row->name}}</td>
                         <td>{{$row->id_no}}</td>
                         <td>{{$row->telephone}}</td>
                         <td>Kshs {{ number_format($row->topup_amount, 2, '.', ',')}}</td>

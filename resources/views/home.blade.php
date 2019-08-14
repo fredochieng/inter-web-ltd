@@ -30,23 +30,25 @@
         </div>
     </a>
     <!-- /.col -->
-    <div class="col-md-4 col-sm-6 col-xs-12">
-        <div class="info-box bg-yellow">
-            <span class="info-box-icon"><i class="ion ion-cash"></i></i></span>
-            <div class="info-box-content">
-                <span class="info-box-text"><b>Payments Made</b></span>
-                <span class="info-box-number">Kshs {{ $sum_tot_payments }}</span>
-                <div class="progress">
-                    <div class="progress-bar" style="width: 17.391304347826%"></div>
+    <a href="payments">
+        <div class="col-md-4 col-sm-6 col-xs-12">
+            <div class="info-box bg-yellow">
+                <span class="info-box-icon"><i class="ion ion-cash"></i></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text"><b>Payments Made</b></span>
+                    <span class="info-box-number">Kshs {{ $sum_tot_payments }}</span>
+                    <div class="progress">
+                        <div class="progress-bar" style="width: 17.391304347826%"></div>
+                    </div>
+                    <span class="progress-description">
+                        More info
+                    </span>
                 </div>
-                <span class="progress-description">
-                    More info
-                </span>
+                <!-- /.info-box-content -->
             </div>
-            <!-- /.info-box-content -->
+            <!-- /.info-box -->
         </div>
-        <!-- /.info-box -->
-    </div>
+    </a>
     <!-- /.col -->
     <div class="col-md-4 col-sm-6 col-xs-12">
         <div class="info-box bg-aqua">
@@ -199,14 +201,14 @@
         <div class="box box-info">
             <div class="box-header with-border">
                 <h3 class="box-title">
-                    Payments History
-                    <div class="box-tools pull-right">
+                    Daily Transaction History
+                    {{-- <div class="box-tools pull-right">
                         <button type="button" class="btn btn-box-tool" data-widget="collapse"><i
                                 class="fa fa-minus"></i>
                         </button>
                         <button type="button" class="btn btn-box-tool" data-widget="remove"><i
                                 class="fa fa-times"></i></button>
-                    </div>
+                    </div> --}}
             </div>
             <div class="box-body">
                 <div class="chart">
@@ -399,10 +401,10 @@ new Chart(ctx, config);
     var options = {
         type: 'line',
         data: {
-            labels  : ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+            labels  : <?php echo $all_dates ?>,
             datasets: [
               {
-                label               : 'Sent',
+                label               : 'Investments',
                 borderColor         : '#00a65a',
                 fillColor           : 'red',
                 strokeColor         : 'rgb(218, 107, 222)',
@@ -411,10 +413,10 @@ new Chart(ctx, config);
                 pointStrokeColor    : '#c1c7d1',
                 pointHighlightFill  : '#fff',
                 pointHighlightStroke: 'rgba(220,220,220,1)',
-               data                : [20, 48, 85, 87, 73, 56, 43, 13, 25, 43, 37, 36, 36, 34, 12]
+               data                :  <?php echo $all_tot_investments ?>
               },
               {
-                label               : 'Delivered',
+                label               : 'Topups',
                 borderColor         : '#00c0ef',
                 gridLines:false,
                 fillColor           : 'rgba(60,141,188,0.9)',
@@ -423,22 +425,10 @@ new Chart(ctx, config);
                 pointStrokeColor    : 'rgba(60,141,188,1)',
                 pointHighlightFill  : '#fff',
                 pointHighlightStroke: 'rgba(60,141,188,1)',
-                data                : [435,674,433,834,644,433,865,453,537,758,543,452,734,136,537]
+                data                : <?php echo $all_tot_topups ?>
               },
               {
-                label               : 'Failed',
-                borderColor         : '#bb2124',
-                gridLines:false,
-                fillColor           : 'rgba(60,141,188,0.9)',
-                strokeColor         : 'rgba(60,141,188,0.8)',
-                pointColor          : '#3b8bba',
-                pointStrokeColor    : 'rgba(60,141,188,1)',
-                pointHighlightFill  : '#fff',
-                pointHighlightStroke: 'rgba(60,141,188,1)',
-               data                : [435,645,645,688,547,234,188,435,536,452,523,534,637,745,454]
-              },
-              {
-                label               : 'Pending',
+                label               : 'Payments',
                 borderColor         : 'yellow',
                 gridLines:false,
                 fillColor           : 'rgba(60,141,188,0.9)',
@@ -447,10 +437,30 @@ new Chart(ctx, config);
                 pointStrokeColor    : 'rgba(60,141,188,1)',
                 pointHighlightFill  : '#fff',
                 pointHighlightStroke: 'rgba(60,141,188,1)',
-                data                : [435,645,645,688,547,234,188,435,536,452,523,534,637,745,454]
+               data                :  <?php echo $all_tot_payments ?>
+              },
+              {
+                label               : 'Terminations',
+                borderColor         : '#bb2124',
+                gridLines:false,
+                fillColor           : 'rgba(60,141,188,0.9)',
+                strokeColor         : 'rgba(60,141,188,0.8)',
+                pointColor          : '#3b8bba',
+                pointStrokeColor    : 'rgba(60,141,188,1)',
+                pointHighlightFill  : '#fff',
+                pointHighlightStroke: 'rgba(60,141,188,1)',
+                data                : <?php echo $all_tot_terminations ?>
               }
 
-            ]
+            ],
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+                            unit: 'day'
+                        }
+                    }]
+                }
         },
 
       }

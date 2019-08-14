@@ -1,19 +1,18 @@
-<div class="modal fade" id="modal_delete_user_{{$customer_data->user_id}}">
+<div class="modal fade" id="modal_delete_secretary_{{$row->id}}">
     <div class="modal-dialog">
         <div class="modal-content">
             {!!
-            Form::open(['action'=>['UserController@destroy',$customer_data->user_id],'method'=>'POST','class'=>'floatit','enctype'=>'multipart/form-data'])
+            Form::open(['action'=>['SecretaryController@destroy',$row->id],'method'=>'POST','class'=>'floatit','enctype'=>'multipart/form-data'])
             !!} {{Form::hidden('_method','DELETE')}}
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">Delete User</h4>
+                <h4 class="modal-title">Delete Secretary</h4>
             </div>
             <div class="modal-body">
                 <div class="row">
                     <div class="col-md-12">
-                        <p>Are you sure you want to delete <span
-                                style="font-weight:bold">{{$customer_data->name}}</span>?</p>
+                        <p>Are you sure you want to delete <span style="font-weight:bold">{{$row->name}}</span>?</p>
                     </div>
                 </div>
             </div>

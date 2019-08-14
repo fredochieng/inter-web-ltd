@@ -89,6 +89,7 @@ class UserController extends Controller
             } else {
                 $data['clients'] = $data;
                 if (count($data['clients']) == 1) {
+                    //   Alert::success('Search Client', 'Client found matching your entry');
                     toast('Client found matching your entry', 'success', 'top-right');
                     return redirect('client/' . $data['clients'][0]->id . '/edit');
                 }
@@ -139,6 +140,11 @@ class UserController extends Controller
         $id_nos = array_column($blacklists, 'id_no');
         $data['phone_nos'] = array_column($blacklists, 'phone');
 
+        // echo "<pre>";
+        // print_r($id_nos);
+        // echo "<pre>";
+        // print_r($phone_nos);
+        // exit;
         return view('users.create')->with($data);
     }
 
@@ -228,19 +234,19 @@ class UserController extends Controller
 
         if ($validator->fails()) {
             DB::rollBack();
-            toast('Oops!!! An error ocurred while adding new customer', 'error', 'top-right');
+            Alert::error('New Investor', 'Oops!!! An error ocurred while adding new customer');
             return back();
         } elseif ($id_no_validator->fails()) {
             DB::rollBack();
-            toast('Oops!!! ID Number is already registered', 'error', 'top-right');
+            Alert::error('New Investor', 'Oops!!! ID Number is already registered');
             return back();
         } elseif ($email_validator->fails()) {
             DB::rollBack();
-            toast('Oops!!! Email address is already registered', 'error', 'top-right');
+            Alert::error('New Investor', 'Oops!!! Email address is already registered');
             return back();
         } elseif ($phone_validator->fails()) {
             DB::rollBack();
-            toast('Oops!!! Phone number is already registered', 'error', 'top-right');
+            Alert::error('New Investor', 'Oops!!! Phone number is already registered');
             return back();
         }
         // elseif ($mpesa_code_validator->fails()) {
@@ -590,7 +596,7 @@ class UserController extends Controller
 
                 $account_id = $referee_data->id;
                 $due_pay = $referee_data->total_due_payments;
-                $new_due_pay = $due_pay + $tot_inv_comm;
+                $new_due_pay = $due_pay + $inv_comm;
 
 
                 $acc_bal = array(
@@ -610,7 +616,7 @@ class UserController extends Controller
             $objDemo = new \stdClass();
             $objDemo->subject = 'Successful Registration';
             $objDemo->subject1 = 'Investment Received';
-            $company = "Inter-Web Global Fortune Limited";
+            $company = "Inter-Web Global Fortune";
             $objDemo->company = $company;
 
             //1. Send to the user
@@ -652,12 +658,7 @@ class UserController extends Controller
         $data['payment_mode'] = PaymentMethod::getPaymentMethods();
         $data['banks'] = Bank::getBanks();
         $data['inv_modes'] = InvestmentMode::getInvModes();
-
-        // For termination & topup of inv type 3
         $data['inv_types'] = InvestmentType::getInvTypes()->where('inv_id', '!=', '3');
-
-        // For addition of investments
-        $data['investment_types'] = InvestmentType::getInvTypes();
 
         // FETCH CLIENTS DETAILS
         $data['customer_data'] = DB::table('users')
@@ -687,23 +688,6 @@ class UserController extends Controller
             ->where('users.id', '=', $id)
             ->first();
 
-        if ($data['customer_data']->refered_by != '') {
-            $referer_id = $data['customer_data']->refered_by;
-            $refer_data = DB::table('users')
-                ->select(
-                    DB::raw('users.*'),
-                    DB::raw('users_details.*')
-                )
-                ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
-                ->where('users.id', '=', $referer_id)->first();
-
-            $data['referer_name'] = $refer_data->name;
-            $data['referer_idno'] = $refer_data->id_no;
-            $data['name_idno'] =  $data['referer_name'] . ' - ' .  $data['referer_idno'];
-        } else {
-            $data['name_idno'] = 'NOBODY';
-        }
-
         // GET CLIENT REFERALS AND ALL THE RELATED DATA (INVESTMENTS, TOPUPS)
         // FETCH CLIENTS DETAILS AND INVESTMENTS
         $data['referer'] = DB::table('users')
@@ -726,29 +710,13 @@ class UserController extends Controller
             ->leftJoin('investments', 'accounts.id', '=', 'investments.account_no_id')
             ->leftJoin('inv_types', 'investments.inv_type_id', '=', 'inv_types.inv_id')
             ->leftJoin('user_pay_modes', 'users.id', '=', 'user_pay_modes.user_id')
-            ->leftJoin('payment_schedule', 'accounts.id', '=', 'payment_schedule.account_no_id')
+            ->leftJoin('payment_schedule', 'accounts.id', '=', 'payment_schedule.account_no_id') //.''''
             ->leftJoin('payment_methods', 'user_pay_modes.pay_mode_id', '=', 'payment_methods.method_id')
             ->leftJoin('banks', 'user_pay_modes.pay_bank_id', '=', 'banks.bank_id')
             ->where('users.refered_by', '=', $id)
             ->where('investments.inv_status_id', '=', 1)
             ->where('tot_inv_comm', '>', 0)
             ->get();
-
-            // Referer data to be displayed in client's account
-        $data['referer1'] = DB::table('users')
-            ->select(
-                DB::raw('users.*'),
-                DB::raw('users.id as referee_id'),
-                DB::raw('users_details.*'),
-                DB::raw('accounts.*'),
-                DB::raw('accounts.id AS accnt_id'),
-            )
-            ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
-            ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')
-            ->leftJoin('investments', 'accounts.id', '=', 'investments.account_no_id')
-            ->where('users.refered_by', '=', $id)
-            ->get();
-
 
         // GET CLIENT TOPUP HISTORY FOR REFEREE
 
@@ -860,13 +828,11 @@ class UserController extends Controller
         $tot_comm = $inv_comm_sum + $topup_comm_sum;
 
         $next_pay = array_diff($pay_dates, $user_pay_dates);
-
         if (empty($data['next_pay_date'])) {
             $data['next_pay_date'] = "FULLY PAID";
         } elseif (!empty($next_pay)) {
 
             $data['next_pay_date'] = min(array_diff($pay_dates, $user_pay_dates));
-
         }
 
         Session::put('next_pay_day', $data['next_pay_date']);
@@ -886,17 +852,13 @@ class UserController extends Controller
             ->where('users.id', '=', $id)
             ->first();
 
-        // echo "<pre>";
-        // print_r($data['customer_investments']);
-        // exit;
-
         $data['inv_duration'] = $data['customer_investments']->investment_duration;
         $data['inv_date'] = $data['customer_investments']->inv_date;
         Session::put('inv_duration', $data['inv_duration']);
         Session::put('inv_date', $data['inv_date']);
 
         $today = Carbon::now('Africa/Nairobi')->toDateString();
-        // $today = '2020-08-12';
+        $today = '2020-03-22';
 
         $comp_pay_date = $data['customer_investments']->last_pay_date;
         Session::put('last_pay_date', $comp_pay_date);
@@ -923,6 +885,7 @@ class UserController extends Controller
             ->groupBy('payment_schedule.account_no_id')
             ->where('users.id', '=', $id)
             ->first();
+
 
         $terminated = $data['customer_investments']->termination_type;
         // echo "<pre>";
@@ -1113,7 +1076,6 @@ class UserController extends Controller
         } else {
             $data['approved'] = "Y";
         }
-
         // GET CLIENT PAYMENTS COMPOUNDED
 
         $client_payments_comp = DB::table('payments')
@@ -1172,7 +1134,7 @@ class UserController extends Controller
         }
 
         $today = Carbon::now('Africa/Nairobi')->toDateString();
-        // $today = '2020-08-12';
+        // $today = '2020-03-22';
 
         if ($data['customer_data']->inv_type == 2) {
             if ($data['customer_data']->inv_status_id == 0) {
@@ -1227,6 +1189,7 @@ class UserController extends Controller
                     }
                     //  $data['comp_payable_amout'] = $data['customer_data']->total_due_payments  + $tot_comm;
                 } else {
+
 
                     if ($comp_pay_date == $today) {
                         $data['comp_payable_amout'] = $data['customer_data']->total_due_payments  + $tot_comm;
@@ -1305,7 +1268,6 @@ class UserController extends Controller
         $data['customer_payments'] = DB::table('payments')
             ->select(
                 DB::raw('sum(payment_amount) as total_payments_made, account_no_id '),
-                DB::raw('sum(total_payment) as sum_payments_made, account_no_id '),
                 DB::raw('payments.*'),
                 DB::raw('accounts.*'),
                 DB::raw('users.*')
@@ -1327,16 +1289,11 @@ class UserController extends Controller
             ->where('users.id', '=', $id)
             ->first();
 
-        if ($data['tot_due_payments']->total_due_payments <= 0 && $data['customer_data']->inv_status_id == 1) {
-
+        if ($data['tot_due_payments']->total_due_payments <= 0) {
             $data['fully_paid'] = 'Y';
-        } elseif($data['tot_due_payments']->total_due_payments > 0 && $data['customer_data']->inv_status_id == 0) {
-            $data['fully_paid'] = 'N';
-        }else{
+        } else {
             $data['fully_paid'] = 'N';
         }
-
-      // dd( $data['fully_paid']);
 
         $today = Carbon::parse('Africa/Nairobi')->now()->toDateString();
         //$today = '2020-03-22';
@@ -1368,31 +1325,6 @@ class UserController extends Controller
             ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
             ->orderBy('investments.investment_id', 'asc')
             ->where('users.id', '=', $id)
-            ->get();
-
-        // FETCH CLIENT PERSONAL INVESTMENTS WHERE INCV AMOUNT IS NOT 0
-        $data['customer_trans1'] = DB::table('investments')
-            ->select(
-                DB::raw('investments.*'),
-                DB::raw('accounts.*'),
-                DB::raw('payment_schedule.*'),
-                DB::raw('inv_types.*'),
-                DB::raw('inv_modes.*'),
-                DB::raw('banks.*'),
-                DB::raw('users.*'),
-                DB::raw('users_details.*')
-            )
-            ->leftJoin('accounts', 'investments.account_no_id', '=', 'accounts.id')
-            ->leftJoin('payment_schedule', 'accounts.id', '=', 'payment_schedule.account_no_id')
-            ->leftJoin('inv_types', 'investments.inv_type_id', '=', 'inv_types.inv_id')
-            ->leftJoin('inv_modes', 'investments.inv_mode_id', '=', 'inv_modes.id')
-            // FIND A WAY OF JOINING WITH INV_BANK_CHEQ_ID TOO TO GET THE BANK CHEQUE NAME
-            ->leftJoin('banks', 'investments.inv_bank_id', '=', 'banks.bank_id')
-            ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
-            ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
-            ->orderBy('investments.investment_id', 'asc')
-            ->where('users.id', '=', $id)
-            ->where('investments.initial_inv', '>', 0)
             ->get();
 
         $data['customer_trans']->map(function ($item) {
@@ -1592,7 +1524,6 @@ class UserController extends Controller
     {
         DB::table('users')->where('id', $id)->delete();
         toast('User deleted successfully', 'success', 'top-right');
-       
-        return redirect('customers');
+        return back();
     }
 }

@@ -279,7 +279,13 @@
                                         <!-- line -->
                                         <table width="800" border="0" cellpadding="0" cellspacing="0" align="center"
                                             class="row" style="width:800px;max-width:800px;">
-
+                                            {{--  <tr>
+                                                <td class="splitter" align="center" valign="middle" height="1"
+                                                    bgcolor="#EEEEEE" style="font-size:1px;line-height:1px;"><img
+                                                        style="display:block;height:1px;border:0px;"
+                                                        src="https://www.psd2newsletters.com/templates/minilam/img/spacer.gif"
+                                                        width="1" alt="spacer"></td>
+                                            </tr>  --}}
                                         </table>
                                         <!-- line -->
                                     </td>
@@ -379,24 +385,12 @@
                                                         <tr>
                                                             <td class="text center-text" valign="middle" align="left"
                                                                 style="font-family:'Roboto',sans-serif,Arial,Helvetica; font-size:14px; line-height:24px; font-weight:normal;font-style:normal; color:#000000;text-decoration:none;letter-spacing: 0px;">
-
-
                                                                 Hello {{ $email->name }},<br /><br />
 
                                                                 {{ $email->message }}<br />
-                                                                Your investment details are as follows: <br /></br />
-                                                                Invested Amount: <b>Kshs
-                                                                    {{ $email->amount }}</b><br /><br />
-                                                                Investment Type: <b>
-                                                                    {{ $email->inv_type }}</b><br /><br />
-                                                                Investment Date: <b>
-                                                                    {{ $email->inv_date }}</b><br /><br />
-                                                                Investment Duration: <b>{{ $email->duration }}
-                                                                    Months</b><br /><br />
-
-                                                                Continue trading online and earn exciting returns on
-                                                                your investments.<br /><br />
-
+                                                                Your login details are: <br /><br />
+                                                                <b>Email address: {{ $email->email }}</b><br />
+                                                                <b>Password: {{ $email->password }}</b><br /><br />
                                                                 Best Regards,<br />
                                                                 <strong>{{ $email->company }}</strong>
 
@@ -416,7 +410,7 @@
                                                     <!-- space -->
 
                                                     <!-- Button-Bg -->
-                                                    {{-- <table border="0" cellpadding="0" cellspacing="0" align="left"
+                                                    <table border="0" cellpadding="0" cellspacing="0" align="left"
                                                         class="center-float"
                                                         style="display:inline-block;vertical-align:middle;">
                                                         <tr>
@@ -450,7 +444,7 @@
                                                                 <!-- Container -->
                                                             </td>
                                                         </tr>
-                                                    </table> --}}
+                                                    </table>
                                                     <!-- Button-Bg -->
 
                                                     <!-- space -->

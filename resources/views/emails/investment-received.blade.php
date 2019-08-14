@@ -279,7 +279,13 @@
                                         <!-- line -->
                                         <table width="800" border="0" cellpadding="0" cellspacing="0" align="center"
                                             class="row" style="width:800px;max-width:800px;">
-
+                                            {{--  <tr>
+                                                <td class="splitter" align="center" valign="middle" height="1"
+                                                    bgcolor="#EEEEEE" style="font-size:1px;line-height:1px;"><img
+                                                        style="display:block;height:1px;border:0px;"
+                                                        src="https://www.psd2newsletters.com/templates/minilam/img/spacer.gif"
+                                                        width="1" alt="spacer"></td>
+                                            </tr>  --}}
                                         </table>
                                         <!-- line -->
                                     </td>
@@ -384,7 +390,7 @@
                                                                 Hello {{ $email->name }},<br /><br />
 
                                                                 {{ $email->message }}<br />
-                                                                Your investment details are as follows: <br /></br />
+
                                                                 Invested Amount: <b>Kshs
                                                                     {{ $email->amount }}</b><br /><br />
                                                                 Investment Type: <b>
@@ -397,6 +403,24 @@
                                                                 Continue trading online and earn exciting returns on
                                                                 your investments.<br /><br />
 
+                                                                INTERNET TRADING AGREEMENT <br/>
+                                                                A) This agreement made this day of 2019 between Inter-Web Global Fortune Ltd, a duly registered limited company under Companies Act, 2015 Laws of Kenya and of P.O BOX 50428-00100 in the republic of Kenya <br/>
+                                                                   herein referred as the TRADERS which content will apply to their assignees, executors, personal representatives, agent’s heirs and or beneficiaries on one one hand holder of ID CARD NO in the Republic of Kenya, herein after referred to as the CLIENT.<br/>
+                                                                   WHEREAS <br/>
+                                                                   a) That the traders herein have their established business in Nairobi specifically at View Park Towers, 14th floor trading as INTER-WEB GLOBAL FORTUNE LTD, a dully registered Limited Company under the companies Act, 2015 Laws of Kenya. <br/>
+                                                                   b) That the client is a mature adult of sound mind who has approached the trader herein with an intention of being traded though Internet opportunities a sum of Ksh <br/>
+                                                                   c) That the trader is ready and willing to accommodate the client request at the following terms; <br/>
+                                                                       i. That the amount traded is expected to be generating an amount of  Ksh <br/>
+                                                                       ii. That the client can terminate the contract by giving a one-month notice. However, any termination before eed<br/>
+                                                                       iii . That the traders can forthwith terminate investor’scontract if they cannot sustain to generate the agr amount.
+                                                                             client at the signing of this agreement <br/>
+                                                                       iv. That at the attest to the fact that he/she shall conduct himself/herself professionally during all the time when the principal amount is traded<br/>
+                                                                       v. That this agreement will be valid for 12 monthsfrom the date of signing . <br/>
+                                                                       vi. That any other agreement shall be reduced into writing and the same shall be part and parcel of this agreement.<br/>
+                                                                       vii. That at the signing of this agreement both parties witness to the fact that they have read and understood all the terms and conditions upon which this investment has been/ shall be made and have agreed to abide by them all the time.<br/>
+                                                                       viii. That this agreement will come into effect immediately after the date of signing.<br/>
+                                                                      In witness whereof the investor and the trader have executed this agreement the day, month and year herein above stated.<br/>
+ 
                                                                 Best Regards,<br />
                                                                 <strong>{{ $email->company }}</strong>
 
@@ -416,7 +440,7 @@
                                                     <!-- space -->
 
                                                     <!-- Button-Bg -->
-                                                    {{-- <table border="0" cellpadding="0" cellspacing="0" align="left"
+                                                    <table border="0" cellpadding="0" cellspacing="0" align="left"
                                                         class="center-float"
                                                         style="display:inline-block;vertical-align:middle;">
                                                         <tr>
@@ -450,7 +474,7 @@
                                                                 <!-- Container -->
                                                             </td>
                                                         </tr>
-                                                    </table> --}}
+                                                    </table>
                                                     <!-- Button-Bg -->
 
                                                     <!-- space -->

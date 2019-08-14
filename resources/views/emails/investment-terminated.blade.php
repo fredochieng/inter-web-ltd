@@ -384,15 +384,14 @@
                                                                 Hello {{ $email->name }},<br /><br />
 
                                                                 {{ $email->message }}<br />
-                                                                Your investment details are as follows: <br /></br />
-                                                                Invested Amount: <b>Kshs
-                                                                    {{ $email->amount }}</b><br /><br />
-                                                                Investment Type: <b>
-                                                                    {{ $email->inv_type }}</b><br /><br />
-                                                                Investment Date: <b>
-                                                                    {{ $email->inv_date }}</b><br /><br />
-                                                                Investment Duration: <b>{{ $email->duration }}
-                                                                    Months</b><br /><br />
+                                                                Your investment termination details are as follows:
+                                                                <br /></br />
+                                                                Invested Amount before termination: <b>Kshs
+                                                                    {{ $email->before_ter }}</b><br /><br />
+                                                                Amount terminated: <b>Kshs
+                                                                    {{ $email->amount_ter }}</b><br /><br />
+                                                                Invested Amount after termination: <b>Kshs
+                                                                    {{ $email->after_ter }}</b><br /><br />
 
                                                                 Continue trading online and earn exciting returns on
                                                                 your investments.<br /><br />

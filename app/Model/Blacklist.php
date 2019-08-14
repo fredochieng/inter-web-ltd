@@ -14,6 +14,7 @@ class Blacklist extends Model
             ->select(
                 DB::raw('blacklist.*')
             )->get();
+
         return $blacklists;
     }
 }

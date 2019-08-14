@@ -30,27 +30,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
-
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            {{Form::label('ID Number *')}}<br>
-                            <div class="form-group">
-                                {{Form::text('id_no', '',['class'=>'form-control', 'required', 'placeholder'=>''])}}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            {{Form::label('Phone Number *')}}<br>
-                            <div class="form-group">
-                                {{Form::text('telephone', '',['class'=>'form-control', 'required', 'placeholder'=>''])}}
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default btn-flat" aria-label="Close" data-dismiss="modal"><i
                         class="fa fa-times"></i>Cancel</button>

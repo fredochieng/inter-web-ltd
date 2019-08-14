@@ -30,7 +30,7 @@ class InvestmentApproved extends Mailable
      */
     public function build()
     {
-        return $this->from('dbalerts@ke.wananchi.com')
+        return $this->from('info@interweblimited.com')
             ->view('emails.investment-approved');
     }
 }

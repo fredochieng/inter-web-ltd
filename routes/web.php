@@ -32,7 +32,6 @@ Route::any('/client/{id}/edit', 'UserController@edit');
 Route::any('profile', 'UserController@getUserProfile');
 Route::any('update-profile/{user}', 'UserController@updateUserProfile');
 Route::resource('/users/secretaries', 'SecretaryController');
-
 Route::resource('/users/blacklist', 'BlacklistController');
 Route::resource('/users/restrict', 'ReferalsController');
 Route::any('/users/commission_restrictions', 'ReferalsController@getRestrictions');
@@ -48,6 +47,7 @@ Route::resource('/payments', 'PaymentController');
 Route::any('/payments/client/search', 'PaymentController@SearchClient');
 
 Route::resource('/topups', 'TopupController');
+Route::resource('/terminations', 'TerminationsController');
 
 Route::any('/reports/customer', 'ReportController@customerReport');
 Route::any('/reports/investment', 'ReportController@investmentReport');
@@ -65,3 +65,9 @@ Route::any('/system/import', 'SystemController@getImport');
 Route::get('/users/export', 'InvestmentController@export');
 
 Route::any('/transactions/summary', 'HomeController@summaryJob');
+
+// New routes for client registration and client invesments
+
+Route::resource('/clients', 'ClientController');
+Route::any('/client/add', 'ClientController@create');
+Route::any('/client/store', 'ClientController@store');

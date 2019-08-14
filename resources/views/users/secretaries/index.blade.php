@@ -23,9 +23,8 @@
                                 <th>S/N #</th>
                                 <th>Name</th>
                                 <th>Email Address</th>
-                                <th>ID Number</th>
-                                <th>Phone Number</th>
                                 <th>Registration Date</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -34,8 +33,6 @@
                                 <td>{{$key + 1}}</td>
                                 <td>{{$row->name}}</td>
                                 <td>{{$row->email}}</td>
-                                <td>{{$row->id_no}}</td>
-                                <td>{{$row->telephone}}</td>
                                 <td>{{$row->created_at}}</td>
                                 <td>
                                     <a href="" data-backdrop="static" data-keyboard="false" data-toggle="modal"
@@ -43,13 +40,13 @@
                                         class="btn btn-xs btn-success"><i class="glyphicon glyphicon-edit"></i> Edit</a>
                                     {{Form::hidden('_method','DELETE')}}
                                     <a href="" data-backdrop="static" data-keyboard="false" data-toggle="modal"
-                                        data-target="#modal_delete_user_{{$row->sec_id}}"
+                                        data-target="#modal_delete_secretary_{{$row->sec_id}}"
                                         class="btn btn-xs btn-danger delete_user_button"><i
                                             class="glyphicon glyphicon-trash"></i> Delete</a>
                                 </td>
                             </tr>
                             @include('modals.users.modal_edit_user')
-                            @include('modals.users.modal_delete_user')
+                            @include('modals.users.modal_delete_secretary')
                             @endforeach
 
                         </tbody>

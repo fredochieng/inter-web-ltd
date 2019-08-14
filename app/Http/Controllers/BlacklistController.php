@@ -14,7 +14,9 @@ class BlacklistController extends Controller
      */
     public function index()
     {
-        //
+        $data['blacklists'] = Blacklist::getBlacklists();
+
+        return view('blacklists.index')->with($data);
     }
 
     /**

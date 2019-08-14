@@ -61,7 +61,6 @@ class User extends Authenticatable
 
 
             )
-            // ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
             ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id', '=', 'users_details.created_by')
             ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')
             ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
@@ -73,32 +72,6 @@ class User extends Authenticatable
         return $data['clients'];
     }
 
-    // public static function getActiveCustomers()
-    // {
-    //     $data['active_clients'] = DB::table('users')
-    //         ->select(
-    //             DB::raw('users.*'),
-    //             DB::raw('users_details.*'),
-    //             DB::raw('users_details.created_by AS created_name'),
-    //             DB::raw('accounts.*'),
-    //             DB::raw('model_has_roles.*'),
-    //             DB::raw('user_pay_modes.*'),
-    //             DB::raw('payment_methods.*'),
-    //             DB::raw('banks.*')
-
-
-    //         )
-    //         // ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
-    //         ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id', '=', 'users_details.created_by')
-    //         ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')
-    //         ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
-    //         ->leftJoin('user_pay_modes', 'users.id', '=', 'user_pay_modes.user_id')
-    //         ->leftJoin('payment_methods', 'user_pay_modes.pay_mode_id', '=', 'payment_methods.method_id')
-    //         ->leftJoin('banks', 'user_pay_modes.pay_bank_id', '=', 'banks.bank_id')
-    //         ->where('model_has_roles.role_id', '=', '3')
-    //         ->where('users.status', '=', 1)->orderBy('users.id', 'asc')->get();
-    //     return $data['active_clients'];
-    // }
 
     public static function find_client($client, $client_value)
     {
@@ -182,10 +155,8 @@ class User extends Authenticatable
     {
         $telephone = DB::table('users_details')
             ->select(
-                DB::raw('users_details.*'),
-                //   DB::raw('users.*')
+                DB::raw('users_details.*')
             )
-            //   ->leftJoin('users', 'users_datails.user_id', '=', 'users.id')
             ->get();
 
         return $telephone;
@@ -227,11 +198,11 @@ class User extends Authenticatable
                 DB::raw('model_has_roles.*')
 
             )
-
             ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id', '=', 'users_details.created_by')
             ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
             ->where('model_has_roles.role_id', '=', '2')
             ->orderBy('users.id', 'asc')->get();
+
         return $data['secreatries'];
     }
 }

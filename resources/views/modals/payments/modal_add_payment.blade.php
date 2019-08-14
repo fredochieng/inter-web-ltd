@@ -6,7 +6,7 @@
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span
                         aria-hidden="true">×</span></button>
-                <h4 class="modal-title">Confirm Client Payment - <b>{{$row->name}}</b></h4>
+                <h4 class="modal-title">Confirm Client Payment</h4>
             </div>
             <div class="modal-body">
                 <input type="hidden" name="account_id" value="{{$customer_data->accnt_id}}">

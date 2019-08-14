@@ -226,13 +226,13 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            {{--  <div class="col-md-3">
                 <label for="date_today" class="col-sm-12 control-label label-left">Served By</label>
                 <div class="col-sm-12">
                     <input id="date_today" class="form-control" name="date_today" type="text"
                         value="{{$row->created_by_name}}">
                 </div>
-            </div>
+            </div>  --}}
             <div class="row">
                 <div class="col-md-3">
                     <label for="date_today" class="col-sm-12 control-label label-left">Initiated On</label>

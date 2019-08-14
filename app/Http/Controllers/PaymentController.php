@@ -124,12 +124,51 @@ class PaymentController extends Controller
 
                     $payment_amount = $payment_amount - $comm_paid;
                     $total_payment = $payment_amount + $comm_paid;
+
+                    // $real_pay_date = $request->input('user_date');
+                    $real_pay_date = Carbon::now('Africa/Nairobi')->toDateString();
+
+                    $tot_payments = DB::table('daily_trans_summary')
+                        ->where('date', '=',  $real_pay_date)->first();
+
+                    $total_payments = $tot_payments->tot_payments;
+                    $total_payments = $total_payments + $total_payment;
+                    // dd($total_payments);
+                    // exit;
+
+                    $new_tot_payments = array(
+
+                        'tot_payments' => $total_payments
+                    );
+                    $new_balance = DB::table('daily_trans_summary')->where('date',  $real_pay_date)
+                        ->update($new_tot_payments);
                 }
 
                 if ($inv_type == 3) {
 
                     $payment_amount = $payment_amount - $comm_paid;
                     $total_payment = $payment_amount + $comm_paid;
+
+                    $payment_amount = $payment_amount - $comm_paid;
+                    $total_payment = $payment_amount + $comm_paid;
+
+                    // $real_pay_date = $request->input('user_date');
+                    $real_pay_date = Carbon::now('Africa/Nairobi')->toDateString();
+
+                    $tot_payments = DB::table('daily_trans_summary')
+                        ->where('date', '=',  $real_pay_date)->first();
+
+                    $total_payments = $tot_payments->tot_payments;
+                    $total_payments = $total_payments + $total_payment;
+                    // dd($total_payments);
+                    // exit;
+
+                    $new_tot_payments = array(
+
+                        'tot_payments' => $total_payments
+                    );
+                    $new_balance = DB::table('daily_trans_summary')->where('date', $real_pay_date)
+                        ->update($new_tot_payments);
                 }
 
                 if ($inv_type == 2) {
@@ -149,6 +188,27 @@ class PaymentController extends Controller
 
                     $comp_payment_amount = $comp_payment_amount - $comm_paid;
                     $total_payment = $comp_payment_amount + $comm_paid;
+
+                    $payment_amount = $payment_amount - $comm_paid;
+                    $total_payment = $payment_amount + $comm_paid;
+
+                    // $real_pay_date = $request->input('user_date');
+                    $real_pay_date = Carbon::now('Africa/Nairobi')->toDateString();
+
+                    $tot_payments = DB::table('daily_trans_summary')
+                        ->where('date', '=', $real_pay_date)->first();
+
+                    $total_payments = $tot_payments->tot_payments;
+                    $total_payments = $total_payments + $total_payment;
+                    // dd($total_payments);
+                    // exit;
+
+                    $new_tot_payments = array(
+
+                        'tot_payments' => $total_payments
+                    );
+                    $new_balance = DB::table('daily_trans_summary')->where('date', $real_pay_date)
+                        ->update($new_tot_payments);
                 }
 
                 $user_id = $request->input('user_id');
