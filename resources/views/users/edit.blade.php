@@ -597,6 +597,7 @@
 @include('modals.payments.modal_view_payment_mode')
 @include('modals.users.modal_delete_user')
 @include('modals.investments.modal_add_investment')
+@include('modals.investments.modal_change_plan')
 </div>
 
 @stop
@@ -609,6 +610,7 @@
 <script src="/js/bootstrap-datepicker.min.js"></script>
 <script src="/js/select2.full.min.js"></script>
 <script src="/plugins/iCheck/icheck.min.js"></script>
+<script src="/js/change_plan.js"></script>
 <script src="https://oss.maxcdn.com/jquery.bootstrapvalidator/0.5.2/js/bootstrapValidator.min.js"></script>
 </script>
 <script>
@@ -888,6 +890,7 @@ $("#termination_type").change(function() {
            // var form = document.getElementById("addClientForm");
             //form.reset();
      })
+
 </script>
 
 @stop

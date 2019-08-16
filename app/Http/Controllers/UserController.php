@@ -734,7 +734,7 @@ class UserController extends Controller
             ->where('tot_inv_comm', '>', 0)
             ->get();
 
-            // Referer data to be displayed in client's account
+        // Referer data to be displayed in client's account
         $data['referer1'] = DB::table('users')
             ->select(
                 DB::raw('users.*'),
@@ -745,7 +745,7 @@ class UserController extends Controller
             )
             ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
             ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')
-            ->leftJoin('investments', 'accounts.id', '=', 'investments.account_no_id')
+            // ->leftJoin('investments', 'accounts.id', '=', 'investments.account_no_id')
             ->where('users.refered_by', '=', $id)
             ->get();
 
@@ -866,7 +866,6 @@ class UserController extends Controller
         } elseif (!empty($next_pay)) {
 
             $data['next_pay_date'] = min(array_diff($pay_dates, $user_pay_dates));
-
         }
 
         Session::put('next_pay_day', $data['next_pay_date']);
@@ -1330,13 +1329,13 @@ class UserController extends Controller
         if ($data['tot_due_payments']->total_due_payments <= 0 && $data['customer_data']->inv_status_id == 1) {
 
             $data['fully_paid'] = 'Y';
-        } elseif($data['tot_due_payments']->total_due_payments > 0 && $data['customer_data']->inv_status_id == 0) {
+        } elseif ($data['tot_due_payments']->total_due_payments > 0 && $data['customer_data']->inv_status_id == 0) {
             $data['fully_paid'] = 'N';
-        }else{
+        } else {
             $data['fully_paid'] = 'N';
         }
 
-      // dd( $data['fully_paid']);
+        // dd( $data['fully_paid']);
 
         $today = Carbon::parse('Africa/Nairobi')->now()->toDateString();
         //$today = '2020-03-22';
@@ -1592,7 +1591,7 @@ class UserController extends Controller
     {
         DB::table('users')->where('id', $id)->delete();
         toast('User deleted successfully', 'success', 'top-right');
-       
+
         return redirect('customers');
     }
 }

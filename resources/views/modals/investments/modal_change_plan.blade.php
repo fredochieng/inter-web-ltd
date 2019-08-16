@@ -1,18 +1,58 @@
 <div class="modal fade in" id="modal_change_plan">
     <div class="modal-dialog modal-lg" style="width:90%">
         <div class="modal-content">
-            {!! Form::open(['url' => action('InvestmentController@store'), 'method' => 'post', 'class' =>
-            'addClientForm'])
+            {!! Form::open(['url' => action('InvestmentController@changePlan'), 'method' => 'post', 'id' =>
+            'changePlanClientForm'])
             !!}
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span
                         aria-hidden="true">×</span></button>
-                <h4 class="modal-title">New Investment - <strong>{{$customer_data->name}}</strong></h4>
+                <h4 class="modal-title">Change Investment Plan - <strong>{{$customer_data->name}}</strong></h4>
             </div>
             <div class="modal-body">
-                <input type="hidden" name="account_id" value="{{$customer_data->accnt_id}}">
-                <input type="hidden" name="user_id" value="{{$customer_data->user_id}}">
+                <div class="row">
+                    <input type="hidden" name="account_no_id" value="{{$customer_data->accnt_id}}">
+                    <input type="hidden" name="user_id" value="{{$customer_data->user_id}}">
+                    <input type="hidden" name="real_inv_type_id" value="{{$customer_data->inv_type_id}}">
+                    @if($customer_data->inv_type_id ==1)
+                    <input type="hidden" name="inv_type_id" value="2">
+                    @elseif($customer_data->inv_type_id ==2)
+                    <input type="hidden" name="inv_type_id" value="1">
+                    @endif
+                    {{--  <input type="hidden" name="total_investments31" id="total_investments31"
+                        value="{{$customer_data->monthly_inv}}"> --}}
 
+                    <div class="col-md-4">
+                        {{Form::label('Change Plan ')}}
+                        <div class="form-group">
+                            <select class="form-control select2" id="plan_type" name="plan_type" required
+                                style="width: 100%;" tabindex="-1" aria-hidden="true">
+                                <option selected="selected" value="0">Select plan type</option>
+                                <option value="1">Full Transfer</option>
+                                <option value="2">Partial Transfer</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="franch" class="col-sm-12 control-label label-left">Amount to
+                            transfer</label>
+                        <div class="col-sm-12">
+                            <input id="amount_transfered" class="form-control" name="amount_transfered" required
+                                type="number" value="">
+
+                        </div>
+                    </div>
+                    <div class="col-md-4" id="amount_after_transfer_div">
+                        <label for="franch" class="col-sm-12 control-label label-left">Amount after
+                            transfer
+                        </label>
+                        <div class="col-sm-12">
+                            <input id="amount_after_transfer" class="form-control" name="amount_after_transfer"
+                                type="text" value="">
+
+                        </div>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
@@ -21,76 +61,33 @@
                                 <span class="input-group-addon">
                                     <i class="fa fa-calendar"></i>
                                 </span>
-                                {{Form::text('inv_date', null, ['class' => 'form-control inv_date', 'id' => 'inv_date', 'required' ])}}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            {{Form::label('Investment Amount *')}}
-                            <div class="form-group">
-                                {{Form::number('inv_amount', '',['class'=>'form-control', 'id'=>'total_inv_amount1', 'placeholder'=>'Minimum amount(Kshs 100,000.00)', 'min'=>'1', 'required'])}}
+                                {{Form::text('inv_date', null, ['class' => 'form-control topup_date', 'readonly', 'id' => 'topup_date', 'required' ])}}
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="form-group">
+                        <div class="form-group hide inv_duration_div" id="inv_duration_div1">
                             {{Form::label('Investment Duration(Months) *')}}
                             <div class="input-group">
-                                {{Form::number('inv_duration', '',['class'=>'form-control', 'min' => '1', 'required'])}}
+                                {{Form::number('inv_duration', '',['class'=>'form-control', 'min' => '1'])}}
                                 <span class="input-group-addon">
                                     Months
                                 </span>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="row">
 
-                    <div class="col-md-4">
-                        {{Form::label('Investment Type ')}}
+                    <div class="col-md-3 hide monthly_inv_duration_div" id="monthly_inv_duration_div1">
                         <div class="form-group">
-                            <select class="form-control select2" name="inv_type_id" id="inv_type_id" required
-                                style="width: 100%;" tabindex="-1" aria-hidden="true">
-                                <option value="">Select investment type</option>
-                                @foreach($investment_types as $item)
-                                <option value='{{ $item->inv_id }}'>{{ $item->inv_type }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="row">
-                    <div class="col-md-3 hide" id="monthly_inv_amount_div">
-                        <div class="form-group">
-                            {{Form::label('Monthly Amount *')}}
-                            <div class="form-group">
-                                {{Form::number('monthly_inv_amount', '',['class'=>'form-control', 'id'=>'monthly_inv_amount', 'min'=>'1'])}}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3 hide" id="monthly_inv_duration_div">
-                        <div class="form-group">
-                            {{Form::label('Duration *')}}
+                            {{Form::label('Monthly Duration *')}}
                             <div class="form-group">
                                 {{Form::number('monthly_inv_duration', '',['class'=>'form-control', 'min' => '1'])}}
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3 hide" id="compounded_inv_amount_div">
+                    <div class="col-md-3 hide compounded_inv_duration_div" id="compounded_inv_duration_div1">
                         <div class="form-group">
-                            {{Form::label('Compounded Amount *')}}
-                            <div class="form-group">
-                                {{Form::number('compounded_inv_amount', '',['class'=>'form-control', 'id'=>'compounded_inv_amount'])}}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3 hide" id="compounded_inv_duration_div">
-                        <div class="form-group">
-                            {{Form::label('Duration(Months) *')}}
+                            {{Form::label('Compounding Duration(Months) *')}}
                             <div class="form-group">
                                 {{Form::number('compounded_inv_duration', '',['class'=>'form-control', 'min' => '1'])}}
                             </div>
@@ -98,119 +95,19 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-4">
-                        {{Form::label('Payment Mode ')}}
-                        <div class="form-group">
-                            <select class="form-control select2" name="pay_mode_id" id="pay_mode_id" required
-                                style="width: 100%;" tabindex="-1" aria-hidden="true">
-                                <option value="">Select payment mode</option>
-                                @foreach($payment_mode as $item)
-                                <option value='{{ $item->method_id }}'>{{ $item->method_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default btn-flat" data-dismiss="modal"><i
+                                class="fa fa-times"></i>
+                            No</button>
+                        <button type="submit" class="btn btn-primary btn-flat"><i class="fa fa-check"></i>
+                            Change Plan</button>
                     </div>
-                    <div class="col-md-4 hide mpesa_number_div1" id="mpesa_number_div1">
-                        <div class="form-group">
-                            {{Form::label('MPESA Number')}}
-                            <div class="form-group">
-                                {{Form::text('pay_mpesa_no', '',['class'=>'form-control', 'id' => 'mpesa_number'])}}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4 hide bank_payment_div1" id="bank_payment_div1">
-                        {{Form::label('Payment Bank ')}}
-                        <div class="form-group">
-                            <select class="form-control select2" name="pay_bank_id" id="pay_bank_id"
-                                style="width: 100%;" tabindex="-1" aria-hidden="true">
-                                <option value"">Select payment bank</option>
-                                @foreach($banks as $item)
-                                <option value="{{ $item->bank_id }}">{{ $item->bank_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4 hide bank_payment_acc1" id="bank_payment_acc1">
-                        <div class="form-group">
-                            {{Form::label('Bank Account')}}
-                            <div class="form-group">
-                                {{Form::text('pay_bank_acc', '',['class'=>'form-control'])}}
-                            </div>
-                        </div>
-                    </div>
+                    {!! Form::close() !!}
                 </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        {{Form::label('Investment Mode ')}}
-                        <div class="form-group">
-                            <select class="form-control select2" id="inv_mode_id1" name="inv_mode_id" required
-                                style="width: 100%;" tabindex="-1" aria-hidden="true">
-                                <option selected="selected" value="">Select investment mode</option>
-                                @foreach($inv_modes as $item)
-                                <option value="{{ $item->id }}">{{ $item->inv_mode }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4 hide mpesa_inv_div" id="mpesa_inv_div">
-                        <div class="form-group">
-                            {{Form::label('MPESA Transaction Code *')}}
-                            <div class="form-group">
-                                {{Form::text('mpesa_trans_code', '',['class'=>'form-control'])}}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 hide bank_inv_div" id="bank_inv_div">
-                        {{Form::label('Bank ')}}
-                        <div class="form-group">
-                            <select class="form-control select2" id="inv_bank_id1" name="inv_bank_id"
-                                style="width: 100%;" tabindex="-1" aria-hidden="true">
-                                <option selected="selected">Select investment bank</option>
-                                @foreach($banks as $item)
-                                <option value="{{ $item->bank_id }}">{{ $item->bank_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4 hide bank_inv_div" id="inv_bank_trans_id1">
-                        <div class="form-group">
-                            {{Form::label('Bank Transaction Code')}}
-                            <div class="form-group">
-                                {{Form::text('bank_trans_code', '',['class'=>'form-control'])}}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 hide cheq_inv_div" id="cheq_inv_div">
-                        {{Form::label('Bank ')}}
-                        <div class="form-group">
-                            <select class="form-control select2" id="inv_cheq_bank_id1" name="inv_cheq_bank_id"
-                                style="width: 100%;" tabindex="-1" aria-hidden="true">
-                                <option selected="selected">Select investment bank</option>
-                                @foreach($banks as $item)
-                                <option value='{{ $item->bank_id }}'>{{ $item->bank_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4 hide cheq_inv_div" id="cheq_no_inv_div">
-                        <div class="form-group">
-                            {{Form::label('Cheque Number')}}
-                            <div class="form-group">
-                                {{Form::text('cheque_no', '',['class'=>'form-control'])}}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
-                    <button class="btn btn-primary" id="confirmPayment" type="submit"><i class="fa fa-check"></i>
-                        ADD INVESTMENT</button>
-                </div>
-                {!! Form::close() !!}
             </div>
 
             <!-- /.modal-content -->
         </div>
         <!-- /.modal-dialog -->
     </div>
+</div>
