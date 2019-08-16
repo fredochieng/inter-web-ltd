@@ -1,4 +1,4 @@
-<div class="modal fade in" id="modal_add_investment">
+<div class="modal fade in" id="modal_change_plan">
     <div class="modal-dialog modal-lg" style="width:90%">
         <div class="modal-content">
             {!! Form::open(['url' => action('InvestmentController@store'), 'method' => 'post', 'class' =>
@@ -101,7 +101,7 @@
                     <div class="col-md-4">
                         {{Form::label('Payment Mode ')}}
                         <div class="form-group">
-                            <select class="form-control select2" name="pay_mode_id" id="pay_mode_id2" required
+                            <select class="form-control select2" name="pay_mode_id" id="pay_mode_id" required
                                 style="width: 100%;" tabindex="-1" aria-hidden="true">
                                 <option value="">Select payment mode</option>
                                 @foreach($payment_mode as $item)
@@ -122,7 +122,7 @@
                     <div class="col-md-4 hide bank_payment_div1" id="bank_payment_div1">
                         {{Form::label('Payment Bank ')}}
                         <div class="form-group">
-                            <select class="form-control select2" name="pay_bank_id" id="pay_bank_id1"
+                            <select class="form-control select2" name="pay_bank_id" id="pay_bank_id"
                                 style="width: 100%;" tabindex="-1" aria-hidden="true">
                                 <option value"">Select payment bank</option>
                                 @foreach($banks as $item)
@@ -131,7 +131,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-4 hide bank_payment_acc2" id="bank_payment_acc2">
+                    <div class="col-md-4 hide bank_payment_acc1" id="bank_payment_acc1">
                         <div class="form-group">
                             {{Form::label('Bank Account')}}
                             <div class="form-group">

@@ -244,7 +244,7 @@ class ClientController extends Controller
             $message = "You have been successfully registered as a client at Inter-Web Global Fortune";
             $objDemo->email = $user->email;
             $objDemo->name = $user->name;
-            $objDemo->account_no = $user->account_no;
+            $objDemo->account_no = $account_no;
             $objDemo->message = $message;
 
             Mail::to($objDemo->email)->send(new SuccessfulRegistration($objDemo));
@@ -253,7 +253,7 @@ class ClientController extends Controller
             return back();
         }
     }
-
+    
     /**
      * Display the specified resource.
      *

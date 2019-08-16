@@ -238,6 +238,7 @@ class InvestmentController extends Controller
                     $inv_amount =  $investment_amount;
                     $monthly_pay = 0.2 * $inv_amount;
                     $total_pay = $monthly_pay * $inv_duration;
+                    $payable_amount = $total_pay;
 
                     $accu_interest_array = array();
                     for ($i = 0; $i < $inv_duration; $i++) {
@@ -304,6 +305,7 @@ class InvestmentController extends Controller
                     $total_comp_int = json_encode(array_sum($accu_interest_array));
 
                     $total_comp_int = $total_comp_int + $due_pay;
+                    $payable_amount = $total_comp_int;
 
                     // Update accounts table with the total due payments amount
                     $users_accounts_data = array(
@@ -371,6 +373,8 @@ class InvestmentController extends Controller
                     $total_comp_int = json_encode(array_sum($accu_interest_array));
 
                     $total_due_pay = $total_comp_int + $total_monthly_pay;
+
+                    $payable_amount = $total_due_pay;
 
                     $total_due_pay = $total_due_pay + $due_pay;
 
@@ -520,19 +524,39 @@ class InvestmentController extends Controller
                 $user_id = $request->input('user_id');
                 $account_no_id =  $request->input('account_id');
                 $investment = DB::table('investments')->where('account_no_id', '=', $account_no_id)->first();
-                $user = DB::table('users')->where('id', '=', $user_id)->first();
+                $user = DB::table('users')
+                    ->select(
+                        DB::raw('users.*'),
+                        DB::raw('users_details.*')
+                    )
+                    ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
+                    ->where('users.id', '=', $user_id)->first();
                 $investment_type = DB::table('inv_types')->where('inv_id', '=', $inv_type_id)->first();
+
+
+                if ($inv_type_id == 1) {
+                    $fterm =  'That the amount traded is expected to be generating an amount of Ksh ' . $monthly_pay . ' per month';
+                } elseif ($inv_type_id == 2) {
+                    $fterm =  'That the amount traded will be compounded until further notice';
+                } elseif ($inv_type_id == 3) {
+                    $fterm =  'That the amount traded is expected to be generating an amount of Ksh ' . $monthly_inv_pay . ' per month and the rest be coumpounded until further notice';
+                }
 
                 $objDemo = new \stdClass();
                 $objDemo->subject = 'Investment Received';
                 $company = "Inter-Web Global Fortune Limited";
                 $objDemo->company = $company;
-    
+
                 //1. Send to the user
                 $message = "We have received your investment. You will be notified upon approval of your investment.";
                 $objDemo->email = $user->email;
                 $objDemo->name = $user->name;
+                $objDemo->id_no = $user->id_no;
+                //$objDemo->home_address = $user->home_address;
                 $objDemo->amount = $investment_amount;
+                $objDemo->fterm = $fterm;
+                // $objDemo->monthly_pay = $monthly_pay;
+                $objDemo->payable_amount = $payable_amount;
                 $objDemo->inv_date = $inv_date;
                 $objDemo->duration = $inv_duration;
                 $objDemo->inv_type = $investment_type->inv_type;

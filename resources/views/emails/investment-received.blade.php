@@ -403,24 +403,65 @@
                                                                 Continue trading online and earn exciting returns on
                                                                 your investments.<br /><br />
 
-                                                                INTERNET TRADING AGREEMENT <br/>
-                                                                A) This agreement made this day of 2019 between Inter-Web Global Fortune Ltd, a duly registered limited company under Companies Act, 2015 Laws of Kenya and of P.O BOX 50428-00100 in the republic of Kenya <br/>
-                                                                   herein referred as the TRADERS which content will apply to their assignees, executors, personal representatives, agent’s heirs and or beneficiaries on one one hand holder of ID CARD NO in the Republic of Kenya, herein after referred to as the CLIENT.<br/>
-                                                                   WHEREAS <br/>
-                                                                   a) That the traders herein have their established business in Nairobi specifically at View Park Towers, 14th floor trading as INTER-WEB GLOBAL FORTUNE LTD, a dully registered Limited Company under the companies Act, 2015 Laws of Kenya. <br/>
-                                                                   b) That the client is a mature adult of sound mind who has approached the trader herein with an intention of being traded though Internet opportunities a sum of Ksh <br/>
-                                                                   c) That the trader is ready and willing to accommodate the client request at the following terms; <br/>
-                                                                       i. That the amount traded is expected to be generating an amount of  Ksh <br/>
-                                                                       ii. That the client can terminate the contract by giving a one-month notice. However, any termination before eed<br/>
-                                                                       iii . That the traders can forthwith terminate investor’scontract if they cannot sustain to generate the agr amount.
-                                                                             client at the signing of this agreement <br/>
-                                                                       iv. That at the attest to the fact that he/she shall conduct himself/herself professionally during all the time when the principal amount is traded<br/>
-                                                                       v. That this agreement will be valid for 12 monthsfrom the date of signing . <br/>
-                                                                       vi. That any other agreement shall be reduced into writing and the same shall be part and parcel of this agreement.<br/>
-                                                                       vii. That at the signing of this agreement both parties witness to the fact that they have read and understood all the terms and conditions upon which this investment has been/ shall be made and have agreed to abide by them all the time.<br/>
-                                                                       viii. That this agreement will come into effect immediately after the date of signing.<br/>
-                                                                      In witness whereof the investor and the trader have executed this agreement the day, month and year herein above stated.<br/>
- 
+                                                                &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<strong>INTERNET
+                                                                    TRADING AGREEMENT</strong><br /><br />
+                                                                A) This agreement made
+                                                                <strong>{{ $email->inv_date }}</strong> between
+                                                                <strong>Inter-Web Global Fortune Ltd</strong>, a duly
+                                                                registered limited company under <strong>Companies Act,
+                                                                    2015 Laws of Kenya and of P.O BOX
+                                                                    50428-00100</strong> in the republic of Kenya <br />
+                                                                herein referred as the <strong>TRADERS</strong> which
+                                                                content will apply to their assignees, executors,
+                                                                personal representatives, agent’s heirs and or
+                                                                beneficiaries on one one hand <strong>
+                                                                    {{ $email->name }}</strong> holder of <strong>ID
+                                                                    CARD NUMBER {{$email->id_no}}</strong> in the
+                                                                Republic
+                                                                of Kenya, herein after referred to as the
+                                                                <strong>CLIENT</strong>.<br /><br />
+                                                                WHEREAS<br /> <br />
+                                                                a) That the traders herein have their established
+                                                                business in Nairobi specifically at <strong>View Park
+                                                                    Towers, 14th floor</strong> trading as
+                                                                <strong>INTER-WEB GLOBAL FORTUNE LTD</strong>, a dully
+                                                                registered Limited Company under the companies Act, 2015
+                                                                Laws of Kenya. <br /><br />
+                                                                b) That the client is a mature adult of sound mind who
+                                                                has approached the trader herein with an intention of
+                                                                being traded though Internet opportunities a sum of Ksh
+                                                                <strong>{{ $email->amount }}</strong> <br /><br />
+                                                                c) That the trader is ready and willing to accommodate
+                                                                the client request at the following terms; <br /><br />
+                                                                i. {{$email->fterm}}
+                                                                <br /><br />
+                                                                ii. That the client can terminate the contract by giving
+                                                                a one-month notice. However, any termination before the
+                                                                expiry of 12 month period will fact in the amount paid
+                                                                previously and the client will only get the difference
+                                                                if any.<br /><br />
+                                                                iii . That the traders can forthwith terminate
+                                                                investor’s contract if they cannot sustain to generate
+                                                                the agreed amount. <br /><br />
+                                                                iv. That at the attest to the fact that he/she shall
+                                                                conduct himself/herself professionally during all the
+                                                                time when the principal amount is traded<br /><br />
+                                                                v. That this agreement will be valid for 12 months from
+                                                                the date of signing . <br /><br />
+                                                                vi. That any other agreement shall be reduced into
+                                                                writing and the same shall be part and parcel of this
+                                                                agreement.<br /><br />
+                                                                vii. That at the signing of this agreement both parties
+                                                                witness to the fact that they have read and understood
+                                                                all the terms and conditions upon which this investment
+                                                                has been/ shall be made and have agreed to abide by them
+                                                                all the time.<br /><br />
+                                                                viii. That this agreement will come into effect
+                                                                immediately after the date of signing.<br /><br />
+                                                                In witness whereof the investor and the trader have
+                                                                executed this agreement the day, month and year herein
+                                                                above stated.<br /><br />
+
                                                                 Best Regards,<br />
                                                                 <strong>{{ $email->company }}</strong>
 

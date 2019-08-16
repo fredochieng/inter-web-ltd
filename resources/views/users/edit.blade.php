@@ -55,6 +55,9 @@
             <button data-toggle="modal" disabled data-target="#modal_new_topup" data-backdrop="static"
                 data-keyboard="false" class="btn bg-aqua margin"><i class="fa fa-plus"></i> NEW TOPUP</button>
             @endif
+            <button data-toggle="modal" data-target="#modal_change_plan" data-backdrop="static" data-keyboard="false"
+                class="btn bg-orange margin"><i class="fa fa-check"></i>
+                CHANGE PLAN</button>
             @if((auth()->user()->can('payments.manage')) && $approved =='Y' && $fully_paid == 'N')
 
             <button data-toggle="modal" data-target="#modal_add_payment" data-backdrop="static" data-keyboard="false"
@@ -776,17 +779,19 @@ $("#termination_type").change(function() {
 {{--  Payment modes options  --}}
 <script>
     $(function () {
-            $("#pay_bank_id").change(function() {
+            $("#pay_bank_id1").change(function() {
+
                 var value = $(this).val();
                 if (value != 0 ) {
-                $("#bank_payment_acc1").removeClass("hide");
+                $("#bank_payment_acc2").removeClass("hide");
                 }
                 else{
-                $("#bank_payment_acc1").addClass("hide");
+                $("#bank_payment_acc2").addClass("hide");
                 }
         });
-            $("#pay_mode_id").change(function() {
+            $("#pay_mode_id2").change(function() {
                         var val = $(this).val();
+
                         if (val == 1 ) {
                         $("#mpesa_number_div1").removeClass("hide");
                         $("#bank_payment_acc1").addClass("hide");
