@@ -15,8 +15,8 @@ $(function () {
             document.getElementById('amount_transfered').value = totalInvestment;
             document.getElementById('amount_after_transfer').value = after_transfer;
         } else {
-            // document.getElementById('changePlanClientForm').reset();
-            // document.getElementById('amount_transfered').readOnly = false;
+            document.getElementById('changePlanClientForm').reset();
+            document.getElementById('amount_transfered').readOnly = false;
             $("#inv_duration_div1").addClass("hide");
             $("#monthly_inv_duration_div1").removeClass("hide");
             $("#compounded_inv_duration_div1").removeClass("hide");
@@ -26,9 +26,9 @@ $(function () {
 
             $('input').keyup(function () {
                 var totalInvestment31 = Number($('#total_investments').val());
-                var terminated31 = Number($('#amount_transfered').val());
-                var after_termination31 = totalInvestment31 - terminated31;
-                document.getElementById('amount_after_transfer').value = after_termination31;
+                var transfered31 = Number($('#amount_transfered').val());
+                var after_transfer31 = totalInvestment31 - transfered31;
+                document.getElementById('amount_after_transfer').value = after_transfer31;
             });
             document.getElementById("amount_after_transfer").readOnly = true;
             $("#inv_duration_div1").addClass("hide");
@@ -41,8 +41,8 @@ $(function () {
             // document.getElementById('amount_transfered').readOnly = false;
 
             $("#inv_duration_div1").removeClass("hide");
-            $("#monthly_inv_duration_div").addClass("hide");
-            $("#compounded_inv_duration_div").addClass("hide");
+            $("#monthly_inv_duration_div1").addClass("hide");
+            $("#compounded_inv_duration_div1").addClass("hide");
         }
 
     });

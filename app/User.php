@@ -76,6 +76,7 @@ class User extends Authenticatable
     public static function find_client($client, $client_value)
     {
 
+
         $query = "SELECT ";
         $query .= "users.*, ";
         $query .= "accounts.*, ";
@@ -113,8 +114,7 @@ class User extends Authenticatable
 
     public static function find_clients($request)
     {
-
-
+        // $role_id = 3;
         $query = "SELECT ";
         $query .= "users.*";
 
@@ -122,6 +122,14 @@ class User extends Authenticatable
 
         $query .= "LEFT JOIN users_details ON users.id = users_details.user_id ";
         $query .= "LEFT JOIN accounts ON users.id = accounts.user_id ";
+
+        // $query = "SELECT ";
+        // $query .= "accounts.*";
+
+        // $query .= "FROM accounts ";
+
+        // $query .= "LEFT JOIN users ON accounts.user_id = users.id ";
+        // $query .= "LEFT JOIN users_details ON users.id = users_details.user_id ";
 
         if (isset($_GET['find_client_by'])) {
 

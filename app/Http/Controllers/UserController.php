@@ -1171,7 +1171,7 @@ class UserController extends Controller
         }
 
         $today = Carbon::now('Africa/Nairobi')->toDateString();
-        // $today = '2020-08-12';
+        //$today = '2020-08-17';
 
         if ($data['customer_data']->inv_type == 2) {
             if ($data['customer_data']->inv_status_id == 0) {

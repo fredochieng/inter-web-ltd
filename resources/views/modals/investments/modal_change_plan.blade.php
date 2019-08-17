@@ -22,92 +22,128 @@
                     {{--  <input type="hidden" name="total_investments31" id="total_investments31"
                         value="{{$customer_data->monthly_inv}}"> --}}
 
-                    <div class="col-md-4">
-                        {{Form::label('Change Plan ')}}
-                        <div class="form-group">
-                            <select class="form-control select2" id="plan_type" name="plan_type" required
-                                style="width: 100%;" tabindex="-1" aria-hidden="true">
-                                <option selected="selected" value="0">Select plan type</option>
-                                <option value="1">Full Transfer</option>
-                                <option value="2">Partial Transfer</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="franch" class="col-sm-12 control-label label-left">Amount to
-                            transfer</label>
-                        <div class="col-sm-12">
-                            <input id="amount_transfered" class="form-control" name="amount_transfered" required
-                                type="number" value="">
-
-                        </div>
-                    </div>
-                    <div class="col-md-4" id="amount_after_transfer_div">
-                        <label for="franch" class="col-sm-12 control-label label-left">Amount after
-                            transfer
-                        </label>
-                        <div class="col-sm-12">
-                            <input id="amount_after_transfer" class="form-control" name="amount_after_transfer"
-                                type="text" value="">
-
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            {!! Form::label('Investment Date *') !!}
-                            <div class="input-group">
-                                <span class="input-group-addon">
-                                    <i class="fa fa-calendar"></i>
-                                </span>
-                                {{Form::text('inv_date', null, ['class' => 'form-control topup_date', 'readonly', 'id' => 'topup_date', 'required' ])}}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group hide inv_duration_div" id="inv_duration_div1">
-                            {{Form::label('Investment Duration(Months) *')}}
-                            <div class="input-group">
-                                {{Form::number('inv_duration', '',['class'=>'form-control', 'min' => '1'])}}
-                                <span class="input-group-addon">
-                                    Months
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3 hide monthly_inv_duration_div" id="monthly_inv_duration_div1">
-                        <div class="form-group">
-                            {{Form::label('Monthly Duration *')}}
+                    @if($customer_data->inv_type_id ==3)
+                    <div class="col-md-3">
+                        @else
+                        <div class="col-md-4">
+                            @endif
+                            {{Form::label('Change Plan ')}}
                             <div class="form-group">
-                                {{Form::number('monthly_inv_duration', '',['class'=>'form-control', 'min' => '1'])}}
+                                <select class="form-control select2" id="plan_type" name="plan_type" required
+                                    style="width: 100%;" tabindex="-1" aria-hidden="true">
+                                    <option selected="selected" value="0">Select plan type</option>
+                                    <option value="1">Full Transfer</option>
+                                    <option value="2">Partial Transfer</option>
+                                </select>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-3 hide compounded_inv_duration_div" id="compounded_inv_duration_div1">
-                        <div class="form-group">
-                            {{Form::label('Compounding Duration(Months) *')}}
+                        @if($customer_data->inv_type_id ==3)
+                        <div class="col-md-3">
+                            {{Form::label('Investment Plan')}}
                             <div class="form-group">
-                                {{Form::number('compounded_inv_duration', '',['class'=>'form-control', 'min' => '1'])}}
+                                <select class="form-control select2" id="inv_subtype" name="inv_subtype" required
+                                    style="width: 100%;" tabindex="-1" aria-hidden="true">
+                                    <option selected="selected" value="">Investment plan to change
+                                    </option>
+                                    @foreach($inv_types as $item)
+                                    <option value="{{ $item->inv_id }}">{{ $item->inv_type }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
+                        @endif
+                        @if($customer_data->inv_type_id ==3)
+                        <div class="col-md-3">
+                            @else
+                            <div class="col-md-4">
+                                @endif
+                                <label for="franch" class="col-sm-12 control-label label-left">Amount to
+                                    transfer</label>
+                                <div class="col-sm-12">
+                                    <input id="amount_transfered" class="form-control" name="amount_transfered" required
+                                        type="number" value="">
+
+                                </div>
+                            </div>
+                            @if($customer_data->inv_type_id ==3)
+                            <div class="col-md-3" id="amount_after_transfer_div">
+                                @else
+                                <div class="col-md-4" id="amount_after_transfer_div">
+                                    @endif
+                                    <label for="franch" class="col-sm-12 control-label label-left">Amount after
+                                        transfer
+                                    </label>
+                                    <div class="col-sm-12">
+                                        <input id="amount_after_transfer" class="form-control"
+                                            name="amount_after_transfer" type="text" value="">
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        {!! Form::label('Investment Date *') !!}
+                                        <div class="input-group">
+                                            <span class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </span>
+                                            {{Form::text('inv_date', null, ['class' => 'form-control topup_date', 'readonly', 'id' => 'topup_date', 'required' ])}}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group hide inv_duration_div" id="inv_duration_div1">
+                                        {{Form::label('Investment Duration(Months) *')}}
+                                        <div class="input-group">
+                                            {{Form::number('inv_duration', '',['class'=>'form-control', 'min' => '1'])}}
+                                            <span class="input-group-addon">
+                                                Months
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-8">
+                                    <div class="col-md-6 hide monthly_inv_duration_div" id="monthly_inv_duration_div1">
+                                        <div class="form-group">
+                                            {{Form::label('Monthly Duration(Months) *')}}
+                                            <div class="input-group">
+                                                {{Form::number('monthly_inv_duration', '',['class'=>'form-control', 'min' => '1'])}}
+                                                <span class="input-group-addon">
+                                                    Months
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 hide compounded_inv_duration_div"
+                                        id="compounded_inv_duration_div1">
+                                        <div class="form-group">
+                                            {{Form::label('Compounding Duration(Months) *')}}
+                                            <div class="input-group">
+                                                {{Form::number('compounded_inv_duration', '',['class'=>'form-control', 'min' => '1'])}}
+                                                <span class="input-group-addon">
+                                                    Months
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default btn-flat" data-dismiss="modal"><i
+                                            class="fa fa-times"></i>
+                                        No</button>
+                                    <button type="submit" class="btn btn-primary btn-flat"><i class="fa fa-check"></i>
+                                        Change Plan</button>
+                                </div>
+                                {!! Form::close() !!}
+                            </div>
+                        </div>
+
+                        <!-- /.modal-content -->
                     </div>
-                </div>
-                <div class="row">
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default btn-flat" data-dismiss="modal"><i
-                                class="fa fa-times"></i>
-                            No</button>
-                        <button type="submit" class="btn btn-primary btn-flat"><i class="fa fa-check"></i>
-                            Change Plan</button>
-                    </div>
-                    {!! Form::close() !!}
+                    <!-- /.modal-dialog -->
                 </div>
             </div>
-
-            <!-- /.modal-content -->
-        </div>
-        <!-- /.modal-dialog -->
-    </div>
-</div>

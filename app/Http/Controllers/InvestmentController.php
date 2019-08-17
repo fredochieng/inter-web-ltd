@@ -1483,6 +1483,7 @@ class InvestmentController extends Controller
             $monthly_inv_duration = $request->input('monthly_inv_duration');
             $compounded_inv_amount = $request->input('amount_after_transfer');
             $compounded_inv_duration = $request->input('compounded_inv_duration');
+            $total_investments = $monthly_inv_amount + $compounded_inv_amount;
 
 
             // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT
@@ -1502,18 +1503,23 @@ class InvestmentController extends Controller
             }
             $monthly_payment = json_encode($accu_interest_array);
             $total_comp_int = json_encode(array_sum($accu_interest_array));
+            // $total_comp_int = str_replace('""', '', $total_comp_int);
 
+            // dd($total_comp_int);
             $total_due_pay = $total_comp_int + $total_monthly_pay;
 
             $total_due_pay = $total_due_pay + $tot_comm;
 
+            // print_r($total_comp_int);
+            //exit;
             // Update accounts table with the total due payments amount
             $users_accounts_data = array(
 
                 'total_due_payments' => $total_due_pay
             );
-            $update_accounts = DB::table('accounts')->where('user_id', $user_id)
-                ->update($users_accounts_data);
+            // $update_accounts = DB::table('accounts')->where('user_id', $user_id)
+            //     ->update($users_accounts_data);
+            // dd($total_comp_int);
 
             // Update payment schedule table with the total due payments amount
             $user_payment_schedule = array(
@@ -1521,10 +1527,8 @@ class InvestmentController extends Controller
                 'tot_payable_amnt' => $total_due_pay,
                 'monthly_amount' => $monthly_inv_pay,
                 'comp_monthly_pay' => $monthly_payment,
-                'tot_comp_amount' => $total_comp_int,
                 'topped_up' => 0,
                 // 'topup_amount' => '',
-                'tot_comp_amount' => '',
                 'updated_next_pay' => '',
                 'updated_monthly_pay' => '',
                 'updated_monthly_pay_ter' => '',
@@ -1535,11 +1539,21 @@ class InvestmentController extends Controller
             $update_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
                 ->update($user_payment_schedule);
 
+            $user_payment_schedule1 = array(
+                'tot_comp_amount' => $total_comp_int,
+            );
+
+            // dd($user_payment_schedule1);
+            // exit;
+
+            $update_payment_schedule1 = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                ->update($user_payment_schedule1);
+
             // Update investments table with the total due payments amount
             $investments_data = array(
                 'inv_date' => $inv_date,
-                'initial_inv' => $investment_amount,
-                'investment_amount' => $investment_amount,
+                'initial_inv' => $total_investments,
+                'investment_amount' => $total_investments,
                 'investment_duration' => $investment_duration,
                 'monthly_inv' => $monthly_inv_amount,
                 'compounded_inv' => $compounded_inv_amount,
