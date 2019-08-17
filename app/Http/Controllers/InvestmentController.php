@@ -219,12 +219,10 @@ class InvestmentController extends Controller
                 $compounded_inv_duration = $request->input('compounded_inv_duration');
 
                 // Get client's account due payments balance
-
                 $due_payments = DB::table('accounts')->where('id', '=', $account_no_id)->first();
                 $due_pay = $due_payments->total_due_payments;
 
                 // Calculation of total commission to  be earned by the referer
-
                 $inv_comm_per = 0.05;
                 $inv_comm = $inv_comm_per * $investment_amount;
                 $tot_inv_comm = $inv_comm * $comm_times;
@@ -354,7 +352,6 @@ class InvestmentController extends Controller
                     $compounded_inv_amount =  $investment_amount -  $monthly_inv_amount;
                     $compounded_inv_duration =  $compounded_inv_duration;
 
-
                     // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT
                     $monthly_inv_pay = 0.2 * $monthly_inv_amount;
                     $total_monthly_pay = $monthly_inv_pay * $monthly_inv_duration;
@@ -456,7 +453,6 @@ class InvestmentController extends Controller
                         'pay_mpesa_no' => $pay_mpesa_no,
                         'pay_bank_id' => $pay_bank_id,
                         'pay_bank_acc' => $pay_bank_acc,
-                        // 'pay_dates' => date('Y-m-d', strtotime($last_pay_date))
                         'pay_dates' => $pay_dates
                     );
                     $update_user_pay_modes = DB::table('user_pay_modes')->where('user_id', $user_id)
@@ -479,7 +475,6 @@ class InvestmentController extends Controller
                     'pay_mpesa_no' => $pay_mpesa_no,
                     'pay_bank_id' => $pay_bank_id,
                     'pay_bank_acc' => $pay_bank_acc,
-
                 );
 
                 $update_client_pay_modes = DB::table('client_payment_modes')->where('user_id', $user_id)
@@ -982,20 +977,7 @@ class InvestmentController extends Controller
                 $new_due_pay = $total_pay + $comp_due_pay;
                 $new_tot_investment = $tot_inv_amount - $amount_terminated;
                 $new_monthly_inv = $monthly_inv - $amount_terminated;
-
-                // if ($topped == 0 && $terminated == '') {
-                //     $updated_pay = $amount_terminated + $monthly_amount;
-                // } elseif ($topped == 1 && $terminated == '') {
-                //     $updated_pay = $amount_terminated + $updated_monthly_pay;
-                // } elseif ($topped == '' && $terminated != '') {
-                //     $updated_pay = $amount_terminated + $monthly_amount;
-                // } elseif ($topped == 1 && $terminated != '') {
-                //     $updated_pay = $amount_terminated + $updated_monthly_pay_ter;
-                // }
                 $updated_pay = $amount_terminated + $monthly_pay;
-                // echo $updated_pay;
-                // exit;
-
 
                 $save_account_data = DB::table('accounts')->where('id', $account_no_id)->update(['total_due_payments' => $total_pay]);
 
@@ -1043,10 +1025,6 @@ class InvestmentController extends Controller
                 $objDemo->amount_ter = $amount_terminated;
                 $objDemo->after_ter = $total_investments - $amount_terminated;
                 $objDemo->message = $message;
-
-                // echo "<pre>";
-                // print_r($objDemo);
-                // exit;
 
                 Mail::to($terminated_inv->email)->send(new InvestmentTerminated($objDemo));
 
@@ -1117,10 +1095,6 @@ class InvestmentController extends Controller
                 $objDemo->after_ter = $total_investments - $amount_terminated;
                 $objDemo->message = $message;
 
-                // echo "<pre>";
-                // print_r($objDemo);
-                // exit;
-
                 Mail::to($terminated_inv->email)->send(new InvestmentTerminated($objDemo));
 
                 toast('Investment terminated successfullty', 'success', 'top-right');
@@ -1182,12 +1156,6 @@ class InvestmentController extends Controller
                         'ter_date' => $ter_date
                     );
                     $save_ter = DB::table('terminations')->insertGetId($save_ter_inv);
-                    // $next_pay_date = $next_pay_date->toDateString();
-                    // $next_pay_date = (array) $next_pay_date;
-                    // $updated_pay = (array) $updated_pay;
-
-                    // $output = array_combine($next_pay_date, $updated_pay);
-                    // $output = json_encode($output);
 
                     $save_ter_pay_info = array(
                         'user_id' => $user_id,
@@ -1270,10 +1238,6 @@ class InvestmentController extends Controller
                 $objDemo->amount_ter = $amount_terminated;
                 $objDemo->after_ter = $total_investments - $amount_terminated;
                 $objDemo->message = $message;
-
-                // echo "<pre>";
-                // print_r($objDemo);
-                // exit;
 
                 Mail::to($terminated_inv->email)->send(new InvestmentTerminated($objDemo));
 
@@ -1363,41 +1327,302 @@ class InvestmentController extends Controller
 
         $tot_comm = $inv_comm_sum + $topup_comm_sum;
 
+        $inv_type_id = $request->input('inv_type_id');
+        $real_inv_type_id = $request->input('real_inv_type_id');
+        $inv_subtype_id2 = $request->input('inv_subtype_id2');
         if ($plan_type == 1) {
-            $inv_type_id = $request->input('inv_type_id');
-            if ($inv_type_id == 1) {
 
-                // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT TYPE
-                $inv_duration =  $investment_duration;
-                $inv_amount =  $investment_amount;
-                $monthly_pay = 0.2 * $inv_amount;
-                $total_pay = $monthly_pay * $inv_duration;
+            if ($real_inv_type_id == 1 || $real_inv_type_id == 2) {
+
+                if ($inv_type_id == 1) {
+
+                    // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT TYPE
+                    $inv_duration =  $investment_duration;
+                    $inv_amount =  $investment_amount;
+                    $monthly_pay = 0.2 * $inv_amount;
+                    $total_pay = $monthly_pay * $inv_duration;
+
+                    $accu_interest_array = array();
+                    for ($i = 0; $i < $inv_duration; $i++) {
+                        $monthly_pay = 0.2 * $inv_amount;
+                        $accu_interest_array[] = (int) $monthly_pay;
+                    }
+
+                    $total_pay = $total_pay + $tot_comm;
+
+                    // Update accounts table with the total due payments amount
+                    $users_accounts_data = array(
+                        'total_due_payments' => $total_pay
+                    );
+
+                    $update_accounts = DB::table('accounts')->where('user_id', $user_id)
+                        ->update($users_accounts_data);
+
+                    // Update payment schedule table with the total due payments amount
+                    $user_payment_schedule = array(
+                        'inv_type' => $inv_type_id,
+                        'tot_payable_amnt' => $total_pay,
+                        'monthly_amount' => $monthly_pay,
+                        'topped_up' => 0,
+                        // 'topup_amount' => '',
+                        'comp_monthly_pay' => '',
+                        'tot_comp_amount' => '',
+                        'updated_next_pay' => '',
+                        'updated_monthly_pay' => '',
+                        'updated_monthly_pay_ter' => '',
+                        'updated_pay_plan' => '',
+                        'termination_pay' => ''
+                    );
+
+                    $update_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                        ->update($user_payment_schedule);
+
+                    // Update investment table with the investment data
+                    $investments_data = array(
+                        'inv_date' => $inv_date,
+                        'investment_amount' => $investment_amount,
+                        'initial_inv' => $investment_amount,
+                        'investment_duration' => $investment_duration,
+                        'inv_type_id' => $inv_type_id,
+                        'last_pay_date' => date('Y-m-d', strtotime($last_pay_date))
+                    );
+
+                    $update_investments = DB::table('investments')->where('account_no_id', $account_no_id)
+                        ->update($investments_data);
+                } elseif ($inv_type_id == 2) {
+
+                    $principal = $investment_amount;
+                    $interestRate = 0.2;
+                    $term = $investment_duration - 1;
+
+                    $accu_interest_array = array();
+                    for ($i = 0; $i < $term; $i++) {
+                        $total = $principal * $interestRate;
+                        $principal += $total;
+                        $accu_interest_array[] = (int) $total;
+                    }
+                    $monthly_payment = json_encode($accu_interest_array);
+
+                    $total_comp_int = json_encode(array_sum($accu_interest_array));
+
+                    $total_comp_int = $total_comp_int + $tot_comm;
+
+                    // Update accounts table with the total due payments amount
+                    $users_accounts_data = array(
+                        'total_due_payments' => $total_comp_int
+                    );
+
+                    $update_accounts = DB::table('accounts')->where('user_id', $user_id)
+                        ->update($users_accounts_data);
+
+                    // Update payment schedule table with the total due payments amount
+                    $user_payment_schedule = array(
+                        'inv_type' => $inv_type_id,
+                        'tot_payable_amnt' => $total_comp_int,
+                        'comp_monthly_pay' => $monthly_payment,
+                        'monthly_amount' => 0,
+                        'topped_up' => 0,
+                        // 'topup_amount' => '',
+                        'tot_comp_amount' => '',
+                        'updated_next_pay' => '',
+                        'updated_monthly_pay' => '',
+                        'updated_monthly_pay_ter' => '',
+                        'updated_pay_plan' => '',
+                        'termination_pay' => ''
+                    );
+
+                    $update_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                        ->update($user_payment_schedule);
+
+                    // Update Clients Investments
+                    $investments_data = array(
+                        'inv_date' => $inv_date,
+                        'initial_inv' => $investment_amount,
+                        'investment_amount' => $investment_amount,
+                        'investment_duration' => $investment_duration,
+                        'inv_type_id' => $inv_type_id,
+                        'last_pay_date' => date('Y-m-d', strtotime($last_pay_date))
+                    );
+
+                    $update_investments = DB::table('investments')->where('account_no_id', $account_no_id)
+                        ->update($investments_data);
+                }
+            } elseif ($real_inv_type_id == 3) {
+                $investment_amount = $request->input('total_investments');
+                $new_inv_type_id = 2;
+                $new_inv_type_id1 = 1;
+
+                if ($inv_subtype_id2 == 1) {
+
+                    $principal = $investment_amount;
+                    $interestRate = 0.2;
+                    $term = $investment_duration - 1;
+
+                    $accu_interest_array = array();
+                    for ($i = 0; $i < $term; $i++) {
+                        $total = $principal * $interestRate;
+                        $principal += $total;
+                        $accu_interest_array[] = (int) $total;
+                    }
+                    $monthly_payment = json_encode($accu_interest_array);
+
+                    $total_comp_int = json_encode(array_sum($accu_interest_array));
+
+                    $total_comp_int = $total_comp_int + $tot_comm;
+
+                    // Update accounts table with the total due payments amount
+                    $users_accounts_data = array(
+                        'total_due_payments' => $total_comp_int
+                    );
+
+                    $update_accounts = DB::table('accounts')->where('user_id', $user_id)
+                        ->update($users_accounts_data);
+
+                    // Update payment schedule table with the total due payments amount
+                    $user_payment_schedule = array(
+                        'inv_type' => $new_inv_type_id,
+                        'tot_payable_amnt' => $total_comp_int,
+                        'comp_monthly_pay' => $monthly_payment,
+                        'monthly_amount' => 0,
+                        'topped_up' => 0,
+                        // 'topup_amount' => '',
+                        'tot_comp_amount' => '',
+                        'updated_next_pay' => '',
+                        'updated_monthly_pay' => '',
+                        'updated_monthly_pay_ter' => '',
+                        'updated_pay_plan' => '',
+                        'termination_pay' => ''
+                    );
+
+                    $update_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                        ->update($user_payment_schedule);
+
+                    // Update Clients Investments
+                    $investments_data = array(
+                        'inv_date' => $inv_date,
+                        'initial_inv' => $investment_amount,
+                        'investment_amount' => $investment_amount,
+                        'investment_duration' => $investment_duration,
+                        'inv_type_id' => $new_inv_type_id,
+                        'monthly_inv' => '',
+                        'compounded_inv' => '',
+                        'monthly_duration' => '',
+                        'comp_duration' => '',
+                        'last_pay_date' => date('Y-m-d', strtotime($last_pay_date))
+                    );
+
+                    $update_investments = DB::table('investments')->where('account_no_id', $account_no_id)
+                        ->update($investments_data);
+                } elseif ($inv_subtype_id2 == 2) {
+
+                    // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT TYPE
+                    $inv_duration =  $investment_duration;
+                    $inv_amount =  $investment_amount;
+                    $monthly_pay = 0.2 * $inv_amount;
+                    $total_pay = $monthly_pay * $inv_duration;
+
+                    $accu_interest_array = array();
+                    for ($i = 0; $i < $inv_duration; $i++) {
+                        $monthly_pay = 0.2 * $inv_amount;
+                        $accu_interest_array[] = (int) $monthly_pay;
+                    }
+
+                    $total_pay = $total_pay + $tot_comm;
+
+                    // Update accounts table with the total due payments amount
+                    $users_accounts_data = array(
+                        'total_due_payments' => $total_pay
+                    );
+
+                    $update_accounts = DB::table('accounts')->where('user_id', $user_id)
+                        ->update($users_accounts_data);
+
+                    // Update payment schedule table with the total due payments amount
+                    $user_payment_schedule = array(
+                        'inv_type' => $new_inv_type_id1,
+                        'tot_payable_amnt' => $total_pay,
+                        'monthly_amount' => $monthly_pay,
+                        'topped_up' => 0,
+                        // 'topup_amount' => '',
+                        'comp_monthly_pay' => '',
+                        'tot_comp_amount' => '',
+                        'updated_next_pay' => '',
+                        'updated_monthly_pay' => '',
+                        'updated_monthly_pay_ter' => '',
+                        'updated_pay_plan' => '',
+                        'termination_pay' => ''
+                    );
+
+                    $update_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                        ->update($user_payment_schedule);
+
+                    // Update investment table with the investment data
+                    $investments_data = array(
+                        'inv_date' => $inv_date,
+                        'investment_amount' => $investment_amount,
+                        'initial_inv' => $investment_amount,
+                        'investment_duration' => $investment_duration,
+                        'inv_type_id' => $new_inv_type_id1,
+                        'monthly_inv' => '',
+                        'compounded_inv' => '',
+                        'monthly_duration' => '',
+                        'comp_duration' => '',
+                        'last_pay_date' => date('Y-m-d', strtotime($last_pay_date))
+                    );
+
+                    $update_investments = DB::table('investments')->where('account_no_id', $account_no_id)
+                        ->update($investments_data);
+                }
+            }
+        } elseif ($plan_type == 2) {
+
+            if ($real_inv_type_id == 1 || $real_inv_type_id == 2) {
+                $new_inv_type = 3;
+                $monthly_inv_amount = $investment_amount;
+                $monthly_inv_duration = $request->input('monthly_inv_duration');
+                $compounded_inv_amount = $request->input('amount_after_transfer');
+                $compounded_inv_duration = $request->input('compounded_inv_duration');
+                $total_investments = $monthly_inv_amount + $compounded_inv_amount;
+
+
+                // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT
+                $monthly_inv_pay = 0.2 * $monthly_inv_amount;
+
+                $total_monthly_pay = $monthly_inv_pay * $monthly_inv_duration;
+
+                $principal = $compounded_inv_amount;
+                $interestRate = 0.2;
+                $term = $compounded_inv_duration - 1;
 
                 $accu_interest_array = array();
-                for ($i = 0; $i < $inv_duration; $i++) {
-                    $monthly_pay = 0.2 * $inv_amount;
-                    $accu_interest_array[] = (int) $monthly_pay;
+                for ($i = 0; $i < $term; $i++) {
+                    $total = $principal * $interestRate;
+                    $principal += $total;
+                    $accu_interest_array[] = (int) $total;
                 }
+                $monthly_payment = json_encode($accu_interest_array);
+                $total_comp_int = json_encode(array_sum($accu_interest_array));
 
-                $total_pay = $total_pay + $tot_comm;
+                $total_due_pay = $total_comp_int + $total_monthly_pay;
+
+                $total_due_pay = $total_due_pay + $tot_comm;
 
                 // Update accounts table with the total due payments amount
                 $users_accounts_data = array(
-                    'total_due_payments' => $total_pay
-                );
 
+                    'total_due_payments' => $total_due_pay
+                );
                 $update_accounts = DB::table('accounts')->where('user_id', $user_id)
                     ->update($users_accounts_data);
 
                 // Update payment schedule table with the total due payments amount
                 $user_payment_schedule = array(
-                    'inv_type' => $inv_type_id,
-                    'tot_payable_amnt' => $total_pay,
-                    'monthly_amount' => $monthly_pay,
+                    'inv_type' => $new_inv_type,
+                    'tot_payable_amnt' => $total_due_pay,
+                    'monthly_amount' => $monthly_inv_pay,
+                    'comp_monthly_pay' => $monthly_payment,
                     'topped_up' => 0,
                     // 'topup_amount' => '',
-                    'comp_monthly_pay' => '',
-                    'tot_comp_amount' => '',
                     'updated_next_pay' => '',
                     'updated_monthly_pay' => '',
                     'updated_monthly_pay_ter' => '',
@@ -1408,162 +1633,181 @@ class InvestmentController extends Controller
                 $update_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
                     ->update($user_payment_schedule);
 
-                // Update investment table with the investment data
-                $investments_data = array(
-                    'inv_date' => $inv_date,
-                    'investment_amount' => $investment_amount,
-                    'initial_inv' => $investment_amount,
-                    'investment_duration' => $investment_duration,
-                    'inv_type_id' => $inv_type_id,
-                    'last_pay_date' => date('Y-m-d', strtotime($last_pay_date))
+                $user_payment_schedule1 = array(
+                    'tot_comp_amount' => $total_comp_int,
                 );
 
+                $update_payment_schedule1 = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                    ->update($user_payment_schedule1);
+
+                // Update investments table with the total due payments amount
+                $investments_data = array(
+                    'inv_date' => $inv_date,
+                    'initial_inv' => $total_investments,
+                    'investment_amount' => $total_investments,
+                    'investment_duration' => $investment_duration,
+                    'monthly_inv' => $monthly_inv_amount,
+                    'compounded_inv' => $compounded_inv_amount,
+                    'monthly_duration' => $monthly_inv_duration,
+                    'comp_duration' => $compounded_inv_duration,
+                    'inv_type_id' => $new_inv_type,
+                    'last_pay_date' => date('Y-m-d', strtotime($last_pay_date))
+                );
                 $update_investments = DB::table('investments')->where('account_no_id', $account_no_id)
                     ->update($investments_data);
-            } elseif ($inv_type_id == 2) {
-                $principal = $investment_amount;
-                $interestRate = 0.2;
-                $term = $investment_duration - 1;
+            } elseif ($real_inv_type_id == 3) {
+                //$investment_amount = $request->input('total_investments');
+                $monthly_total_investments = $request->input('monthly_total_investments');
+                $comp_total_investments = $request->input('comp_total_investments');
+                $transfered_amount = $investment_amount;
 
-                $accu_interest_array = array();
-                for ($i = 0; $i < $term; $i++) {
-                    $total = $principal * $interestRate;
-                    $principal += $total;
-                    $accu_interest_array[] = (int) $total;
+                $monthly_inv_duration = $request->input('monthly_inv_duration');
+                $compounded_inv_duration = $request->input('compounded_inv_duration');
+
+                if ($inv_subtype_id2 == 1) {
+                    $new_monthly_inv = $monthly_total_investments - $transfered_amount;
+                    $new_comp_inv = $comp_total_investments + $transfered_amount;
+
+                    // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT
+                    $monthly_inv_pay = 0.2 * $new_monthly_inv;
+
+                    $total_monthly_pay = $monthly_inv_pay * $monthly_inv_duration;
+
+                    $principal = $new_comp_inv;
+                    $interestRate = 0.2;
+                    $term = $compounded_inv_duration - 1;
+
+                    $accu_interest_array = array();
+                    for ($i = 0; $i < $term; $i++) {
+                        $total = $principal * $interestRate;
+                        $principal += $total;
+                        $accu_interest_array[] = (int) $total;
+                    }
+                    $monthly_payment = json_encode($accu_interest_array);
+                    $total_comp_int = json_encode(array_sum($accu_interest_array));
+
+                    $total_due_pay = $total_comp_int + $total_monthly_pay;
+
+                    $total_due_pay = $total_due_pay + $tot_comm;
+
+                    // Update accounts table with the total due payments amount
+                    $users_accounts_data = array(
+
+                        'total_due_payments' => $total_due_pay
+                    );
+                    $update_accounts = DB::table('accounts')->where('user_id', $user_id)
+                        ->update($users_accounts_data);
+
+                    // Update payment schedule table with the total due payments amount
+                    $user_payment_schedule = array(
+                        'tot_payable_amnt' => $total_due_pay,
+                        'monthly_amount' => $monthly_inv_pay,
+                        'comp_monthly_pay' => $monthly_payment,
+                        'tot_comp_amount' => $total_comp_int,
+                        'topped_up' => 0,
+                        // 'topup_amount' => '',
+                        'updated_next_pay' => '',
+                        'updated_monthly_pay' => '',
+                        'updated_monthly_pay_ter' => '',
+                        'updated_pay_plan' => '',
+                        'termination_pay' => ''
+                    );
+
+                    $update_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                        ->update($user_payment_schedule);
+
+                    $user_payment_schedule1 = array(
+                        'tot_comp_amount' => $total_comp_int,
+                    );
+
+                    $update_payment_schedule1 = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                        ->update($user_payment_schedule1);
+
+                    // Update investments table with the total due payments amount
+                    $investments_data = array(
+                        'inv_date' => $inv_date,
+                        'investment_duration' => $investment_duration,
+                        'monthly_inv' => $new_monthly_inv,
+                        'compounded_inv' => $new_comp_inv,
+                        'monthly_duration' => $monthly_inv_duration,
+                        'comp_duration' => $compounded_inv_duration,
+                        'last_pay_date' => date('Y-m-d', strtotime($last_pay_date))
+                    );
+                    $update_investments = DB::table('investments')->where('account_no_id', $account_no_id)
+                        ->update($investments_data);
+                } elseif ($inv_subtype_id2 == 2) {
+                    $new_monthly_inv = $monthly_total_investments + $transfered_amount;
+                    $new_comp_inv = $comp_total_investments - $transfered_amount;
+
+                    // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT
+                    $monthly_inv_pay = 0.2 * $new_monthly_inv;
+
+                    $total_monthly_pay = $monthly_inv_pay * $monthly_inv_duration;
+
+                    $principal = $new_comp_inv;
+                    $interestRate = 0.2;
+                    $term = $compounded_inv_duration - 1;
+
+                    $accu_interest_array = array();
+                    for ($i = 0; $i < $term; $i++) {
+                        $total = $principal * $interestRate;
+                        $principal += $total;
+                        $accu_interest_array[] = (int) $total;
+                    }
+                    $monthly_payment = json_encode($accu_interest_array);
+                    $total_comp_int = json_encode(array_sum($accu_interest_array));
+
+                    $total_due_pay = $total_comp_int + $total_monthly_pay;
+
+                    $total_due_pay = $total_due_pay + $tot_comm;
+
+                    // Update accounts table with the total due payments amount
+                    $users_accounts_data = array(
+
+                        'total_due_payments' => $total_due_pay
+                    );
+                    $update_accounts = DB::table('accounts')->where('user_id', $user_id)
+                        ->update($users_accounts_data);
+
+                    // Update payment schedule table with the total due payments amount
+                    $user_payment_schedule = array(
+                        'tot_payable_amnt' => $total_due_pay,
+                        'monthly_amount' => $monthly_inv_pay,
+                        'comp_monthly_pay' => $monthly_payment,
+                        'tot_comp_amount' => $total_comp_int,
+                        'topped_up' => 0,
+                        // 'topup_amount' => '',
+                        'updated_next_pay' => '',
+                        'updated_monthly_pay' => '',
+                        'updated_monthly_pay_ter' => '',
+                        'updated_pay_plan' => '',
+                        'termination_pay' => ''
+                    );
+
+                    $update_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                        ->update($user_payment_schedule);
+
+                    $user_payment_schedule1 = array(
+                        'tot_comp_amount' => $total_comp_int,
+                    );
+
+                    $update_payment_schedule1 = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
+                        ->update($user_payment_schedule1);
+
+                    // Update investments table with the total due payments amount
+                    $investments_data = array(
+                        'inv_date' => $inv_date,
+                        'investment_duration' => $investment_duration,
+                        'monthly_inv' => $new_monthly_inv,
+                        'compounded_inv' => $new_comp_inv,
+                        'monthly_duration' => $monthly_inv_duration,
+                        'comp_duration' => $compounded_inv_duration,
+                        'last_pay_date' => date('Y-m-d', strtotime($last_pay_date))
+                    );
+                    $update_investments = DB::table('investments')->where('account_no_id', $account_no_id)
+                        ->update($investments_data);
                 }
-                $monthly_payment = json_encode($accu_interest_array);
-
-                $total_comp_int = json_encode(array_sum($accu_interest_array));
-
-                $total_comp_int = $total_comp_int + $tot_comm;
-
-                // Update accounts table with the total due payments amount
-                $users_accounts_data = array(
-                    'total_due_payments' => $total_comp_int
-                );
-
-                // $update_accounts = DB::table('accounts')->where('user_id', $user_id)
-                //     ->update($users_accounts_data);
-
-                // Update payment schedule table with the total due payments amount
-                $user_payment_schedule = array(
-                    'inv_type' => $inv_type_id,
-                    'tot_payable_amnt' => $total_comp_int,
-                    'comp_monthly_pay' => $monthly_payment,
-                    'monthly_amount' => 0,
-                    'topped_up' => 0,
-                    // 'topup_amount' => '',
-                    'tot_comp_amount' => '',
-                    'updated_next_pay' => '',
-                    'updated_monthly_pay' => '',
-                    'updated_monthly_pay_ter' => '',
-                    'updated_pay_plan' => '',
-                    'termination_pay' => ''
-                );
-
-                // $update_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
-                //     ->update($user_payment_schedule);
-
-                // Update Clients Investments
-                $investments_data = array(
-                    'inv_date' => $inv_date,
-                    'initial_inv' => $investment_amount,
-                    'investment_amount' => $investment_amount,
-                    'investment_duration' => $investment_duration,
-                    'inv_type_id' => $inv_type_id,
-                    'last_pay_date' => date('Y-m-d', strtotime($last_pay_date))
-                );
-
-                // $update_investments = DB::table('investments')->where('account_no_id', $account_no_id)
-                //     ->update($investments_data);
             }
-        } elseif ($plan_type == 2) {
-            $new_inv_type = 3;
-            $monthly_inv_amount = $investment_amount;
-            $monthly_inv_duration = $request->input('monthly_inv_duration');
-            $compounded_inv_amount = $request->input('amount_after_transfer');
-            $compounded_inv_duration = $request->input('compounded_inv_duration');
-            $total_investments = $monthly_inv_amount + $compounded_inv_amount;
-
-
-            // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT
-            $monthly_inv_pay = 0.2 * $monthly_inv_amount;
-
-            $total_monthly_pay = $monthly_inv_pay * $monthly_inv_duration;
-
-            $principal = $compounded_inv_amount;
-            $interestRate = 0.2;
-            $term = $compounded_inv_duration - 1;
-
-            $accu_interest_array = array();
-            for ($i = 0; $i < $term; $i++) {
-                $total = $principal * $interestRate;
-                $principal += $total;
-                $accu_interest_array[] = (int) $total;
-            }
-            $monthly_payment = json_encode($accu_interest_array);
-            $total_comp_int = json_encode(array_sum($accu_interest_array));
-            // $total_comp_int = str_replace('""', '', $total_comp_int);
-
-            // dd($total_comp_int);
-            $total_due_pay = $total_comp_int + $total_monthly_pay;
-
-            $total_due_pay = $total_due_pay + $tot_comm;
-
-            // print_r($total_comp_int);
-            //exit;
-            // Update accounts table with the total due payments amount
-            $users_accounts_data = array(
-
-                'total_due_payments' => $total_due_pay
-            );
-            // $update_accounts = DB::table('accounts')->where('user_id', $user_id)
-            //     ->update($users_accounts_data);
-            // dd($total_comp_int);
-
-            // Update payment schedule table with the total due payments amount
-            $user_payment_schedule = array(
-                'inv_type' => $new_inv_type,
-                'tot_payable_amnt' => $total_due_pay,
-                'monthly_amount' => $monthly_inv_pay,
-                'comp_monthly_pay' => $monthly_payment,
-                'topped_up' => 0,
-                // 'topup_amount' => '',
-                'updated_next_pay' => '',
-                'updated_monthly_pay' => '',
-                'updated_monthly_pay_ter' => '',
-                'updated_pay_plan' => '',
-                'termination_pay' => ''
-            );
-
-            $update_payment_schedule = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
-                ->update($user_payment_schedule);
-
-            $user_payment_schedule1 = array(
-                'tot_comp_amount' => $total_comp_int,
-            );
-
-            // dd($user_payment_schedule1);
-            // exit;
-
-            $update_payment_schedule1 = DB::table('payment_schedule')->where('account_no_id', $account_no_id)
-                ->update($user_payment_schedule1);
-
-            // Update investments table with the total due payments amount
-            $investments_data = array(
-                'inv_date' => $inv_date,
-                'initial_inv' => $total_investments,
-                'investment_amount' => $total_investments,
-                'investment_duration' => $investment_duration,
-                'monthly_inv' => $monthly_inv_amount,
-                'compounded_inv' => $compounded_inv_amount,
-                'monthly_duration' => $monthly_inv_duration,
-                'comp_duration' => $compounded_inv_duration,
-                'inv_type_id' => $new_inv_type,
-                'last_pay_date' => date('Y-m-d', strtotime($last_pay_date))
-            );
-            $update_investments = DB::table('investments')->where('account_no_id', $account_no_id)
-                ->update($investments_data);
         }
 
         $user_payment_mode = array(

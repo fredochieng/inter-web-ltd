@@ -13,11 +13,20 @@
                 <div class="row">
                     <input type="hidden" name="account_no_id" value="{{$customer_data->accnt_id}}">
                     <input type="hidden" name="user_id" value="{{$customer_data->user_id}}">
-                    <input type="hidden" name="real_inv_type_id" value="{{$customer_data->inv_type_id}}">
+                    <input type="hidden" name="real_inv_type_id" id="real_inv_type_id"
+                        value="{{$customer_data->inv_type_id}}">
                     @if($customer_data->inv_type_id ==1)
                     <input type="hidden" name="inv_type_id" value="2">
                     @elseif($customer_data->inv_type_id ==2)
                     <input type="hidden" name="inv_type_id" value="1">
+                    @endif
+                    @if($customer_data->inv_type_id ==3)
+                    <input type="hidden" name="monthly_total_investments" id="monthly_total_investments"
+                        value="{{$customer_data->monthly_inv}}">
+                    <input type="hidden" name="comp_total_investments" id="comp_total_investments"
+                        value="{{$customer_data->compounded_inv}}">
+                    <input type="hidden" name="total_investments" id="total_investments"
+                        value="{{$customer_data->investment_amount}}">
                     @endif
                     {{--  <input type="hidden" name="total_investments31" id="total_investments31"
                         value="{{$customer_data->monthly_inv}}"> --}}
@@ -41,8 +50,8 @@
                         <div class="col-md-3">
                             {{Form::label('Investment Plan')}}
                             <div class="form-group">
-                                <select class="form-control select2" id="inv_subtype" name="inv_subtype" required
-                                    style="width: 100%;" tabindex="-1" aria-hidden="true">
+                                <select class="form-control select2" id="inv_subtype_id2" name="inv_subtype_id2"
+                                    required style="width: 100%;" tabindex="-1" aria-hidden="true">
                                     <option selected="selected" value="">Investment plan to change
                                     </option>
                                     @foreach($inv_types as $item)
