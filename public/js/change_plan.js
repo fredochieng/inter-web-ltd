@@ -1,7 +1,9 @@
 $(function () {
 
+    var val;
     $("#plan_type").change(function () {
         var val = $(this).val();
+
         if (val == 1) {
             $("#inv_duration_div1").removeClass("hide");
             $("#monthly_inv_duration_div").addClass("hide");
@@ -98,6 +100,26 @@ $(function () {
             $("#compounded_inv_duration_div1").addClass("hide");
         }
 
+        $('input.maxtickets_enable_cb').change(function () {
+            var local_plan = val;
+            //alert(local_plan);
+            if ($(this).is(':checked') && local_plan == 1) {
+                $(this).next('div.max_tickets').show();
+                $("#inv_subtype_id21").addClass("hide");
+                var totalComm = $('#all_comm').val();
+                var totalCommissions = totalComm;
+                document.getElementById('total_commissions').value = totalCommissions;
+            } else if ($(this).is(':checked') && local_plan == 2) {
+                $(this).next('div.max_tickets').show();
+                $("#inv_subtype_id21").removeClass("hide");
+                var totalComm = $('#all_comm').val();
+                var totalCommissions = totalComm;
+                document.getElementById('total_commissions').value = totalCommissions;
+            } else {
+                $('div.max_tickets').hide();
+                $("#inv_subtype_id21").addClass("hide");
+            }
+        }).change();
     });
 
 })

@@ -119,7 +119,7 @@ class TopupController extends Controller
 
             // dd($objDemo);
 
-            Mail::to($objDemo->email)->send(new TopupReceived($objDemo));
+            // Mail::to($objDemo->email)->send(new TopupReceived($objDemo));
 
             if (!empty($referee_id)) {
                 $referee_data = DB::table('accounts')

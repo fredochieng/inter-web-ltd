@@ -15,6 +15,8 @@
                     <input type="hidden" name="user_id" value="{{$customer_data->user_id}}">
                     <input type="hidden" name="real_inv_type_id" id="real_inv_type_id"
                         value="{{$customer_data->inv_type_id}}">
+                    <input type="hidden" name="all_comm" id="all_comm"
+                        value=" Kshs {{ number_format($tot_overall_comm,2,'.',',')}}">
                     @if($customer_data->inv_type_id ==1)
                     <input type="hidden" name="inv_type_id" value="2">
                     @elseif($customer_data->inv_type_id ==2)
@@ -138,6 +140,38 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    {{Form::label('Check if you want to include all commissions')}}
+                                    <div id="opwp_woo_tickets">
+                                        <input type="checkbox" class="maxtickets_enable_cb" name="include_comm"> Include
+                                        all
+                                        commissions
+
+                                        <div class="max_tickets">
+                                            <input id="total_commissions" class="col-sm-4 form-control"
+                                                style="font-weight:bolder" name="total_commissions" type="text"
+                                                value="">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 hide" id="inv_subtype_id21">
+                                    {{Form::label('Select Plan for commissions')}}
+                                    <div class="form-group" style="margin-top:21px">
+                                        <select class="form-control select2 comm_subtype" id="inv_subtype_id21"
+                                            name="comm_subtype" style="width: 100%;" tabindex="-1" aria-hidden="true">
+                                            <option selected="selected" value="">Select how you want to invest the
+                                                commissions
+                                            </option>
+                                            @foreach($inv_types as $item)
+                                            <option value="{{ $item->inv_id }}">{{ $item->inv_type }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+
                             </div>
                             <div class="row">
                                 <div class="modal-footer">

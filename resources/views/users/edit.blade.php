@@ -168,6 +168,14 @@
                     @endif
                 </tr>
                 <tr>
+                    @if($customer_data->inv_type_id == 3)
+                    <td style=""><strong> MONTHLY INVESTMENT :</strong>Kshs
+                        {{ number_format($customer_data->monthly_inv,2,'.',',')}}
+                    </td>
+                    <td style=""><strong> COMPOUNDED INVESTMENT :</strong>Kshs
+                        {{ number_format($customer_data->compounded_inv,2,'.',',')}}
+                    </td>
+                    @endif
                     @if($customer_data->inv_type_id == 3 && $approved == 'Y' && $customer_data->tot_comp_amount != 0)
                     <td style=""><strong> COMPOUND AMOUNT :</strong>Kshs
                         {{ number_format($customer_data->tot_comp_amount,2,'.',',')}}

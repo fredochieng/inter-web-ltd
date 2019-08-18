@@ -766,10 +766,6 @@ class UserController extends Controller
             ->where('tot_topup_comm', '>', 0)
             ->get();
 
-        // echo "<pre>";
-        // print_r($referer_topups);
-        // exit;
-
         // END CLIENT REFERALS
 
         $data['client_payment_modes'] = DB::table('client_payment_modes')
@@ -840,24 +836,37 @@ class UserController extends Controller
 
         // GET INVETSMENT AND TOPUP COMMISSIONS FOR ALL REFERED CLIENTS
         $inv_comm = json_decode(json_encode($data['referer']), true);
-        $inv_comm = array_column($inv_comm, 'inv_comm');
+        $inv_comm1 = array_column($inv_comm, 'inv_comm');
+        $tot_inv_comm = array_column($inv_comm, 'tot_inv_comm');
 
         $topup_comm = json_decode(json_encode($referer_topups), true);
-        $topup_comm = array_column($topup_comm, 'topup_comm');
+        $topup_comm1 = array_column($topup_comm, 'topup_comm');
+        $tot_topup_comm = array_column($topup_comm, 'tot_topup_comm');
 
         // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
         $inv_comm_sum = 0;
-        foreach ($inv_comm as $key => $item) {
+        foreach ($inv_comm1 as $key => $item) {
             $inv_comm_sum += $item;
+        }
+
+        $tot_inv_comm_sum = 0;
+        foreach ($tot_inv_comm as $key => $item) {
+            $tot_inv_comm_sum += $item;
         }
 
         // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
         $topup_comm_sum = 0;
-        foreach ($topup_comm as $key => $item) {
+        foreach ($topup_comm1 as $key => $item) {
             $topup_comm_sum += $item;
         }
 
+        $tot_topup_comm_sum = 0;
+        foreach ($tot_topup_comm as $key => $item) {
+            $tot_topup_comm_sum += $item;
+        }
+
         $tot_comm = $inv_comm_sum + $topup_comm_sum;
+        $data['tot_overall_comm'] = $tot_inv_comm_sum + $tot_topup_comm_sum;
 
         $next_pay = array_diff($pay_dates, $user_pay_dates);
 

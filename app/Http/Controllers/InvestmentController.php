@@ -1249,8 +1249,81 @@ class InvestmentController extends Controller
 
     public function changePlan(Request $request)
     {
-        $account_no_id = $request->input('account_no_id');
+        $include_comm = $request->input('include_comm');
+        $tot_commissions = $request->input('total_commissions');
+        $tot_commissions = str_replace('Kshs ', '', $tot_commissions);;
+        $tot_commissions = str_replace(',', '', $tot_commissions);;
+        $tot_commissions = str_replace('.00"', '', $tot_commissions);
+        $all_comm = $request->input('all_comm');
+        $all_comm = str_replace('Kshs ', '', $all_comm);
+        $all_comm = str_replace(',', '', $all_comm);
+        $all_comm = str_replace('.00"', '', $all_comm);
         $user_id = $request->input('user_id');
+
+        if (empty($include_comm)) {
+            $tot_comm = $all_comm;
+        } elseif (!empty($include_comm)) {
+            $tot_comm = 0;
+            $tot_commissions = $tot_commissions;
+
+            // Get clients commissions
+            $referer_inv_comm = DB::table('users')
+                ->select(
+                    DB::raw('users.id as referee_id'),
+                    DB::raw('accounts.id AS accnt_id'),
+                    DB::raw('investments.tot_inv_comm')
+                )
+                ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')
+                ->leftJoin('investments', 'accounts.id', '=', 'investments.account_no_id')
+                ->where('users.refered_by', '=', $user_id)
+                ->where('investments.inv_status_id', '=', 1)
+                ->where('tot_inv_comm', '>', 0)
+                ->get();
+
+            $inv_accounts = array();
+            foreach ($referer_inv_comm as $value) {
+
+                $inv_accounts[] = $value->accnt_id;
+            }
+
+            $inv_comm_data = array(
+                'tot_inv_comm' => 0
+            );
+
+            $update_investments = DB::table('investments')->whereIn('account_no_id', $inv_accounts)
+                ->update($inv_comm_data);
+
+            $referer_topups_comm = DB::table('topups')
+                ->select(
+                    DB::raw('topups.account_id'),
+                    DB::raw('topups.tot_topup_comm'),
+                    DB::raw('accounts.id as account_id'),
+                    DB::raw('users.id')
+                )
+                ->leftJoin('accounts', 'topups.account_id', '=', 'accounts.id')
+                ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+                ->where('users.refered_by', '=', $user_id)
+                ->orderBy('topups.topup_id', 'desc')
+                ->where('tot_topup_comm', '>', 0)
+                ->get();
+
+            //dd($referer_topups_comm);
+
+            $topup_accounts = array();
+            foreach ($referer_topups_comm as $value) {
+
+                $topup_accounts[] = $value->account_id;
+            }
+
+            $topup_comm_data = array(
+                'tot_topup_comm' => 0
+            );
+
+            $update_topups = DB::table('topups')->whereIn('account_id', $topup_accounts)
+                ->update($topup_comm_data);
+        }
+
+        $account_no_id = $request->input('account_no_id');
         $plan_type = $request->input('plan_type');
         $inv_type_id = $request->input('inv_type_id');
         $investment_amount = $request->input('amount_transfered');
@@ -1278,54 +1351,56 @@ class InvestmentController extends Controller
         $pay_dates = json_encode($pay_dates);
 
         // Get clients commissions
-        $referer_inv_comm = DB::table('users')
-            ->select(
-                DB::raw('users.id as referee_id'),
-                DB::raw('accounts.id AS accnt_id'),
-                DB::raw('investments.tot_inv_comm')
-            )
-            ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')
-            ->leftJoin('investments', 'accounts.id', '=', 'investments.account_no_id')
-            ->where('users.refered_by', '=', $user_id)
-            ->where('investments.inv_status_id', '=', 1)
-            ->where('tot_inv_comm', '>', 0)
-            ->get();
+        // $referer_inv_comm = DB::table('users')
+        //     ->select(
+        //         DB::raw('users.id as referee_id'),
+        //         DB::raw('accounts.id AS accnt_id'),
+        //         DB::raw('investments.tot_inv_comm')
+        //     )
+        //     ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')
+        //     ->leftJoin('investments', 'accounts.id', '=', 'investments.account_no_id')
+        //     ->where('users.refered_by', '=', $user_id)
+        //     ->where('investments.inv_status_id', '=', 1)
+        //     ->where('tot_inv_comm', '>', 0)
+        //     ->get();
 
-        $referer_topups_comm = DB::table('topups')
-            ->select(
-                DB::raw('topups.account_id'),
-                DB::raw('topups.tot_topup_comm'),
-                DB::raw('accounts.id as account_id'),
-                DB::raw('users.id')
-            )
-            ->leftJoin('accounts', 'topups.account_id', '=', 'accounts.id')
-            ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
-            ->where('users.refered_by', '=', $user_id)
-            ->orderBy('topups.topup_id', 'desc')
-            ->where('tot_topup_comm', '>', 0)
-            ->get();
+        // $referer_topups_comm = DB::table('topups')
+        //     ->select(
+        //         DB::raw('topups.account_id'),
+        //         DB::raw('topups.tot_topup_comm'),
+        //         DB::raw('accounts.id as account_id'),
+        //         DB::raw('users.id')
+        //     )
+        //     ->leftJoin('accounts', 'topups.account_id', '=', 'accounts.id')
+        //     ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+        //     ->where('users.refered_by', '=', $user_id)
+        //     ->orderBy('topups.topup_id', 'desc')
+        //     ->where('tot_topup_comm', '>', 0)
+        //     ->get();
 
-        // Calculate the total commission for both investments and topups
+        // // Calculate the total commission for both investments and topups
 
-        $inv_comm = json_decode(json_encode($referer_inv_comm), true);
-        $inv_comm = array_column($inv_comm, 'tot_inv_comm');
+        // $inv_comm = json_decode(json_encode($referer_inv_comm), true);
+        // $inv_comm = array_column($inv_comm, 'tot_inv_comm');
 
-        $topup_comm = json_decode(json_encode($referer_topups_comm), true);
-        $topup_comm = array_column($topup_comm, 'tot_topup_comm');
+        // $topup_comm = json_decode(json_encode($referer_topups_comm), true);
+        // $topup_comm = array_column($topup_comm, 'tot_topup_comm');
 
-        // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
-        $inv_comm_sum = 0;
-        foreach ($inv_comm as $key => $item) {
-            $inv_comm_sum += $item;
-        }
+        // // SUM ALL THE RELEVANT INVESTMENT COMMISSIONS AND GET THE TOTAL
+        // $inv_comm_sum = 0;
+        // foreach ($inv_comm as $key => $item) {
+        //     $inv_comm_sum += $item;
+        // }
 
-        // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
-        $topup_comm_sum = 0;
-        foreach ($topup_comm as $key => $item) {
-            $topup_comm_sum += $item;
-        }
+        // // SUM ALL THE RELEVANT TOPUP COMMISSIONS AND GET THE TOTAL
+        // $topup_comm_sum = 0;
+        // foreach ($topup_comm as $key => $item) {
+        //     $topup_comm_sum += $item;
+        // }
 
-        $tot_comm = $inv_comm_sum + $topup_comm_sum;
+        // $tot_comm = $inv_comm_sum + $topup_comm_sum;
+
+
 
         $inv_type_id = $request->input('inv_type_id');
         $real_inv_type_id = $request->input('real_inv_type_id');
@@ -1338,8 +1413,14 @@ class InvestmentController extends Controller
 
                     // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT TYPE
                     $inv_duration =  $investment_duration;
-                    $inv_amount =  $investment_amount;
+                    if (empty($include_comm)) {
+                        $inv_amount =  $investment_amount;
+                    } else {
+                        $inv_amount =  $investment_amount + $tot_commissions;
+                    }
+                    // $inv_amount =  $investment_amount;
                     $monthly_pay = 0.2 * $inv_amount;
+
                     $total_pay = $monthly_pay * $inv_duration;
 
                     $accu_interest_array = array();
@@ -1349,6 +1430,7 @@ class InvestmentController extends Controller
                     }
 
                     $total_pay = $total_pay + $tot_comm;
+
 
                     // Update accounts table with the total due payments amount
                     $users_accounts_data = array(
@@ -1380,8 +1462,8 @@ class InvestmentController extends Controller
                     // Update investment table with the investment data
                     $investments_data = array(
                         'inv_date' => $inv_date,
-                        'investment_amount' => $investment_amount,
-                        'initial_inv' => $investment_amount,
+                        // 'investment_amount' => $investment_amount,
+                        // 'initial_inv' => $investment_amount,
                         'investment_duration' => $investment_duration,
                         'inv_type_id' => $inv_type_id,
                         'last_pay_date' => date('Y-m-d', strtotime($last_pay_date))
@@ -1391,7 +1473,13 @@ class InvestmentController extends Controller
                         ->update($investments_data);
                 } elseif ($inv_type_id == 2) {
 
-                    $principal = $investment_amount;
+                    if (empty($include_comm)) {
+                        $principal = $investment_amount;
+                    } else {
+                        $principal =  $investment_amount + $tot_commissions;
+                    }
+                    // $principal = $investment_amount;
+
                     $interestRate = 0.2;
                     $term = $investment_duration - 1;
 
@@ -1437,8 +1525,8 @@ class InvestmentController extends Controller
                     // Update Clients Investments
                     $investments_data = array(
                         'inv_date' => $inv_date,
-                        'initial_inv' => $investment_amount,
-                        'investment_amount' => $investment_amount,
+                        // 'initial_inv' => $investment_amount,
+                        // 'investment_amount' => $investment_amount,
                         'investment_duration' => $investment_duration,
                         'inv_type_id' => $inv_type_id,
                         'last_pay_date' => date('Y-m-d', strtotime($last_pay_date))
@@ -1454,7 +1542,14 @@ class InvestmentController extends Controller
 
                 if ($inv_subtype_id2 == 1) {
 
-                    $principal = $investment_amount;
+                    if (empty($include_comm)) {
+                        $principal = $investment_amount;
+                    } else {
+                        $principal =  $investment_amount + $tot_commissions;
+                    }
+
+
+                    // $principal = $investment_amount;
                     $interestRate = 0.2;
                     $term = $investment_duration - 1;
 
@@ -1500,8 +1595,8 @@ class InvestmentController extends Controller
                     // Update Clients Investments
                     $investments_data = array(
                         'inv_date' => $inv_date,
-                        'initial_inv' => $investment_amount,
-                        'investment_amount' => $investment_amount,
+                        // 'initial_inv' => $investment_amount,
+                        // 'investment_amount' => $investment_amount,
                         'investment_duration' => $investment_duration,
                         'inv_type_id' => $new_inv_type_id,
                         'monthly_inv' => '',
@@ -1517,7 +1612,13 @@ class InvestmentController extends Controller
 
                     // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT TYPE
                     $inv_duration =  $investment_duration;
-                    $inv_amount =  $investment_amount;
+
+                    if (empty($include_comm)) {
+                        $inv_amount =  $investment_amount;
+                    } else {
+                        $inv_amount =  $investment_amount + $tot_commissions;
+                    }
+                    //$inv_amount =  $investment_amount;
                     $monthly_pay = 0.2 * $inv_amount;
                     $total_pay = $monthly_pay * $inv_duration;
 
@@ -1559,8 +1660,8 @@ class InvestmentController extends Controller
                     // Update investment table with the investment data
                     $investments_data = array(
                         'inv_date' => $inv_date,
-                        'investment_amount' => $investment_amount,
-                        'initial_inv' => $investment_amount,
+                        // 'investment_amount' => $investment_amount,
+                        // 'initial_inv' => $investment_amount,
                         'investment_duration' => $investment_duration,
                         'inv_type_id' => $new_inv_type_id1,
                         'monthly_inv' => '',
@@ -1575,14 +1676,61 @@ class InvestmentController extends Controller
                 }
             }
         } elseif ($plan_type == 2) {
+            $comm_plan = $request->input('comm_subtype');
 
+            if (empty($include_comm)) {
+                $tot_comm = $all_comm;
+            } elseif (!empty($include_comm)) {
+                $tot_comm = 0;
+            }
+
+            $tot_commissions = $tot_commissions;
             if ($real_inv_type_id == 1 || $real_inv_type_id == 2) {
                 $new_inv_type = 3;
-                $monthly_inv_amount = $investment_amount;
+                if ($real_inv_type_id == 1) {
+                    if ($comm_plan == 1) {
+
+                        $monthly_inv_amount = $request->input('amount_after_transfer') + $tot_commissions;
+                        $compounded_inv_amount = $investment_amount;
+                    } elseif ($comm_plan == 2) {
+                        $monthly_inv_amount = $request->input('amount_after_transfer');
+                        $compounded_inv_amount = $investment_amount + $tot_commissions;
+                    } else {
+                        $monthly_inv_amount = $request->input('amount_after_transfer');
+                        $compounded_inv_amount = $investment_amount;
+                    }
+                } elseif ($real_inv_type_id == 2) {
+                    if ($comm_plan == 1) {
+
+                        $monthly_inv_amount = $investment_amount  + $tot_commissions;
+
+                        $compounded_inv_amount = $request->input('amount_after_transfer');
+                    } elseif ($comm_plan == 2) {
+                        $monthly_inv_amount = $investment_amount;
+
+                        $compounded_inv_amount = $request->input('amount_after_transfer') + $tot_commissions;
+                    } else {
+                        $monthly_inv_amount = $investment_amount;
+
+                        $compounded_inv_amount = $request->input('amount_after_transfer');
+                    }
+
+
+                    // $monthly_inv_amount = $investment_amount;
+                    // $compounded_inv_amount = $request->input('amount_after_transfer');
+                }
+                //dd($monthly_inv_amount);
                 $monthly_inv_duration = $request->input('monthly_inv_duration');
-                $compounded_inv_amount = $request->input('amount_after_transfer');
+                //$compounded_inv_amount = $request->input('amount_after_transfer');
                 $compounded_inv_duration = $request->input('compounded_inv_duration');
-                $total_investments = $monthly_inv_amount + $compounded_inv_amount;
+
+                if (empty($include_comm)) {
+                    $total_investments = $monthly_inv_amount + $compounded_inv_amount;
+                } elseif (!empty($include_comm)) {
+                    // Add another conditin for monthly inv and comp inv, do not add
+                    $total_investments = $monthly_inv_amount + $compounded_inv_amount - $tot_commissions;
+                }
+                //$total_investments = $monthly_inv_amount + $compounded_inv_amount;
 
 
                 // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT
@@ -1643,8 +1791,8 @@ class InvestmentController extends Controller
                 // Update investments table with the total due payments amount
                 $investments_data = array(
                     'inv_date' => $inv_date,
-                    'initial_inv' => $total_investments,
-                    'investment_amount' => $total_investments,
+                    // 'initial_inv' => $total_investments,
+                    // 'investment_amount' => $total_investments,
                     'investment_duration' => $investment_duration,
                     'monthly_inv' => $monthly_inv_amount,
                     'compounded_inv' => $compounded_inv_amount,
@@ -1665,8 +1813,20 @@ class InvestmentController extends Controller
                 $compounded_inv_duration = $request->input('compounded_inv_duration');
 
                 if ($inv_subtype_id2 == 1) {
-                    $new_monthly_inv = $monthly_total_investments - $transfered_amount;
-                    $new_comp_inv = $comp_total_investments + $transfered_amount;
+
+                    if ($comm_plan == 1) {
+                        $new_monthly_inv = $monthly_total_investments + $tot_commissions - $transfered_amount;
+                        $new_comp_inv = $comp_total_investments + $transfered_amount;
+                    } elseif ($comm_plan == 2) {
+                        $new_monthly_inv = $monthly_total_investments - $transfered_amount;
+                        $new_comp_inv = $comp_total_investments + $transfered_amount + $tot_commissions;
+                    } else {
+                        $new_monthly_inv = $monthly_total_investments - $transfered_amount;
+                        $new_comp_inv = $comp_total_investments + $transfered_amount;
+                    }
+
+                    // $new_monthly_inv = $monthly_total_investments - $transfered_amount;
+                    // $new_comp_inv = $comp_total_investments + $transfered_amount;
 
                     // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT
                     $monthly_inv_pay = 0.2 * $new_monthly_inv;
@@ -1726,8 +1886,8 @@ class InvestmentController extends Controller
                     // Update investments table with the total due payments amount
                     $investments_data = array(
                         'inv_date' => $inv_date,
-                        'investment_duration' => $investment_duration,
-                        'monthly_inv' => $new_monthly_inv,
+                        // 'investment_duration' => $investment_duration,
+                        // 'monthly_inv' => $new_monthly_inv,
                         'compounded_inv' => $new_comp_inv,
                         'monthly_duration' => $monthly_inv_duration,
                         'comp_duration' => $compounded_inv_duration,
@@ -1736,8 +1896,17 @@ class InvestmentController extends Controller
                     $update_investments = DB::table('investments')->where('account_no_id', $account_no_id)
                         ->update($investments_data);
                 } elseif ($inv_subtype_id2 == 2) {
-                    $new_monthly_inv = $monthly_total_investments + $transfered_amount;
-                    $new_comp_inv = $comp_total_investments - $transfered_amount;
+
+                    if ($comm_plan == 1) {
+                        $new_monthly_inv = $monthly_total_investments + $tot_commissions + $transfered_amount;
+                        $new_comp_inv = $comp_total_investments - $transfered_amount;
+                    } elseif ($comm_plan == 2) {
+                        $new_monthly_inv = $monthly_total_investments + $transfered_amount;
+                        $new_comp_inv = $comp_total_investments + $tot_commissions - $transfered_amount;
+                    } else {
+                        $new_monthly_inv = $monthly_total_investments + $transfered_amount;
+                        $new_comp_inv = $comp_total_investments - $transfered_amount;
+                    }
 
                     // CALCULATE MONTHLY AND TOTAL PAYMENTS FOR MONHTLY INVESTMENT
                     $monthly_inv_pay = 0.2 * $new_monthly_inv;
