@@ -131,7 +131,7 @@ class ReportController extends Controller
                 DB::raw('users_details.*'),
                 DB::raw('accounts.*'),
                 DB::raw('accounts.id AS accnt_id'),
-                DB::raw('investments.*'),
+                DB::raw('investments.*')
             )
             ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
             ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')

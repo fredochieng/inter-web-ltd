@@ -72,3 +72,5 @@ Route::any('/transactions/summary', 'HomeController@summaryJob');
 Route::resource('/clients', 'ClientController');
 Route::any('/client/add', 'ClientController@create');
 Route::any('/client/store', 'ClientController@store');
+Route::any('/client/update_referral', 'ReferalsController@updateUserReferal');
+Route::any('/client/update_payment_mode', 'PaymentModeController@updateUserPaymentMode');

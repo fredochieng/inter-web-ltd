@@ -55,9 +55,11 @@
             <button data-toggle="modal" disabled data-target="#modal_new_topup" data-backdrop="static"
                 data-keyboard="false" class="btn bg-aqua margin"><i class="fa fa-plus"></i> NEW TOPUP</button>
             @endif
+            @if((auth()->user()->can('payments.manage')))
             <button data-toggle="modal" data-target="#modal_change_plan" data-backdrop="static" data-keyboard="false"
                 class="btn bg-orange margin"><i class="fa fa-check"></i>
                 CHANGE PLAN</button>
+            @endif
             @if((auth()->user()->can('payments.manage')) && $approved =='Y' && $fully_paid == 'N')
 
             <button data-toggle="modal" data-target="#modal_add_payment" data-backdrop="static" data-keyboard="false"
@@ -310,9 +312,15 @@
                                         </div>
                                     </div>
                                     <input type="hidden" name="referee_id" value="{{$customer_data->refered_by}}">
+
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             {{Form::label('Refered By')}}
+                                            <button type="button" class="btn btn-info btn-xs pull-right add_co"
+                                                data-toggle="modal" data-target="#modal_edit_referral"
+                                                data-keyboard="false" data-backdrop="static"> <i
+                                                    class="fa fa-fw fa-pencil"></i> Edit Referral
+                                            </button>
                                             <div class="form-group">
                                                 {{Form::text('referer_name', $name_idno,['class'=>'form-control', 'readonly', 'id' => 'referer_name'])}}
                                             </div>
@@ -320,39 +328,52 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            {{Form::label('Payment Mode')}}
+                                            {{Form::label('Referer Phone Number')}}
                                             <div class="form-group">
-                                                {{Form::text('pay_mode_id',  $customer_data->method_name,['class'=>'form-control', 'readonly', 'id' => 'referer_name'])}}
+                                                {{Form::text('referer_name', $referer_phone,['class'=>'form-control', 'readonly', 'id' => 'referer_name'])}}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            {{Form::label('Payment Mode')}}
+                                            <button type="button" class="btn btn-info btn-xs pull-right add_co"
+                                                data-toggle="modal" data-target="#modal_edit_payment_mode"
+                                                data-keyboard="false" data-backdrop="static"> <i
+                                                    class="fa fa-fw fa-pencil"></i> Edit Payment Mode
+                                            </button>
+                                            <div class="form-group">
+                                                {{Form::text('pay_mode_id2',  $customer_data->method_name,['class'=>'form-control', 'readonly', 'id' => 'referer_name'])}}
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     @if($customer_data->method_name == 'MPESA')
-                                    <div class="col-md-3 mpesa_number_div" id="mpesa_number_div">
+                                    <div class="col-md-3 mpesa_number_div2" id="mpesa_number_div2">
                                         <div class="form-group">
                                             {{Form::label('MPESA Number')}}
                                             <div class="form-group">
-                                                {{Form::text('pay_mpesa_no', $customer_data->pay_mpesa_no,['class'=>'form-control', 'id' => 'mpesa_number','readonly'])}}
+                                                {{Form::text('pay_mpesa_no2', $customer_data->pay_mpesa_no,['class'=>'form-control', 'id' => 'mpesa_number2','readonly'])}}
                                             </div>
                                         </div>
                                     </div>
                                     @else
-                                    <div class="col-md-3 bank_payment_acc" id="bank_payment_acc">
+                                    <div class="col-md-3 bank_payment_acc2" id="bank_payment_acc2">
                                         <div class="form-group">
                                             {{Form::label('Bank Name')}}
                                             <div class="form-group">
-                                                {{Form::text('pay_bank_acc', $customer_data->bank_name,['class'=>'form-control','readonly'])}}
+                                                {{Form::text('pay_bank_acc2', $customer_data->bank_name,['class'=>'form-control','readonly'])}}
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-3 bank_payment_acc" id="bank_payment_acc">
+                                    <div class="col-md-3 bank_payment_acc2" id="bank_payment_acc2">
                                         <div class="form-group">
                                             {{Form::label('Bank Account')}}
                                             <div class="form-group">
-                                                {{Form::text('pay_bank_acc', $customer_data->pay_bank_acc,['class'=>'form-control','readonly'])}}
+                                                {{Form::text('pay_bank_acc2', $customer_data->pay_bank_acc,['class'=>'form-control','readonly'])}}
                                             </div>
                                         </div>
                                     </div>
@@ -606,6 +627,8 @@
 @include('modals.users.modal_delete_user')
 @include('modals.investments.modal_add_investment')
 @include('modals.investments.modal_change_plan')
+@include('modals.users.modal_edit_referral')
+@include('modals.payments.modal_edit_payment_mode')
 </div>
 
 @stop
@@ -619,32 +642,13 @@
 <script src="/js/select2.full.min.js"></script>
 <script src="/plugins/iCheck/icheck.min.js"></script>
 <script src="/js/change_plan.js"></script>
+<script src="/js/edit_payment_mode.js"></script>
 <script src="https://oss.maxcdn.com/jquery.bootstrapvalidator/0.5.2/js/bootstrapValidator.min.js"></script>
 </script>
 <script>
     $(function() {
         var form = document.getElementById("confirm_payment_form");
         form.reset();
-        $("#pay_mode_id").change(function() {
-                    var val = $(this).val();
-                    if (val == 1 ) {
-
-                    $("#mpesa_number_div").removeClass("hide");
-                    $("#bank_acc_div").addClass("hide");
-                    $("#bank_payment_div").addClass("hide");
-                    }else{
-                    $("#mpesa_number_div").addClass("hide");
-                    }
-                    if (val == 2 ) {
-
-                    $("#bank_payment_div").removeClass("hide");
-                    $("#bank_acc_div").removeClass("hide");
-                    }
-                    else{
-                    $("#bank_payment_div").addClass("hide");
-                    $("#bank_acc_div").addClass("hide");
-                    }
-        });
            // CONFIRM PAYMENT
 
         $(".select2").select2()
@@ -898,6 +902,73 @@ $("#termination_type").change(function() {
            // var form = document.getElementById("addClientForm");
             //form.reset();
      })
+
+</script>
+
+<script>
+    $(function () {
+            $("#phone_no_id").select2({
+
+                ajax: {
+                    url: "/phones/get_numbers",
+                    type: 'GET',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        console.log(params);
+                        return {
+                            q: params.term, // search term
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data, params) {
+                        params.page = params.page || 1;
+                        var retVal = [];
+                        $.each(data, function (index, element) {
+                            var lineObj = {
+                                id: element.id,
+                                text: element.text,
+                                referer_name: element.referer_name
+                            }
+                            retVal.push(lineObj);
+                        });
+                        return {
+                            results: retVal,
+                            pagination: {
+                                more: (params.page * 30) < data.total_count
+                            }
+                        };
+                    },
+                    cache: true
+                },
+                placeholder: 'Search referer by phone number',
+                escapeMarkup: function (markup) {
+                    return markup;
+                }, // let our custom formatter work
+                minimumInputLength: 4,
+                templateResult: formatRepo,
+                templateSelection: formatRepoSelection
+            }).on('select2:select', function (e) {
+                var data = e.params.data;
+                console.log(data);
+                $("#referer_name1").val(data.referer_name);
+                $("#referer_id1").val(data.id);
+                $("#referer_phone1").val(data.text);
+                console.log();
+            });
+
+            function formatRepo(repo) {
+                if (repo.loading) {
+                    return repo.text;
+                }
+                var markup = repo.text;
+                return markup;
+            }
+
+            function formatRepoSelection(repo) {
+                return repo.text;
+            }
+        })
 
 </script>
 

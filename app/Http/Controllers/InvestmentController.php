@@ -47,6 +47,10 @@ class InvestmentController extends Controller
         $data['sum_investments'] = Investment::totalInvestments();
         $data['topups'] = Topup::getTopups();
 
+        echo "<pre>";
+        print_r($data['investments']);
+        exit;
+
         $data['investments']->map(function ($item) {
 
             $name = DB::table('users')
@@ -153,6 +157,7 @@ class InvestmentController extends Controller
                     // CALCULATE LAST PAYMENT DATE
                     $inv_duration =  '12';
                     $inv_date =  $request->input('inv_date');
+                    // dd($inv_date);
                     $last_pay_date = Carbon::parse($inv_date)->addMonths($inv_duration)->format('Y-m-d');
 
                     // GET ALL THE PAYMENT DATES FOR A USER (MONTHLY INVESTMENT TYPE)
@@ -211,7 +216,7 @@ class InvestmentController extends Controller
                 $mpesa_trans_code = $request->input('mpesa_trans_code');
                 $inv_bank_id = $request->input('inv_bank_id');
                 $bank_trans_code = $request->input('bank_trans_code');
-                $inv_bank_id = $request->input('inv_cheq_bank_id');
+                // $inv_bank_id = $request->input('inv_cheq_bank_id');
                 $cheque_no = $request->input('cheque_no');
                 $monthly_inv_amount = $request->input('monthly_inv_amount');
                 $monthly_inv_duration = $request->input('monthly_inv_duration');
@@ -552,7 +557,7 @@ class InvestmentController extends Controller
                 $objDemo->fterm = $fterm;
                 // $objDemo->monthly_pay = $monthly_pay;
                 $objDemo->payable_amount = $payable_amount;
-                $objDemo->inv_date = $inv_date;
+                $objDemo->inv_date = $real_inv_date;
                 $objDemo->duration = $inv_duration;
                 $objDemo->inv_type = $investment_type->inv_type;
                 $objDemo->message = $message;
@@ -1978,6 +1983,8 @@ class InvestmentController extends Controller
                 }
             }
         }
+
+
 
         $user_payment_mode = array(
             'pay_dates' => $pay_dates

@@ -31,6 +31,7 @@ use App\Model\UserPayMode;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SuccessfulRegistration;
 use App\Mail\InvestmentReceived;
+use App\Mail\AccountDeleted;
 
 class UserController extends Controller
 {
@@ -699,9 +700,11 @@ class UserController extends Controller
 
             $data['referer_name'] = $refer_data->name;
             $data['referer_idno'] = $refer_data->id_no;
+            $data['referer_phone'] = $refer_data->telephone;
             $data['name_idno'] =  $data['referer_name'] . ' - ' .  $data['referer_idno'];
         } else {
             $data['name_idno'] = 'NOBODY';
+            $data['referer_phone'] = 'N/A';
         }
 
         // GET CLIENT REFERALS AND ALL THE RELATED DATA (INVESTMENTS, TOPUPS)
@@ -741,7 +744,7 @@ class UserController extends Controller
                 DB::raw('users.id as referee_id'),
                 DB::raw('users_details.*'),
                 DB::raw('accounts.*'),
-                DB::raw('accounts.id AS accnt_id'),
+                DB::raw('accounts.id AS accnt_id')
             )
             ->leftJoin('users_details', 'users.id', '=', 'users_details.user_id')
             ->leftJoin('accounts', 'users.id', '=', 'accounts.user_id')
@@ -1598,7 +1601,22 @@ class UserController extends Controller
 
     public function destroy($id)
     {
-        DB::table('users')->where('id', $id)->delete();
+        $client = DB::table('users')->where('id', $id)->first();
+
+        $objDemo = new \stdClass();
+        $objDemo->subject = 'Account Deleted';
+        $company = "Inter-Web Global Fortune Limited";
+        $objDemo->company = $company;
+
+        // //1. Send to the user
+        $message = "Your account with Inter-Web Global Fortune Limited has been deleted successfully";
+        $objDemo->email = $client->email;
+        $objDemo->name = $client->name;
+        $objDemo->message = $message;
+
+        // dd($objDemo);
+        Mail::to($client->email)->send(new AccountDeleted($objDemo));
+        // DB::table('users')->where('id', $id)->delete();
         toast('User deleted successfully', 'success', 'top-right');
 
         return redirect('customers');

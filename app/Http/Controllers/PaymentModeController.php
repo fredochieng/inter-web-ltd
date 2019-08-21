@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Model\PaymentMode;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
+use DB;
 
 class PaymentModeController extends Controller
 {
@@ -81,6 +82,42 @@ class PaymentModeController extends Controller
     public function update(Request $request, PaymentMode $paymentMode)
     {
         //
+    }
+
+    public function updateUserPaymentMode(Request $request)
+    {
+        $user_id = $request->input('user_id');
+        $pay_mode_id = $request->input('pay_mode_id');
+        $pay_mpesa_no = $request->input('pay_mpesa_no');
+        $pay_bank_id = $request->input('pay_bank_id');
+        $pay_bank_acc = $request->input('pay_bank_acc');
+
+        $user_payment_mode = array(
+            'pay_mode_id' => $pay_mode_id,
+            'pay_mpesa_no' => $pay_mpesa_no,
+            'pay_bank_id' => $pay_bank_id,
+            'pay_bank_acc' => $pay_bank_acc
+        );
+        $update_user_pay_modes = DB::table('user_pay_modes')->where('user_id', $user_id)
+            ->update($user_payment_mode);
+
+
+        $client_pay_modes = DB::table('client_payment_modes')
+            ->where('user_id', '=', $user_id)->first();
+
+        $pay_id = $client_pay_modes->pay_id;
+
+        $user_payment_mode = array(
+            'pay_mode_id' => $pay_mode_id,
+            'pay_mpesa_no' => $pay_mpesa_no,
+            'pay_bank_id' => $pay_bank_id,
+            'pay_bank_acc' => $pay_bank_acc
+        );
+        $update_user_pay_modes = DB::table('client_payment_modes')->where('pay_id', $pay_id)
+            ->update($user_payment_mode);
+
+        toast('Payment mode updated successfully', 'success', 'top-right');
+        return back();
     }
 
     /**
