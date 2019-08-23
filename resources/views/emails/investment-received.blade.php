@@ -403,14 +403,14 @@
                                                                 Continue trading online and earn exciting returns on
                                                                 your investments.<br /><br />
 
-                                                                &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<strong>INTERNET
+                                                                <strong>INTERNET
                                                                     TRADING AGREEMENT</strong><br /><br />
                                                                 A) This agreement made
                                                                 <strong>{{ $email->inv_date }}</strong> between
                                                                 <strong>Inter-Web Global Fortune Ltd</strong>, a duly
                                                                 registered limited company under <strong>Companies Act,
                                                                     2015 Laws of Kenya and of P.O BOX
-                                                                    50428-00100</strong> in the republic of Kenya <br />
+                                                                    50428-00100</strong> in the republic of Kenya
                                                                 herein referred as the <strong>TRADERS</strong> which
                                                                 content will apply to their assignees, executors,
                                                                 personal representatives, agent’s heirs and or
@@ -433,14 +433,29 @@
                                                                 <strong>{{ $email->amount }}</strong> <br /><br />
                                                                 c) That the trader is ready and willing to accommodate
                                                                 the client request at the following terms; <br /><br />
-                                                                i. {{$email->fterm}}
-                                                                <br /><br />
-                                                                ii. That the client can terminate the contract by giving
-                                                                a one-month notice. However, any termination before the
-                                                                expiry of 12 month period will fact in the amount paid
-                                                                previously and the client will only get the difference
-                                                                if any.<br /><br />
-                                                                iii . That the traders can forthwith terminate
+
+                                                                <p p style="color:purple">i. {{$email->fterm}}</p><br /><br />
+                                                               <!--  i. {{$email->fterm}}<br /><br /> -->
+
+
+                                                                ii. That the cumulative principal amount will be paid back at the expiry of this contract which will be on the twelfth month from the date of signing of this contract. <br /><br />
+
+                                                                iii. That the client can terminate this contract by giving a month notice of which the principal amount will be refunded in full. However, termination cannot be done within the first three month of the signing of this contract. <br /><br />
+
+                                                                iv. That any termination before the expiry of 3-month period will factor in all the amount previously paid and the client will only be paid the difference of the principal amount.  <br /><br />
+
+                                                                v. Termination of this contract after the 3 month without a one month notice will always attract a penalty of 20% of the client’s principal amount. <br /><br />
+
+                                                                vi. That the traders can forthwith terminate investor’s contract even without a prior notice before the expiry period of this contract if they cannot sustain to generate the agreed amount. In this case, the principal amount will be refunded to the client. <br /><br />
+
+                                                                vii. That at the signing of this agreement, the client attest to the fact that he/she shall conduct himself/herself professionally during all the time when the principal amount is traded.<br /><br />
+
+                                                                viii. At the end of the contract, the client may request for a renewal of the contract for another twelve-month period. However, the decision of whether to renew or not will be sole prerogative of the company.<br /><br />
+
+                                                                ix. That at the signing of this agreement both parties witness to the fact that they have read and understood all the terms and conditions upon which this investment has been be made and have agreed to abide by them at all the time. <br /><br />
+
+                                                                                                            
+                                                                <!-- iii . That the traders can forthwith terminate
                                                                 investor’s contract if they cannot sustain to generate
                                                                 the agreed amount. <br /><br />
                                                                 iv. That at the attest to the fact that he/she shall
@@ -455,9 +470,11 @@
                                                                 witness to the fact that they have read and understood
                                                                 all the terms and conditions upon which this investment
                                                                 has been/ shall be made and have agreed to abide by them
-                                                                all the time.<br /><br />
-                                                                viii. That this agreement will come into effect
-                                                                immediately after the date of signing.<br /><br />
+                                                                all the time.<br /><br /> -->
+
+                                                               <!--  viii. That this agreement will come into effect
+                                                                immediately after the date of signing.<br /><br /> -->
+
                                                                 In witness whereof the investor and the trader have
                                                                 executed this agreement the day, month and year herein
                                                                 above stated.<br /><br />

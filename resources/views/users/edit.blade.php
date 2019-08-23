@@ -347,7 +347,7 @@
                                             </button>
                                             <div class="form-group">
                                                 {{Form::text('pay_mode_id2',  $customer_data->method_name,['class'=>'form-control', 'readonly', 'id' => 'referer_name'])}}
-                                            </div>
+                                    </div>
                                         </div>
                                     </div>
 
