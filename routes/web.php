@@ -48,6 +48,7 @@ Route::resource('/payments', 'PaymentController');
 Route::any('/payments/client/search', 'PaymentController@SearchClient');
 
 Route::resource('/topups', 'TopupController');
+Route::any('/topup/approve', 'TopupController@approve');
 Route::resource('/terminations', 'TerminationsController');
 
 Route::any('/reports/customer', 'ReportController@customerReport');

@@ -47,9 +47,9 @@ class InvestmentController extends Controller
         $data['sum_investments'] = Investment::totalInvestments();
         $data['topups'] = Topup::getTopups();
 
-        echo "<pre>";
-        print_r($data['investments']);
-        exit;
+        // echo "<pre>";
+        // print_r($data['investments']);
+        // exit;
 
         $data['investments']->map(function ($item) {
 

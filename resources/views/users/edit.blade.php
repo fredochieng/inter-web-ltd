@@ -471,6 +471,7 @@
                                 <th>Topup Mode</th>
                                 <th>Served By</th>
                                 <th>Topup Date</th>
+                                <th>Topup Status</th>
                                 <th>View Topup</th>
                             </tr>
                         </thead>
@@ -482,6 +483,12 @@
                                 <td>{{$row->inv_mode }}</td>
                                 <td>{{$row->served_by_name }}</td>
                                 <td>{{$row->topped_at}}</td>
+                                @if($row->topup_status_id == 0)
+                        <td><span class="label label-warning">Pending</span></td>
+                        @else
+                        <td><span class="label label-success">Approved</span>
+                        </td>
+                        @endif
                                 <td><a class="viewModal btn btn-info btn-sm" title="View Topup" href="#"
                                         data-toggle="modal" data-target="#modal-view-topup_{{$row->topup_id}}"
                                         data-backdrop="static" data-keyboard="false"><i class="fa fa-eye"></i> View

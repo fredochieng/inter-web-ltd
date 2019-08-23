@@ -13,6 +13,7 @@ use Session;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\TopupReceived;
+use App\Mail\TopupApproved;
 
 class TopupController extends Controller
 {
@@ -116,8 +117,6 @@ class TopupController extends Controller
             $objDemo->amount = $topup->topup_amount;
             $objDemo->topup_date = $topup_date;
             $objDemo->message = $message;
-
-            // dd($objDemo);
 
             // Mail::to($objDemo->email)->send(new TopupReceived($objDemo));
 
@@ -310,8 +309,6 @@ class TopupController extends Controller
                     $comp_due_amount = $data['investments']->tot_comp_amount;
 
                     $new_due_payments = $new_tot_monthly_payable + $data['updated_next_pay'] + $comp_due_amount;
-                    // echo $new_tot_overall_inv;
-                    // exit;
 
                     $topup->save();
 
@@ -401,9 +398,39 @@ class TopupController extends Controller
         }
     }
 
+    public function approve(Request $request){
+        $topup_id = $request->input('topup_id');
+        $status = 1;
+        //dd($topup_id);
+
+            DB::table('topups')->where('topup_id', $topup_id)
+                ->update([
+                    'topup_status_id' => $status
+                ]);
+            $approved_topup = Topup::getTopups()->where('topup_id', '=', $topup_id)->first();
+
+            $objDemo = new \stdClass();
+            $objDemo->subject = 'Investment Approval';
+            $company = "Inter-Web Global Fortune Limited";
+            $objDemo->company = $company;
+
+            //1. Send to the user
+            $objDemo->email = $approved_topup->email;
+            $objDemo->name = $approved_topup->name;
+            $objDemo->topup_amount = $approved_topup->topup_amount;
+            $message = "Your topup of Kshs ' .$objDemo->topup_amount. ' has been approved successfully";
+            $objDemo->message = $message;
+
+            //dd($objDemo);
+
+            Mail::to($approved_topup->email)->send(new TopupApproved($objDemo));
+
+            toast('Topup approved successfully', 'success', 'top-right');
+            return back();
+    }
+
     /**
      * Display the specified resource.
-     *
      * @param  \App\Topup  $topup
      * @return \Illuminate\Http\Response
      */
